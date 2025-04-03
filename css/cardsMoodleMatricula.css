@@ -1,0 +1,48 @@
+.card-bootcamp { 
+    background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.card-ingles { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.card-english-code { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.card-skills { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+/* Colores de los filtros */
+.card-department { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.card-headquarters { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.card-program { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.card-mode { 
+  background-image: url('../img/banners/card.png'); 
+    background-size: cover;
+    background-position: center;
+}

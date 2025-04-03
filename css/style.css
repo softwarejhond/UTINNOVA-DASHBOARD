@@ -1,0 +1,140 @@
+html{
+    font-size: 18px;
+      font-family:Verdana, Geneva, sans-serif;
+      margin: 0;
+      padding: 0;
+  }
+  .step {
+      display: none;
+  }
+  
+  .step.active {
+      display: block;
+  }
+  
+  .progress {
+      width: 100%;
+      height: 20px;
+      background-color: #f3f3f3;
+  }
+  
+  .progress-bar {
+      height: 100%;
+      background-color: #066aab;
+      width: 0%;
+  }
+  
+  .form-navigation {
+      margin-top: 20px;
+  }
+  
+  .bold-label {
+      font-weight: bold;
+  }
+  
+  .required {
+      color: red;
+  }
+  .row {
+      margin: 0 -15px; /* Ajuste si fuera necesario */
+  }
+  .tittle{
+  font-size: 18px;
+  padding-bottom: 20px;
+  
+  }
+  .form-control.mb-3 {
+      margin-bottom: 35px; /* Aumenta el espaciado entre los campos */
+  }
+  select[name="country_code"] {
+      padding-left: 30px; /* Esto asegura que haya espacio para las banderas */
+    }
+    
+    select[name="country_code"] option img {
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    .nextBtn{
+      background-color: #066aab;
+      color: white;
+    }
+    .nextBtn:hover{
+      background-color: #0669abde;
+      color: white;
+    }
+    .prevBtn{
+      background-color: #ff9900;
+      color: black;
+    }
+    .prevBtn:hover{
+      background-color: #ff9900e6;
+      color: black;
+    }
+       /* Personalización del checkbox */
+       .custom-checkbox {
+          width: 20px;
+          height: 20px;
+          border: 2px solid #066aab; /* Borde de color azul */
+          border-radius: 4px; /* Bordes redondeados */
+      }
+      .custom-checkbox:checked {
+          background-color: #066aab; /* Color de fondo cuando está seleccionado */
+      }
+      /* Estilo para el área de arrastrar y soltar */
+  .file-drop-area {
+      border: 2px dashed #ddd;
+      padding: 20px;
+      text-align: center;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      cursor: pointer;
+  }
+  
+  .file-drop-area:hover {
+      border-color: #007bff;
+      background-color: #e9f4ff;
+  }
+  
+  .file-drop-icon {
+      font-size: 40px;
+      color: #007bff;
+      margin-bottom: 10px;
+  }
+  
+  .file-drop-text {
+      display: block;
+      font-size: 16px;
+      color: #555;
+  }
+  
+  .file-input {
+      display: none;  /* Ocultamos el input de archivo tradicional */
+  }
+  
+  .file-preview {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+  }
+  
+  .file-preview img {
+      max-width: 100px;
+      margin-top: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+  }
+      @keyframes fade-in-out {
+          0% {
+              opacity: 0;
+          }
+          25% {
+              opacity: 1;
+          }
+          75% {
+              opacity: 1;
+          }
+          100% {
+              opacity: 0;
+          }
+      }

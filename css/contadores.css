@@ -1,0 +1,156 @@
+:root {
+    /* Colores personalizados originales */
+    --bs-purple-light: #e0c3fc;
+    --bs-purple-dark: #5d3fd3;
+    --bs-teal-light: #b2f0e5;
+    --bs-teal-dark: #006d68;
+    --bs-amber-light: #ffe7b2;
+    --bs-amber-dark: #bf6900;
+    --bs-pink-light: #ffccd5;
+    --bs-pink-dark: #b53471;
+    --bs-indigo-light: #d4d7ff;
+    --bs-indigo-dark: #30336b;
+    --bs-gray-light: #f4f6f7;
+    --bs-gray-dark: #495057;
+    --bs-magenta-dark:#ec008c;
+    --bs-magenta-light:#f5a6c2;
+    /* Colores personalizados adicionales */
+    --bs-lime-light: #e6ffcc;
+    --bs-lime-dark: #66cc00;
+    --bs-orange-light: #ffd8b2;
+    --bs-orange-dark: #e67300;
+    --bs-red-dark: #990000;
+    --bs-blue-dark: #001f3f;
+    --bs-brown-light: #d7b49e;
+    --bs-brown-dark: #6b4226;
+    --bs-cyan-light: #d0f7f9;
+    --bs-cyan-dark: #007a7a;
+    --bs-silver: #c0c0c0;
+}
+
+/* Clases de fondo para todos los colores */
+.bg-magenta-light { background-color: var(--bs-magenta-light) !important; }
+.bg-magenta-dark { background-color: var(--bs-magenta-dark) !important; color: white; }
+
+.bg-purple-light { background-color: var(--bs-purple-light) !important; }
+.bg-purple-dark { background-color: var(--bs-purple-dark) !important; color: white; }
+
+.bg-teal-light { background-color: var(--bs-teal-light) !important; }
+.bg-teal-dark { background-color: var(--bs-teal-dark) !important; color: white; }
+
+.bg-amber-light { background-color: var(--bs-amber-light) !important; }
+.bg-amber-dark { background-color: var(--bs-amber-dark) !important; color: white; }
+
+.bg-pink-light { background-color: var(--bs-pink-light) !important; }
+.bg-pink-dark { background-color: var(--bs-pink-dark) !important; color: white; }
+
+.bg-indigo-light { background-color: var(--bs-indigo-light) !important; }
+.bg-indigo-dark { background-color: var(--bs-indigo-dark) !important; color: white; }
+
+.bg-gray-light { background-color: var(--bs-gray-light) !important; }
+.bg-gray-dark { background-color: var(--bs-gray-dark) !important; color: white; }
+
+.bg-lime-light { background-color: var(--bs-lime-light) !important; }
+.bg-lime-dark { background-color: var(--bs-lime-dark) !important; color: white; }
+
+.bg-orange-light { background-color: var(--bs-orange-light) !important; }
+.bg-orange-dark { background-color: var(--bs-orange-dark) !important; color: white; }
+
+.bg-red-dark { background-color: var(--bs-red-dark) !important; color: white; }
+
+.bg-blue-dark { background-color: var(--bs-blue-dark) !important; color: white; }
+
+.bg-brown-light { background-color: var(--bs-brown-light) !important; }
+.bg-brown-dark { background-color: var(--bs-brown-dark) !important; color: white; }
+
+.bg-cyan-light { background-color: var(--bs-cyan-light) !important; }
+.bg-cyan-dark { background-color: var(--bs-cyan-dark) !important; color: white; }
+
+.bg-silver { background-color: var(--bs-silver) !important; color: black; }
+
+/* Clases de texto para todos los colores */
+.text-magenta-dark { color: var(--bs-magenta-dark) !important; }
+.text-purple-dark { color: var(--bs-purple-dark) !important; }
+.text-teal-dark { color: var(--bs-teal-dark) !important; }
+.text-amber-dark { color: var(--bs-amber-dark) !important; }
+.text-pink-dark { color: var(--bs-pink-dark) !important; }
+.text-indigo-dark { color: var(--bs-indigo-dark) !important; }
+.text-gray-dark { color: var(--bs-gray-dark) !important; }
+.text-lime-dark { color: var(--bs-lime-dark) !important; }
+.text-orange-dark { color: var(--bs-orange-dark) !important; }
+.text-red-dark { color: var(--bs-red-dark) !important; }
+.text-blue-dark { color: var(--bs-blue-dark) !important; }
+.text-brown-dark { color: var(--bs-brown-dark) !important; }
+.text-cyan-dark { color: var(--bs-cyan-dark) !important; }
+.text-silver { color: var(--bs-silver) !important; }
+
+/* Clases de borde para todos los colores */
+.border-magenta-light { border-color: var(--bs-magenta-light) !important; }
+.border-magenta-dark { border-color: var(--bs-magenta-dark) !important; }
+
+
+.border-purple-light { border-color: var(--bs-purple-light) !important; }
+.border-purple-dark { border-color: var(--bs-purple-dark) !important; }
+
+.border-teal-light { border-color: var(--bs-teal-light) !important; }
+.border-teal-dark { border-color: var(--bs-teal-dark) !important; }
+
+.border-amber-light { border-color: var(--bs-amber-light) !important; }
+.border-amber-dark { border-color: var(--bs-amber-dark) !important; }
+
+.border-pink-light { border-color: var(--bs-pink-light) !important; }
+.border-pink-dark { border-color: var(--bs-pink-dark) !important; }
+
+.border-indigo-light { border-color: var(--bs-indigo-light) !important; }
+.border-indigo-dark { border-color: var(--bs-indigo-dark) !important; }
+
+.border-gray-light { border-color: var(--bs-gray-light) !important; }
+.border-gray-dark { border-color: var(--bs-gray-dark) !important; }
+
+.border-lime-light { border-color: var(--bs-lime-light) !important; }
+.border-lime-dark { border-color: var(--bs-lime-dark) !important; }
+
+.border-orange-light { border-color: var(--bs-orange-light) !important; }
+.border-orange-dark { border-color: var(--bs-orange-dark) !important; }
+
+.border-red-dark { border-color: var(--bs-red-dark) !important; }
+
+.border-blue-dark { border-color: var(--bs-blue-dark) !important; }
+
+.border-brown-light { border-color: var(--bs-brown-light) !important; }
+.border-brown-dark { border-color: var(--bs-brown-dark) !important; }
+
+.border-cyan-light { border-color: var(--bs-cyan-light) !important; }
+.border-cyan-dark { border-color: var(--bs-cyan-dark) !important; }
+
+.border-silver { border-color: var(--bs-silver) !important; }
+
+   .card-body {
+        display: flex;
+        /* Flexbox para alinear icono y texto */
+        align-items: center;
+        /* Centrar verticalmente */
+    }
+
+    .icon-container {
+        margin-right: 15px;
+        /* Espacio entre el icono y el texto */
+    }
+
+    .text-container {
+        flex: 1;
+        /* Hacer que el contenedor de texto ocupe el espacio restante */
+    }
+
+    .icon-container i {
+        color: rgba(255, 255, 255, 0.8);
+        /* Color del icono */
+    }
+     .modal {
+            z-index: 1056 !important;
+            /* Bootstrap usa 1055 para el backdrop */
+        }
+
+        .modal-backdrop {
+            z-index: 1055 !important;
+        }
