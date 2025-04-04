@@ -116,53 +116,6 @@ function obtenerEmpresas()
     }
 }
 
-function obtenerInformacionUsuario()
-{
-    if (session_status() == PHP_SESSION_NONE) {
-        session_start(); // Asegúrate de que la sesión esté iniciada
-    }
-
-    // Debug: Mostrar el estado de las variables de sesión
-    // var_dump($_SESSION); // Esto te mostrará todas las variables de sesión
-
-    // Verificar si las variables de sesión están establecidas correctamente
-    if (isset($_SESSION['loggedin'], $_SESSION['nombre'], $_SESSION['rol'], $_SESSION['username'], $_SESSION['foto']) && $_SESSION['loggedin'] === true) {
-        $mensajeRol = rolUsuario($_SESSION['rol']); // Obtener el mensaje basado en el rol
-
-        return [
-            'nombre' => htmlspecialchars($_SESSION['nombre']),
-            'rol' => $mensajeRol,
-            'usuario' => htmlspecialchars($_SESSION['username']),
-            'foto' => htmlspecialchars($_SESSION['foto'])
-        ];
-    } else {
-        return [
-            'nombre' => 'Usuario no logueado',
-            'rol' => 'Rol no definido',
-            'usuario' => 'Usuario no definido',
-            'foto' => 'foto no definida'
-        ];
-    }
-}
-
-function rolUsuario($rol)
-{
-    switch ($rol) {
-        case 1:
-            return "Administrador";
-        case 2:
-            return "Operario";
-        case 3:
-            return "Aprobador";
-        case 4:
-            return "Editor";
-        default:
-            return "Rol desconocido";
-    }
-}
-
-
-
 //funcion para actualizar smtp
 function obtenerConfiguracionSMTP()
 {
@@ -351,17 +304,42 @@ function actualizarFotoPerfil($conn, $usuario, $imagen)
         return ['success' => false, 'message' => 'El archivo no es una imagen.'];
     }
 
+    // Obtener la foto actual del usuario
+    $sql = "SELECT foto FROM users WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $usuario);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+
+    if ($row && !empty($row['foto']) && file_exists($row['foto'])) {
+        // Eliminar la foto anterior
+        unlink($row['foto']);
+    }
+
     // Mover el archivo a la carpeta destino
     if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
         $sql = "UPDATE users SET foto = ? WHERE username = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ss", $target_file, $usuario);
         if ($stmt->execute()) {
+            $_SESSION['resultado_foto'] = [
+                'success' => true,
+                'message' => 'Foto actualizada exitosamente.'
+            ];
             return ['success' => true, 'message' => 'Foto actualizada exitosamente.'];
         } else {
+            $_SESSION['resultado_foto'] = [
+                'success' => false,
+                'message' => 'Error al actualizar la foto en la base de datos.'
+            ];
             return ['success' => false, 'message' => 'Error al actualizar la foto en la base de datos.'];
         }
     } else {
+        $_SESSION['resultado_foto'] = [
+            'success' => false,
+            'message' => 'Error al subir el archivo.'
+        ];
         return ['success' => false, 'message' => 'Error al subir el archivo.'];
     }
 }
@@ -430,7 +408,7 @@ if (isset($_POST['actualizarUsuario'])) {
     $_SESSION['tipo_mensaje'] = $tipo_mensaje;
 
     // Redireccionar para evitar que el formulario se vuelva a enviar al recargar la página
-    header("Location: " . $_SERVER["PHP_SELF"]);
+    header("Location: profile.php?mensaje=" . urlencode($mensaje) . "&tipo_mensaje=" . $tipo_mensaje);
     exit;
 }
 
