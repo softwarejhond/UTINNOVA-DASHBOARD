@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <title>Gestión de Encuestas</title>
-    <link rel="icon" href="img/utt.png" type="image/x-icon">
+    <link rel="icon" href="img/uttInnova.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
 </head>
 

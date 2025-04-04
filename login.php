@@ -39,79 +39,79 @@ $username_err = $password_err = "";
 
 // Procesar datos del formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Verificar reCAPTCHA
-    $recaptcha_secret = "6Lf6w_oqAAAAAG7s5Q_dktqohWh4YTF9MCYTVOWH";
-    $recaptcha_response = $_POST['g-recaptcha-response'];
-
-    $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$recaptcha_secret&response=$recaptcha_response");
-    $response_data = json_decode($response);
-
-    if (!$response_data->success) {
-        $username_err = "Por favor verifica el reCAPTCHA.";
+    // Validar que el nombre de usuario no esté vacío
+    if (empty(trim($_POST["username"]))) {
+        $username_err = "Por favor ingrese su usuario.";
+    } else if (!filter_var(trim($_POST["username"]), FILTER_VALIDATE_INT)) {
+        $username_err = "El usuario debe ser un número.";
     } else {
-        // Validar que el nombre de usuario no esté vacío
-        if (empty(trim($_POST["username"]))) {
-            $username_err = "Por favor ingrese su usuario.";
-        } else if (!filter_var(trim($_POST["username"]), FILTER_VALIDATE_INT)) {
-            $username_err = "El usuario debe ser un número.";
-        } else {
-            $username = trim($_POST["username"]);
-        }
+        $username = trim($_POST["username"]);
+    }
 
-        // Validar que la contraseña no esté vacía
-        if (empty(trim($_POST["password"]))) {
-            $password_err = "Por favor ingrese su contraseña.";
-        } else {
-            $password = trim($_POST["password"]);
-        }
+    // Validar que la contraseña no esté vacía
+    if (empty(trim($_POST["password"]))) {
+        $password_err = "Por favor ingrese su contraseña.";
+    } else {
+        $password = trim($_POST["password"]);
+    }
 
-        // Validar credenciales
-        if (empty($username_err) && empty($password_err)) {
-            // Preparar una declaración SQL
-            $sql = "SELECT id, username, password, nombre, rol, foto FROM users WHERE username = ?";
+    // Manejar la funcionalidad de "Recordarme"
+    if (isset($_POST['rememberMe'])) {
+        // Guardar cookies por 30 días
+        setcookie('username', $username, time() + (30 * 24 * 60 * 60), "/");
+        setcookie('password', $password, time() + (30 * 24 * 60 * 60), "/");
+    } else {
+        // Eliminar cookies si "Recordarme" no está seleccionado
+        setcookie('username', '', time() - 3600, "/");
+        setcookie('password', '', time() - 3600, "/");
+    }
 
-            if ($stmt = mysqli_prepare($conn, $sql)) {
-                // Vincular variables a la declaración preparada como parámetros
-                mysqli_stmt_bind_param($stmt, "s", $param_username); // "s" indica que $username es una cadena
-                $param_username = $username;
+    // Validar credenciales
+    if (empty($username_err) && empty($password_err)) {
+        // Preparar una declaración SQL
+        $sql = "SELECT id, username, password, nombre, rol, foto FROM users WHERE username = ?";
 
-                // Intentar ejecutar la declaración preparada
-                if (mysqli_stmt_execute($stmt)) {
-                    // Almacenar resultado
-                    mysqli_stmt_store_result($stmt);
+        if ($stmt = mysqli_prepare($conn, $sql)) {
+            // Vincular variables a la declaración preparada como parámetros
+            mysqli_stmt_bind_param($stmt, "s", $param_username); // "s" indica que $username es una cadena
+            $param_username = $username;
 
-                    // Verificar si el nombre de usuario existe, si sí, verificar la contraseña
-                    if (mysqli_stmt_num_rows($stmt) === 1) {
-                        // Vincular variables de resultado
-                        mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto);
-                        if (mysqli_stmt_fetch($stmt)) {
-                            if (password_verify($password, $hashed_password)) {
-                                // La contraseña es correcta, iniciar una nueva sesión
+            // Intentar ejecutar la declaración preparada
+            if (mysqli_stmt_execute($stmt)) {
+                // Almacenar resultado
+                mysqli_stmt_store_result($stmt);
 
-                                // Almacenar datos del usuario en la sesión
-                                $_SESSION['loggedin'] = true; // Indica que el usuario ha iniciado sesión
-                                $_SESSION['nombre'] = htmlspecialchars($nombre); // Establecer el nombre real del usuario
-                                $_SESSION['rol'] = $rol; // Asignar un rol real basado en tu base de datos
-                                $_SESSION['username'] = htmlspecialchars($username); // Asignar nombre de usuario
-                                $_SESSION['foto'] = htmlspecialchars($foto); // Ruta de la foto del usuario
+                // Verificar si el nombre de usuario existe, si sí, verificar la contraseña
+                if (mysqli_stmt_num_rows($stmt) === 1) {
+                    // Vincular variables de resultado
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto);
+                    if (mysqli_stmt_fetch($stmt)) {
+                        if (password_verify($password, $hashed_password)) {
+                            // La contraseña es correcta, iniciar una nueva sesión
 
-                                // Redirigir al usuario a la página principal
-                                header("location: main.php");
-                                exit;
-                            } else {
-                                $password_err = "Contraseña incorrecta.";
-                            }
+                            // Almacenar datos del usuario en la sesión
+                            $_SESSION['loggedin'] = true; // Indica que el usuario ha iniciado sesión
+                            $_SESSION['nombre'] = htmlspecialchars($nombre); // Establecer el nombre real del usuario
+                            $_SESSION['rol'] = $rol; // Asignar un rol real basado en tu base de datos
+                            $_SESSION['username'] = htmlspecialchars($username); // Asignar nombre de usuario
+                            $_SESSION['foto'] = htmlspecialchars($foto); // Ruta de la foto del usuario
+
+                            // Redirigir al usuario a la página principal
+                            header("location: main.php");
+                            exit;
+                        } else {
+                            $password_err = "Contraseña incorrecta.";
                         }
-                    } else {
-                        $username_err = "Usuario no existe.";
                     }
                 } else {
-                    echo "Algo salió mal, por favor vuelve a intentarlo.";
+                    $username_err = "Usuario no existe.";
                 }
+            } else {
+                echo "Algo salió mal, por favor vuelve a intentarlo.";
             }
-            // Cerrar la declaración
-            mysqli_stmt_close($stmt);
         }
+        // Cerrar la declaración
+        mysqli_stmt_close($stmt);
     }
 }
 include("conexion.php");
@@ -128,12 +128,29 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIVP - Login</title>
+    <title>SIGP - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="css/login1.css?v=1.1">
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <link rel="icon" href="img/utt.png" type="image/x-icon">
- </head>
+    <link rel="icon" href="img/uttInnova.png" type="image/x-icon">
+    <style>
+        /* Estilos para el modo claro */
+        body.light-mode {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Estilos para el modo oscuro */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .login-container {
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
+</head>
 
 <body>
     <div class="login-container">
@@ -145,7 +162,7 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
             <p class="login-text text-white">Inicia sesión con tus credenciales para acceder al sistema</p>
 
             <br>
-            <small class="text-white-50">Made by <b class="text-lime-dark">Agencia Egle Software</b> &copy; <?php echo date("Y"); ?>. Todos los derechos reservados a <?php echo $empresa?>.</small></div>
+            <small class="text-white-50">Made by <b class="text-lime-dark">Agencia Eagle Software</b> &copy; <?php echo date("Y"); ?>. Todos los derechos reservados a <?php echo $empresa?>.</small></div>
 
         <div class="login-form">
             <h2 class="form-title">Iniciar sesión</h2>
@@ -157,7 +174,8 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
                         id="username"
                         name="username"
                         required
-                        placeholder="Ingrese su número de documento">
+                        placeholder="Ingrese su número de documento"
+                        value="<?php echo isset($_COOKIE['username']) ? htmlspecialchars($_COOKIE['username']) : ''; ?>">
                     <?php if (!empty($username_err)) : ?>
                         <div class="error-message"><?php echo $username_err ?></div>
                     <?php endif ?>
@@ -165,18 +183,28 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
 
                 <div class="mb-4">
                     <label for="password" class="form-label">Contraseña</label>
-                    <input type="password"
-                        class="form-control"
-                        id="password"
-                        name="password"
-                        required
-                        placeholder="Ingrese su contraseña">
+                    <div class="input-group">
+                        <input type="password"
+                            class="form-control"
+                            id="password"
+                            name="password"
+                            required
+                            placeholder="Ingrese su contraseña"
+                            value="<?php echo isset($_COOKIE['password']) ? htmlspecialchars($_COOKIE['password']) : ''; ?>">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border: none;">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                     <?php if (!empty($password_err)) : ?>
                         <div class="error-message"><?php echo $password_err ?></div>
                     <?php endif ?>
                 </div>
 
-                <div class="g-recaptcha mb-4" data-sitekey="6Lf6w_oqAAAAAHHGxCBYAxNDKL4xQrwJ_Ds5olO4"></div>
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe"
+                        <?php echo isset($_COOKIE['username']) ? 'checked' : ''; ?>>
+                    <label class="form-check-label" for="rememberMe">Recordarme</label>
+                </div>
 
                 <button type="submit" class="btn btn-login" name="iniciar">
                     Iniciar sesión
@@ -188,6 +216,34 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
     <script src="js/tooglePassword.js"></script>
     <script src="components/hooks/lineLogin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('password');
+            const icon = this.querySelector('i');
+
+            // Alternar el tipo de entrada entre 'password' y 'text'
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+
+        // Cambiar automáticamente entre modo oscuro y claro según la hora
+        const currentHour = new Date().getHours(); // Obtener la hora actual
+        if (currentHour >= 18 || currentHour < 6) {
+            // Si es después de las 6 PM o antes de las 6 AM, activar modo oscuro
+            document.body.classList.add('dark-mode');
+        } else {
+            // De lo contrario, activar modo claro
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.js"></script>
 </body>
 
 </html>
