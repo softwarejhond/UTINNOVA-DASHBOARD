@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #4f024f;
-    --accent-color: #6A006A;
+    --primary-color: #181e93;
+    --accent-color: #181e93;
 }
 
 body {
@@ -14,7 +14,7 @@ body {
 .login-container {
     background: white;
     border-radius: 20px;
-    box-shadow: 0 10px 30px #4B0082;
+    box-shadow: 0 10px 30px #F9B233;
     overflow: hidden;
     width: 900px;
     display: flex;
@@ -39,27 +39,27 @@ body {
 .form-title {
     color: var(--primary-color);
     margin-bottom: 30px;
-    color: #ac07ac;
+    color: var(--primary-color);
     /* Color text iniciar sesion*/
     font-size: 2rem;
     font-weight: 600;
 }
 
 .login-text {
-    color: #ac07ac;
+    color:black;
     text-align: center;
     margin-bottom: 0;
 }
 
 .form-label {
-    color: #ac07ac;
+    color: black;
     /* Color text User and pass*/
     font-weight: 500;
 }
 
 .form-control {
     border: none;
-    border-bottom: 2px solid #4B0082;
+    border-bottom: 2px solid #F9B233;
     border-radius: 0;
     padding: 12px 0;
     margin-bottom: 20px;
@@ -93,7 +93,7 @@ body {
     left: 0;
     width: 0;
     height: 100%;
-    background: #6A006A;
+    background: #F9B233;
     transition: all 0.5s ease;
     z-index: -1;
 }
@@ -105,12 +105,12 @@ body {
 
 .btn-login:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(139, 0, 139, 0.4);
+    box-shadow: 0 5px 15px rgba(249, 178, 51, 0.4);
 }
 
 .btn-login:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(139, 0, 139, 0.3);
+    box-shadow: 0 5px 15px rgba(249, 178, 51, 0.4);
 }
 
 .form-control::placeholder {
@@ -119,7 +119,7 @@ body {
 }
 
 .form-control:hover::placeholder {
-    color: rgba(139, 0, 139, 0.4);
+    color: rgba(24, 30, 147, 0.4);
 }
 
 .form-control:focus::placeholder {

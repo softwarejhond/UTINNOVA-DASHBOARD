@@ -114,6 +114,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+include("conexion.php");
+$queryCompany = mysqli_query($conn, "SELECT nombre,nit FROM company");
+while ($empresaLog = mysqli_fetch_array($queryCompany)) {
+  $empresa = $empresaLog['nombre'] . '</label>';
+}
 ?>
 
 <!DOCTYPE html>
@@ -125,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIVP - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/login1.css">
+    <link rel="stylesheet" href="css/login1.css?v=1.1">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <link rel="icon" href="img/utt.png" type="image/x-icon">
  </head>
@@ -134,11 +139,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="login-container">
         <div class="login-sidebar">
             <div class="login-logo">
-            <img src="./img/utt.jpg" alt="Logo UTT" class="img-fluid">
+            <img src="./img/uttInova.png" alt="Logo UTT" class="img-fluid">
             </div>
             
             <p class="login-text text-white">Inicia sesión con tus credenciales para acceder al sistema</p>
-        </div>
+
+            <br>
+            <small class="text-white-50">Made by <b class="text-lime-dark">Agencia Egle Software</b> &copy; <?php echo date("Y"); ?>. Todos los derechos reservados a <?php echo $empresa?>.</small></div>
 
         <div class="login-form">
             <h2 class="form-title">Iniciar sesión</h2>
