@@ -3,7 +3,6 @@
     <div class="text-center p-2">
 
         <?php
-         include("../controller/conexion.php");
          $queryCompany = mysqli_query($conn, "SELECT nombre,nit FROM company");
          while ($empresaLog = mysqli_fetch_array($queryCompany)) {
            $empresa = $empresaLog['nombre'] . '</label>';

@@ -44,7 +44,7 @@ $courses_data = getCourses();
 $sql = "SELECT user_register.*, departamentos.departamento
         FROM user_register
         INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
-        WHERE departamentos.id_departamento IN (15, 25)
+        WHERE departamentos.id_departamento = 11
           AND user_register.status = '1' 
           AND user_register.statusAdmin = '1'
         ORDER BY user_register.first_name ASC";

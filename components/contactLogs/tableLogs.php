@@ -13,7 +13,7 @@ $sql = "SELECT user_register.*, municipios.municipio, departamentos.departamento
     FROM user_register
     INNER JOIN municipios ON user_register.municipality = municipios.id_municipio
     INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
-    WHERE departamentos.id_departamento IN (15, 25)
+    WHERE departamentos.id_departamento = 11
     AND user_register.status = '1'
     AND (user_register.first_name LIKE ? OR user_register.number_id LIKE ?)
     ORDER BY user_register.first_name ASC
@@ -124,7 +124,7 @@ foreach ($data as $row) {
 $totalSql = "SELECT COUNT(*) as total FROM user_register
     INNER JOIN municipios ON user_register.municipality = municipios.id_municipio
     INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
-    WHERE departamentos.id_departamento IN (15, 25)
+    WHERE departamentos.id_departamento = 11
     AND user_register.status = '1' AND user_register.statusAdmin = '' AND user_register.department=15 OR user_register.department=25
     AND (user_register.first_name LIKE ? OR user_register.number_id LIKE ?)";
 $stmtTotal = $conn->prepare($totalSql);

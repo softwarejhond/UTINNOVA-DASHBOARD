@@ -5,8 +5,8 @@ require 'conexion.php'; // Conexión a la base de datos
 
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-$whereClause = "WHERE departamentos.id_departamento IN (15, 25)
-    AND user_register.status = '1' AND user_register.statusAdmin = '' ";
+$whereClause = "WHERE departamentos.id_departamento=11
+    AND user_register.status = 1 AND user_register.statusAdmin = '' ";
 
 $params = [];
 $types = '';

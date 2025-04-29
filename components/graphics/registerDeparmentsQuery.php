@@ -15,7 +15,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 // Consultar la cantidad de registros por departamento con filtro
 $query = "SELECT 
             CASE 
-                WHEN department IN (15, 25) THEN department 
+                WHEN department = 11 THEN department 
                 ELSE 'Otros' 
             END AS department, 
             COUNT(*) as cantidad 

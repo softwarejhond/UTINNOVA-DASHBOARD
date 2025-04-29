@@ -130,7 +130,7 @@ function exportDataToExcel($conn)
     LEFT JOIN users sk_monitor ON sk.monitor = sk_monitor.username
     
     LEFT JOIN cohorts c ON g.cohort = c.cohort_number
-    WHERE departamentos.id_departamento IN (15, 25)
+    WHERE departamentos.id_departamento = 11
     AND user_register.status = '1' 
     AND user_register.birthdate < '2007-01-31'
     AND user_register.typeID = 'C.C'

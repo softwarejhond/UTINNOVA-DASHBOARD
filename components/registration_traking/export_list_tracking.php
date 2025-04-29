@@ -22,7 +22,7 @@ function exportDataToExcel($conn) {
         INNER JOIN municipios ON user_register.municipality = municipios.id_municipio
         INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
         LEFT JOIN groups g ON user_register.number_id = g.number_id
-        WHERE departamentos.id_departamento IN (15, 25)
+        WHERE departamentos.id_departamento = 11
         AND user_register.status = '1'";
 
     $result = $conn->query($sql);
