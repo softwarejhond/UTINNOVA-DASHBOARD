@@ -65,7 +65,7 @@
                 </div>
             </div>
 
-            <!-- Tarjeta Usuarios en Cundinamarca -->
+            <!-- Tarjeta Usuarios en Cundinamarca
             <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
                 <div class="card bg-indigo-light shadow">
                     <div class="card-body d-flex align-items-center">
@@ -82,7 +82,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Tarjeta Usuarios en Boyacá -->
             <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
@@ -92,7 +92,7 @@
                             <i class="fas fa-map-marker-alt fa-3x text-gray-dark"></i>
                         </div>
                         <div class="text-container">
-                            <h5 class="card-title">Usuarios en Boyacá aceptados</h5>
+                            <h5 class="card-title">Usuarios aceptados</h5>
                             <h2>
                                 <span id="total_boyaca"></span> |
                                 <span id="porc_boyaca"></span>

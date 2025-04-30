@@ -590,15 +590,15 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                         $isAccepted = false;
                         if ($row['mode'] === 'Presencial') {
                             if (
-                                $row['typeID'] === 'C.C' && $row['age'] > 17 &&
-                                (strtoupper($row['departamento']) === 'CUNDINAMARCA' || strtoupper($row['departamento']) === 'BOYACÁ')
+                                $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                (strtoupper($row['departamento']) === 'BOGOTÁ, D.C.')
                             ) {
                                 $isAccepted = true;
                             }
                         } elseif ($row['mode'] === 'Virtual') {
                             if (
-                                $row['typeID'] === 'C.C' && $row['age'] > 17 &&
-                                (strtoupper($row['departamento']) === 'CUNDINAMARCA' || strtoupper($row['departamento']) === 'BOYACÁ') &&
+                                $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                (strtoupper($row['departamento']) === 'BOGOTÁ, D.C.') &&
                                 $row['internet'] === 'Sí'
                             ) {
                                 $isAccepted = true;

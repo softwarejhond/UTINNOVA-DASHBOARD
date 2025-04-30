@@ -1,9 +1,14 @@
 <?php
 //datos del servidor
+// $server = "localhost";
+// $username = "u609911669_dashbordinnova";
+// $password = "g3X~i$#M[Tf1";
+// $bd = "u609911669_dashbordinnova";
+
 $server = "localhost";
-$username = "u609911669_dashbordinnova";
-$password = "g3X~i$#M[Tf1";
-$bd = "u609911669_dashbordinnova";
+$username = "root";
+$password = "";
+$bd = "utinnova";
 //creamos una conexión
 $conn = mysqli_connect($server, $username, $password, $bd);
 //Chequeamos la conexión

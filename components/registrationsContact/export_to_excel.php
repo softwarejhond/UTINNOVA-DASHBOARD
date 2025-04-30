@@ -79,16 +79,16 @@ function exportDataToExcel($conn)
             $isAccepted = false;
             if ($row['mode'] === 'Presencial') {
                 $isAccepted = (
-                    $row['typeID'] === 'C.C' &&
+                    $row['typeID'] === 'CC' &&
                     $age > 17 &&
-                    in_array(strtoupper($row['departamento']), ['CUNDINAMARCA', 'BOYACÁ']) &&
+                    in_array(strtoupper($row['departamento']), ['BOGOTÁ, D.C.']) &&
                     $row['internet'] === 'Sí'
                 );
             } elseif ($row['mode'] === 'Virtual') {
                 $isAccepted = (
-                    $row['typeID'] === 'C.C' &&
+                    $row['typeID'] === 'CC' &&
                     $age > 17 &&
-                    in_array(strtoupper($row['departamento']), ['CUNDINAMARCA', 'BOYACÁ']) &&
+                    in_array(strtoupper($row['departamento']), ['BOGOTÁ, D.C.']) &&
                     $row['internet'] === 'Sí' &&
                     $row['technologies'] === 'computador'
                 );

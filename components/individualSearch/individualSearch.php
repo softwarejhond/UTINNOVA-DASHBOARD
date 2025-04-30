@@ -360,15 +360,15 @@
                                 $isAccepted = false;
                                 if ($row['mode'] === 'Presencial') {
                                     if (
-                                        $row['typeID'] === 'C.C' && $row['age'] > 17 &&
-                                        (strtoupper($row['departamento']) === 'CUNDINAMARCA' || strtoupper($row['departamento']) === 'BOYACÁ')
+                                        $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                        (strtoupper($row['departamento']) === 'BOGOTÁ, D.C.')
                                     ) {
                                         $isAccepted = true;
                                     }
                                 } elseif ($row['mode'] === 'Virtual') {
                                     if (
-                                        $row['typeID'] === 'C.C' && $row['age'] > 17 &&
-                                        (strtoupper($row['departamento']) === 'CUNDINAMARCA' || strtoupper($row['departamento']) === 'BOYACÁ') &&
+                                        $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                        (strtoupper($row['departamento']) === 'BOGOTÁ, D.C.') &&
                                         $row['internet'] === 'Sí'
                                     ) {
                                         $isAccepted = true;
@@ -376,9 +376,9 @@
                                 }
 
                                 if ($isAccepted) {
-                                    echo '<a class="btn bg-teal-dark " tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="CUMPLE"><i class="bi bi-check-circle"></i></a>';
+                                    echo '<a class="btn bg-teal-dark w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="CUMPLE"><i class="bi bi-check-circle"></i></a>';
                                 } else {
-                                    echo '<a class="btn bg-danger text-white " tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="NO CUMPLE"><i class="bi bi-x-circle"></i></a>';
+                                    echo '<a class="btn bg-danger text-white w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="NO CUMPLE"><i class="bi bi-x-circle"></i></a>';
                                 }
                                 ?>
                                 <hr>
@@ -603,7 +603,7 @@
                             while ($horario = $resultHorarios->fetch_assoc()) {
                                 $selected = ($row['schedules'] == $horario['schedule']) ? 'selected' : '';
                                 echo '<option value="' . htmlspecialchars($horario['schedule']) . '" ' . $selected . '>'
-                                     . htmlspecialchars($horario['schedule']) . '</option>';
+                                    . htmlspecialchars($horario['schedule']) . '</option>';
                             }
                             ?>
                         </select>
