@@ -168,7 +168,7 @@ foreach ($data as $row) {
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
-                                        $categoryAllowed = in_array($course['categoryid'], [14, 11, 10, 7, 6, 5]);
+                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 35]);
                                         if ($categoryAllowed):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
@@ -189,7 +189,7 @@ foreach ($data as $row) {
                             <select id="ingles" class="form-select course-select">
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if ($course['categoryid'] == 4): ?>
+                                        <?php if ($course['categoryid'] == 17): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -208,7 +208,7 @@ foreach ($data as $row) {
                             <select id="english_code" class="form-select course-select">
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if ($course['categoryid'] == 12): ?>
+                                        <?php if ($course['categoryid'] == 30): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -227,7 +227,7 @@ foreach ($data as $row) {
                             <select id="skills" class="form-select course-select">
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if ($course['categoryid'] == 13): ?>
+                                        <?php if ($course['categoryid'] == 33): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>

@@ -148,16 +148,15 @@ $totalRows = $totalResult->fetch_assoc()['total'];
 $totalPages = ceil($totalRows / $limit);
 
 // Agregar esta consulta al inicio del archivo donde están las otras consultas
-function obtenerHorarios($conn, $mode, $headquarters, $program)
+function obtenerHorarios($conn, $mode)
 {
-    $sql = "SELECT schedule FROM schedules 
-            WHERE mode = ? 
-            AND (headquarters = ? OR mode = 'Virtual')
-            AND program = ?
+    $sql = "SELECT DISTINCT schedule 
+            FROM schedules 
+            WHERE mode = ?
             ORDER BY schedule ASC";
 
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $mode, $headquarters, $program);
+    $stmt->bind_param("s", $mode);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -168,6 +167,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
 
     return $horarios;
 }
+
 ?>
 
 <div class="table-responsive">
@@ -323,15 +323,18 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                 <th>Departamento</th>
                 <th>Municipio</th>
                 <th>Ocupación</th>
+                <th>Campesino</th>
                 <th>Tiempo de obligaciones</th>
                 <th>Sede de elección</th>
                 <th>Modalidad</th>
                 <th>Actualizar modalidad</th>
                 <th>Programa de interés</th>
                 <th>Nivel de preferencia</th>
-                <th>Actualizar programa, nivel y sede</th>
+                <th>Lote</th>
+                <th>Actualizar programa, nivel, sede y lote</th>
                 <th>Horario</th>
-                <th>Cambiar Horario</th>
+                <th>Horario alternativo</th>
+                <th>Cambiar Horarios</th>
                 <th>Dispositivo</th>
                 <th>Internet</th>
                 <th>Estado</th>
@@ -368,7 +371,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                                                 <h6>Frente del documento</h6>
                                                 <div class="position-relative overflow-visible">
                                                     <img id="idImageFront_<?php echo $row['number_id']; ?>"
-                                                        src="https://dashboard.uttalento.co/files/idFilesFront/<?php echo htmlspecialchars($row['file_front_id']); ?>"
+                                                        src="../files/idFilesFront/<?php echo htmlspecialchars($row['file_front_id']); ?>"
                                                         class="img-fluid w-100 zoomable"
                                                         style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
                                                         alt="Frente ID"
@@ -385,7 +388,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                                                 <h6>Reverso del documento</h6>
                                                 <div class="position-relative overflow-visible">
                                                     <img id="idImageBack_<?php echo $row['number_id']; ?>"
-                                                        src="https://dashboard.uttalento.co/files/idFilesBack/<?php echo htmlspecialchars($row['file_back_id']); ?>"
+                                                        src="../files/idFilesBack/<?php echo htmlspecialchars($row['file_back_id']); ?>"
                                                         class="img-fluid w-100 zoomable"
                                                         style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
                                                         alt="Reverso ID"
@@ -498,6 +501,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
 
                     <td><b class="text-center"><?php echo htmlspecialchars($row['municipio']); ?></b></td>
                     <td><?php echo htmlspecialchars($row['occupation']); ?></td>
+                    <td><?php echo !empty($row['country_person']) ? htmlspecialchars($row['country_person']) : 'Sin especificar'; ?></td>
                     <td><?php echo htmlspecialchars($row['time_obligations']); ?></td>
                     <td><?php echo htmlspecialchars($row['headquarters']); ?></td>
                     <td><?php echo htmlspecialchars($row['mode']); ?></td>
@@ -510,6 +514,8 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                     </td>
                     <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['program']); ?></td>
                     <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['level']); ?></td>
+                    <td class="text-center"><?php echo htmlspecialchars($row['lote']); ?></td>
+
                     <td>
                         <button class="btn btn-warning" onclick="mostrarModalActualizarPrograma(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
                             data-bs-custom-class="custom-tooltip"
@@ -523,6 +529,13 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                         <a class="btn bg-indigo-light"
                             tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top"
                             title="<?php echo empty($row['schedules']) ? 'Sin horario asignado' : htmlspecialchars($row['schedules']); ?>">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                    </td>
+                    <td class="text-center">
+                        <a class="btn bg-teal-light"
+                            tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top"
+                            title="<?php echo empty($row['schedules_alternative']) ? 'Sin horario asignado' : htmlspecialchars($row['schedules']); ?>">
                             <i class="bi bi-clock-history"></i>
                         </a>
                     </td>
@@ -616,17 +629,21 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                     <td>
                         <?php
                         if ($row['statusAdmin'] == '1') {
-                            echo '<a class="btn bg-teal-dark w-100" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO" data-status="1"><i class="bi bi-check-circle"></i></a>';
+                            echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
                         } elseif ($row['statusAdmin'] == '0') {
-                            echo '<a class="btn bg-silver text-white w-100" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO" data-status="0"><i class="bi bi-question-circle"></i></a>';
+                            echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
                         } elseif ($row['statusAdmin'] == '2') {
-                            echo '<a class="btn bg-danger w-100" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO" data-status="2"><i class="bi bi-x-circle"></i></a>';
+                            echo '<button class="btn bg-danger" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></button>';
                         } elseif ($row['statusAdmin'] == '3') {
-                            echo '<a class="btn bg-success w-100 text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO" data-status="3"><i class="fa-solid fa-pencil"></i></a>';
+                            echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
                         } elseif ($row['statusAdmin'] == '4') {
-                            echo '<a class="btn bg-secondary w-100 text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN CONTACTO" data-status="4"><i class="bi bi-telephone-x"></a>';
+                            echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
                         } elseif ($row['statusAdmin'] == '5') {
-                            echo '<a class="btn bg-warning w-100 text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO" data-status="5"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></a>';
+                            echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
+                        } elseif ($row['statusAdmin'] == '6') {
+                            echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO" data-status="6"><i class="bi bi-patch-check-fill"></i></button>';
+                        } elseif ($row['statusAdmin'] == '7') {
+                            echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
                         }
                         ?>
                     </td>
@@ -639,7 +656,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                     <td><?php
                         if (isset($nivelesUsuarios[$row['number_id']])) {
                             $puntaje = $nivelesUsuarios[$row['number_id']];
-                            if ($puntaje >= 1 && $puntaje <= 5) {
+                            if ($puntaje >= 0 && $puntaje <= 5) {
                                 echo '<button class="btn bg-magenta-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
                             } elseif ($puntaje >= 6 && $puntaje <= 10) {
                                 echo '<button class="btn bg-orange-dark w-100" role="alert"role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
@@ -657,7 +674,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                         <?php
                         if (isset($nivelesUsuarios[$row['number_id']])) {
                             $puntaje = $nivelesUsuarios[$row['number_id']];
-                            if ($puntaje >= 1 && $puntaje <= 5) {
+                            if ($puntaje >= 0 && $puntaje <= 5) {
                                 echo '<button class="btn bg-magenta-dark w-100" role="alert">Básico</div>';
                             } elseif ($puntaje >= 6 && $puntaje <= 10) {
                                 echo '<button class="btn bg-orange-dark w-100" role="alert"role="alert">Intermedio</div>';
@@ -800,32 +817,29 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                     </div>
                 </div>
 
-                <!-- Modal para actualizar horario -->
+                                <!-- Modal para actualizar horario -->
                 <div id="modalActualizarHorario_<?php echo $row['number_id']; ?>" class="modal fade" aria-hidden="true" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header bg-indigo-dark">
-                                <h5 class="modal-title text-center">
-                                    <i class="bi bi-clock"></i> Actualizar Horario
+                                <h5 class="modal-title text-white">
+                                    <i class="bi bi-clock"></i> Actualizar Horarios
                                 </h5>
                                 <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
                                 <form id="formActualizarHorario_<?php echo $row['number_id']; ?>">
-                                    <div class="form-group">
-                                        <label>Horario actual:</label>
+                                    <!-- Horario Principal -->
+                                    <div class="form-group mb-3">
+                                        <label>Horario Principal actual:</label>
                                         <input type="text" class="form-control" value="<?php echo !empty($row['schedules']) ? htmlspecialchars($row['schedules']) : 'Sin horario asignado'; ?>" readonly>
                                     </div>
-                                    <br>
-                                    <div class="form-group">
-                                        <label for="nuevoHorario_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario:</label>
-                                        <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario" required>
-                                            <option value="">Seleccionar</option>
+                                    <div class="form-group mb-3">
+                                        <label for="nuevoHorario_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario principal:</label>
+                                        <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario">
+                                            <option value="">Seleccionar horario</option>
                                             <?php
-                                            // Obtener horarios según modo, sede y programa
-                                            $horarios = obtenerHorarios($conn, $row['mode'], $row['headquarters'], $row['program']);
-
-                                            // Mostrar las opciones de horarios
+                                            $horarios = obtenerHorarios($conn, $row['mode']);
                                             foreach ($horarios as $horario):
                                             ?>
                                                 <option value="<?php echo htmlspecialchars($horario); ?>">
@@ -834,8 +848,25 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <br>
-                                    <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horario</button>
+                
+                                    <!-- Horario Alternativo -->
+                                    <div class="form-group mb-3">
+                                        <label>Horario Alternativo actual:</label>
+                                        <input type="text" class="form-control" value="<?php echo !empty($row['schedules_alternative']) ? htmlspecialchars($row['schedules_alternative']) : 'Sin horario alternativo'; ?>" readonly>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label for="nuevoHorarioAlt_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario alternativo:</label>
+                                        <select class="form-control" id="nuevoHorarioAlt_<?php echo $row['number_id']; ?>" name="nuevoHorarioAlternativo">
+                                            <option value="">Seleccionar horario</option>
+                                            <?php foreach ($horarios as $horario): ?>
+                                                <option value="<?php echo htmlspecialchars($horario); ?>">
+                                                    <?php echo htmlspecialchars($horario); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                
+                                    <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horarios</button>
                                 </form>
                             </div>
                         </div>
@@ -1246,17 +1277,22 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
             }).then((result) => {
                 if (result.isConfirmed) {
                     const nuevoHorario = $('#nuevoHorario_' + id).val();
-                    actualizarHorario(id, nuevoHorario);
+                    const nuevoHorarioAlt = $('#nuevoHorarioAlt_' + id).val();
+                    actualizarHorario(id, nuevoHorario, nuevoHorarioAlt);
                     $('#modalActualizarHorario_' + id).modal('hide');
                 }
             });
         });
     }
 
-    function actualizarHorario(id, nuevoHorario) {
+    function actualizarHorario(id, nuevoHorario, nuevoHorarioAlt) {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('nuevoHorario', nuevoHorario);
+        formData.append('nuevoHorarioAlternativo', nuevoHorarioAlt);
+
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "components/registrationsContact/actualizar_Horario.php", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -1266,7 +1302,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                         Swal.fire({
                             icon: 'success',
                             title: '¡Actualizado!',
-                            text: 'El horario se ha actualizado correctamente.',
+                            text: 'Los horarios se han actualizado correctamente.',
                             showConfirmButton: false,
                             timer: 2000
                         }).then(() => {
@@ -1276,14 +1312,14 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Hubo un problema al actualizar el horario.'
+                            text: 'Hubo un problema al actualizar los horarios.'
                         });
                     }
                 }
             }
         };
 
-        xhr.send("id=" + id + "&nuevoHorario=" + encodeURIComponent(nuevoHorario));
+        xhr.send(formData);
     }
 
     function mostrarModalActualizarPrograma(id) {
@@ -1297,7 +1333,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                 <div class="modal-content">
                     <div class="modal-header bg-indigo-dark">
                         <h5 class="modal-title text-center">
-                            <i class="bi bi-arrow-left-right"></i> Actualizar Programa y Nivel
+                            <i class="bi bi-arrow-left-right"></i> Actualizar Programa, Nivel, Sede y Lote
                         </h5>
                         <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -1338,6 +1374,14 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                                     <option value="Cajica">Cajica</option>
                                 </select>
                             </div>
+                            <div class="form-group mb-3">
+                                <label for="nuevoLote_${id}">Seleccionar lote:</label>
+                                <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
+                                    <option value="">Seleccionar lote</option>
+                                    <option value="1">Lote 1</option>
+                                    <option value="2">Lote 2</option>
+                                </select>
+                            </div>
                             <input type="hidden" name="id" value="${id}">
                             <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar</button>
                         </form>
@@ -1369,15 +1413,16 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                     const nuevoPrograma = $('#nuevoPrograma_' + id).val() || null;
                     const nuevoNivel = $('#nuevoNivel_' + id).val() || null;
                     const nuevoSede = $('#nuevoSede_' + id).val() || null;
+                    const nuevoLote = $('#nuevoLote_' + id).val() || null;
 
-                    actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede);
+                    actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote);
                     $('#modalActualizarPrograma_' + id).modal('hide');
                 }
             });
         });
     }
 
-    function actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede) {
+    function actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote) {
         const formData = new FormData();
         formData.append('id', id);
 
@@ -1385,6 +1430,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
         if (nuevoPrograma) formData.append('nuevoPrograma', nuevoPrograma);
         if (nuevoNivel) formData.append('nuevoNivel', nuevoNivel);
         if (nuevoSede) formData.append('nuevoSede', nuevoSede);
+        if (nuevoLote) formData.append('nuevoLote', nuevoLote);
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "components/registrationsContact/actualizar_programa.php", true);

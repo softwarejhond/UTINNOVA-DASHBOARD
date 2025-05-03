@@ -151,6 +151,21 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </a>
                     </div>
                 <?php endif; ?>
+
+                <?php if ($rol === 'Control maestro' || $rol === 'Administrador' || $rol === 'Académico'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Administrar sedes disponibles">
+                        <a href="headquarters.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-building-fill-gear icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Sedes</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+                
                 <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
                     <a href="https://agenciaeaglesoftware.com/" target="_blank">
                         <label class="checkbox-wrapper">

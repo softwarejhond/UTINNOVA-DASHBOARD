@@ -66,8 +66,6 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
             </ul>
 
-            <?php include 'components/attendance/absence_button.php'; ?>
-
             <!-- Mostrar el nombre del usuario logueado -->
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                 <?php include 'components/pqr/pqrButton.php'; ?>

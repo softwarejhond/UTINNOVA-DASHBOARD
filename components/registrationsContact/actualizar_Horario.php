@@ -11,13 +11,21 @@ if (!isset($conn) || !$conn) {
 }
 
 // Verificar que los datos necesarios se hayan enviado mediante POST
-if (isset($_POST['id']) && isset($_POST['nuevoHorario'])) {
-    // Depuración: Verifica los valores recibidos
-    error_log("ID recibido: " . $_POST['id']);
-    error_log("Nueva Modalidad recibida: " . $_POST['nuevoHorario']);
-
+if (isset($_POST['id'])) {
     $id = $_POST['id'];
-    $nuevoHorario = $_POST['nuevoHorario'];
+    
+    // Obtener los valores actuales
+    $selectSql = "SELECT schedules, schedules_alternative FROM user_register WHERE number_id = ?";
+    $stmt = $conn->prepare($selectSql);
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $currentData = $result->fetch_assoc();
+    $stmt->close();
+
+    // Usar los valores enviados o mantener los actuales
+    $nuevoHorario = isset($_POST['nuevoHorario']) ? $_POST['nuevoHorario'] : $currentData['schedules'];
+    $nuevoHorarioAlt = isset($_POST['nuevoHorarioAlternativo']) ? $_POST['nuevoHorarioAlternativo'] : $currentData['schedules_alternative'];
 
     // Verificar que el id sea un número entero
     if (!is_numeric($id)) {
@@ -25,13 +33,18 @@ if (isset($_POST['id']) && isset($_POST['nuevoHorario'])) {
         exit;
     }
 
-    // Consulta SQL para actualizar horario y fecha de actualización
-    $updateSql = "UPDATE user_register SET schedules = ?, dayUpdate = NOW() WHERE number_id = ?";
+    // Consulta SQL para actualizar horario, horario alternativo y fecha de actualización
+    $updateSql = "UPDATE user_register SET 
+                  schedules = ?,
+                  schedules_alternative = ?,
+                  dayUpdate = NOW() 
+                  WHERE number_id = ?";
+    
     $stmt = $conn->prepare($updateSql);
 
     if ($stmt) {
         // Vincular los parámetros para la consulta preparada
-        $stmt->bind_param('si', $nuevoHorario, $id);
+        $stmt->bind_param('ssi', $nuevoHorario, $nuevoHorarioAlt, $id);
 
         // Ejecutar la consulta
         if ($stmt->execute()) {
@@ -51,6 +64,6 @@ if (isset($_POST['id']) && isset($_POST['nuevoHorario'])) {
     }
 } else {
     // Log de error si no se enviaron los datos requeridos
-    error_log("Datos no enviados correctamente: " . json_encode($_POST));
+    error_log("ID no enviado: " . json_encode($_POST));
     echo "invalid_data"; // Si no se enviaron los datos requeridos
 }

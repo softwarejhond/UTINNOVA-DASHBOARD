@@ -64,38 +64,37 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Tarjeta Usuarios en Cundinamarca
+         <!-- Tarjeta Usuarios Lote 1 -->
             <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
                 <div class="card bg-indigo-light shadow">
                     <div class="card-body d-flex align-items-center">
                         <div class="icon-container me-3">
-                            <i class="fas fa-map-marker-alt fa-3x text-gray-dark"></i>
+                            <i class="fas fa-layer-group fa-3x text-gray-dark"></i>
                         </div>
                         <div class="text-container">
-                            <h5 class="card-title">Usuarios Cundinamarca aceptados</h5>
+                            <h5 class="card-title">Inscritos para lote 1</h5>
                             <h2>
-                                <span id="total_cundinamarca"></span> |
-                                <span id="porc_cundinamarca"></span>
+                                <span id="total_lote1"></span> |
+                                <span id="porc_lote1"></span>
                             </h2>
                             <a href="#" class="btn btn-light btn-sm">Ver detalles</a>
                         </div>
                     </div>
                 </div>
-            </div> -->
-
-            <!-- Tarjeta Usuarios en Boyacá -->
+            </div>
+            
+            <!-- Tarjeta Usuarios Lote 2 -->
             <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
                 <div class="card bg-teal-light shadow">
                     <div class="card-body d-flex align-items-center">
                         <div class="icon-container me-3">
-                            <i class="fas fa-map-marker-alt fa-3x text-gray-dark"></i>
+                            <i class="fas fa-layer-group fa-3x text-gray-dark"></i>
                         </div>
                         <div class="text-container">
-                            <h5 class="card-title">Usuarios aceptados</h5>
+                            <h5 class="card-title">Inscritos para lote 2</h5>
                             <h2>
-                                <span id="total_boyaca"></span> |
-                                <span id="porc_boyaca"></span>
+                                <span id="total_lote2"></span> |
+                                <span id="porc_lote2"></span>
                             </h2>
                             <a href="#" class="btn btn-light btn-sm">Ver detalles</a>
                         </div>
@@ -165,12 +164,11 @@
                     <div class="card-body d-flex align-items-center">
 
                         <div class="text-container text-black">
-                            <h5 class="card-title"> <i class="bi bi-geo-alt-fill fa-2x text-black"></i> Registros por departamento</h5>
-                            <?php include("components/graphics/registerDeparments.php");  ?>
+                            <h5 class="card-title"> <i class="bi bi-calendar3-event fa-2x text-black"></i>   Registros por lote</h5>
+                            <?php include("components/graphics/registerLotes.php");  ?>
                         </div>
                     </div>
                 </div>
-
             </div>
             <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
                 <div class="card bg-warning-light shadow">
@@ -309,6 +307,13 @@
                     $('#porc_boyaca').text(data.porc_boyaca + '%');
                     $('#total_cundinamarca').text(data.total_cundinamarca);
                     $('#porc_cundinamarca').text(data.porc_cundinamarca + '%');
+                    
+                    // Agrega estas líneas para los nuevos campos
+                    $('#total_lote1').text(data.total_lote1);
+                    $('#porc_lote1').text(data.porc_lote1 + '%');
+                    $('#total_lote2').text(data.total_lote2);
+                    $('#porc_lote2').text(data.porc_lote2 + '%');
+                    
                     $('#total_sinVerificar').text(data.total_sinVerificar);
                     $('#porc_sinVerificar').text(data.porc_sinVerificar + '%');
                     $('#total_GobernacionBoyaca').text(data.total_GobernacionBoyaca);

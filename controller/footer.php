@@ -8,7 +8,6 @@
            $empresa = $empresaLog['nombre'] . '</label>';
          }
          ?>
-        <br>
         <b>SIGP</b> &copy; Copyright <?php echo date("Y"); ?> Todos los derechos de uso para <label class="text-lime-dark"><b><?php echo $empresa ?> </b></label>|
         <a class="text-light" href="https://agenciaeaglesoftware.com/" target="_blank">Agencia de Desarrollo Eagle Software</a>
         <a href="https://www.linkedin.com/company/89372098/admin/feed/posts/" target="_blank" class="linkFooter"><i class="fa-brands fa-linkedin redes"></i></a>

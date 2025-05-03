@@ -11,8 +11,8 @@ if (!isset($conn) || !$conn) {
 if (isset($_POST['id'])) {
     $id = $_POST['id'];
 
-    // Primero, obtener los valores actuales de la base de datos
-    $selectSql = "SELECT program, level, headquarters FROM user_register WHERE number_id = ?";
+    // Obtener los valores actuales
+    $selectSql = "SELECT program, level, headquarters, lote FROM user_register WHERE number_id = ?";
     $stmt = $conn->prepare($selectSql);
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -20,22 +20,28 @@ if (isset($_POST['id'])) {
     $currentData = $result->fetch_assoc();
     $stmt->close();
 
-    // Usar los valores enviados o mantener los actuales si no se envían
+    // Usar los valores enviados o mantener los actuales
     $nuevoPrograma = isset($_POST['nuevoPrograma']) ? $_POST['nuevoPrograma'] : $currentData['program'];
     $nuevoNivel = isset($_POST['nuevoNivel']) ? $_POST['nuevoNivel'] : $currentData['level'];
     $nuevoSede = isset($_POST['nuevoSede']) ? $_POST['nuevoSede'] : $currentData['headquarters'];
+    $nuevoLote = isset($_POST['nuevoLote']) ? $_POST['nuevoLote'] : $currentData['lote'];
 
-    // Verificar que el id sea un número entero
     if (!is_numeric($id)) {
         echo "invalid_data";
         exit;
     }
 
-    $updateSql = "UPDATE user_register SET program = ?, level = ?, headquarters = ?, dayUpdate = NOW() WHERE number_id = ?";
+    $updateSql = "UPDATE user_register SET 
+                  program = ?, 
+                  level = ?, 
+                  headquarters = ?, 
+                  lote = ?,
+                  dayUpdate = NOW() 
+                  WHERE number_id = ?";
     $stmt = $conn->prepare($updateSql);
 
     if ($stmt) {
-        $stmt->bind_param('sssi', $nuevoPrograma, $nuevoNivel, $nuevoSede, $id);
+        $stmt->bind_param('sssis', $nuevoPrograma, $nuevoNivel, $nuevoSede, $nuevoLote, $id);
 
         if ($stmt->execute()) {
             echo "success";

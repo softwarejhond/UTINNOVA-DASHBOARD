@@ -18,51 +18,9 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
 
 function exportDataToExcel($conn)
 {
-    // Obtener datos de la API DIVIPOLA
-    $divipolaData = file_get_contents('https://www.datos.gov.co/resource/gdxc-w37w.json?$limit=1112');
-    $divipolaArray = json_decode($divipolaData, true);
 
-    // Crear mapeos de nombres a códigos
-    $departamentosMap = [];
-    $municipiosMap = [];
-
-    foreach ($divipolaArray as $item) {
-        // Normalizar nombres
-        $dptoNormalizado = strtoupper(normalizeString($item['dpto']));
-        $mpioNormalizado = strtoupper(normalizeString($item['nom_mpio']));
-
-        // Manejar caso especial de Bogotá
-        if ($dptoNormalizado === 'BOGOTA, D.C.' || $dptoNormalizado === 'BOGOTA D.C.' || $dptoNormalizado === 'BOGOTA') {
-            $departamentosMap['BOGOTA'] = $item['cod_dpto'];
-            $departamentosMap['BOGOTA D.C.'] = $item['cod_dpto'];
-            $departamentosMap['BOGOTA, D.C.'] = $item['cod_dpto'];
-
-            // También mapear el municipio de Bogotá con sus variantes
-            $municipiosMap['BOGOTA|BOGOTA'] = $item['cod_mpio'];
-            $municipiosMap['BOGOTA D.C.|BOGOTA'] = $item['cod_mpio'];
-            $municipiosMap['BOGOTA, D.C.|BOGOTA'] = $item['cod_mpio'];
-        }
-
-        // Mapeo normal para otros departamentos y municipios
-        $departamentosMap[$dptoNormalizado] = $item['cod_dpto'];
-        $municipiosMap[$dptoNormalizado . '|' . $mpioNormalizado] = $item['cod_mpio'];
-    }
-
-    // Agregar caso especial para Ubaté
-    $municipiosMap['CUNDINAMARCA|UBATE'] = '25843';
-    $municipiosMap['CUNDINAMARCA|UBATÉ'] = '25843';
-
-    // Agregar caso especial para Villa de Leiva
-    $municipiosMap['BOYACA|VILLA DE LEIVA'] = '15407';
-    $municipiosMap['BOYACÁ|VILLA DE LEIVA'] = '15407';
-
-    // Agregar caso especial para Venecia
-    $municipiosMap['CUNDINAMARCA|VENECIA'] = '25506';
-    $municipiosMap['CUNDINAMARCA|VENECIA (OSPINA PÉREZ)'] = '25506';
-
-    // Agregar caso San Antonio del Tequendama
-    $municipiosMap['CUNDINAMARCA|SAN ANTONIO DE TEQUENDAMA'] = '25645';
-    $municipiosMap['CUNDINAMARCA|SAN ANTONIO DE TEQUENDAMA (SAN ANTONIO)'] = '25645';
+    define('CURRENT_YEAR', '2007');
+    define('CURRENT_DATE', date('Y-m-d'));
 
     // Obtener niveles de usuarios
     $nivelesUsuarios = obtenerNivelesUsuarios($conn);
@@ -83,6 +41,7 @@ function exportDataToExcel($conn)
     g.creation_date,
     g.cohort,
     c.start_date,
+    u.fecha_registro,
     -- Bootcamp staff
     bc.teacher as bootcamp_teacher_id,
     bc.start_date as bootcamp_start_date,
@@ -130,10 +89,11 @@ function exportDataToExcel($conn)
     LEFT JOIN users sk_monitor ON sk.monitor = sk_monitor.username
     
     LEFT JOIN cohorts c ON g.cohort = c.cohort_number
-    WHERE departamentos.id_departamento = 11
+    LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
+    WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
-    AND user_register.birthdate < '2007-01-31'
-    AND user_register.typeID = 'C.C'
+    AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
+    AND user_register.typeID = 'CC'
     ORDER BY user_register.first_name ASC";
 
     $result = $conn->query($sql);
@@ -199,14 +159,14 @@ function exportDataToExcel($conn)
             $isAccepted = false;
             if ($row['mode'] === 'Presencial') {
                 $isAccepted = (
-                    $row['typeID'] === 'C.C' &&
+                    $row['typeID'] === 'CC' &&
                     $age > 17 &&
                     in_array(strtoupper($row['departamento']), ['CUNDINAMARCA', 'BOYACÁ']) &&
                     $row['internet'] === 'Sí'
                 );
             } elseif ($row['mode'] === 'Virtual') {
                 $isAccepted = (
-                    $row['typeID'] === 'C.C' &&
+                    $row['typeID'] === 'CC' &&
                     $age > 17 &&
                     in_array(strtoupper($row['departamento']), ['CUNDINAMARCA', 'BOYACÁ']) &&
                     $row['internet'] === 'Sí' &&
@@ -244,34 +204,35 @@ function exportDataToExcel($conn)
             // Verificar si el usuario está en la tabla groups
             $estaEnGroups = !empty($row['id_bootcamp']) || !empty($row['id_leveling_english']) || !empty($row['id_english_code']) || !empty($row['id_skills']);
 
-            //Tiene profesor asignado
+
+            //tieneProfesor
             $tieneProfesor = '';
             if (!$estaEnGroups) {
                 $tieneProfesor = '';
             } else {
-                // Verifica si tiene al menos un curso con profesor asignado
-                $tieneCursoConProfesor = false;
-
-                if (!empty($row['id_bootcamp'])) {
-                    $tieneCursoConProfesor = $tieneCursoConProfesor || !empty($row['bootcamp_teacher_id']);
-                }
-
-                if (!empty($row['id_english_code'])) {
-                    $tieneCursoConProfesor = $tieneCursoConProfesor || !empty($row['ec_teacher_id']);
-                }
-
-                if (!empty($row['id_skills'])) {
-                    $tieneCursoConProfesor = $tieneCursoConProfesor || !empty($row['skills_teacher_id']);
-                }
-
                 if ($row['statusAdmin'] === '6') {
                     $tieneProfesor = 'Culmino proceso';
-                } elseif ($tieneCursoConProfesor) {
-                    $tieneProfesor = 'En formación';
                 } elseif ($row['statusAdmin'] === '2') {
                     $tieneProfesor = 'Rechazado';
-                } else {
+                } elseif (empty($row['bootcamp_teacher_id'])) {
                     $tieneProfesor = 'Beneficiario en programación';
+                } else {
+                    // Verifica si tiene al menos un curso con profesor asignado
+                    $tieneCursoConProfesor = false;
+
+                    if (!empty($row['id_bootcamp'])) {
+                        $tieneCursoConProfesor = $tieneCursoConProfesor || !empty($row['bootcamp_teacher_id']);
+                    }
+
+                    if (!empty($row['id_english_code'])) {
+                        $tieneCursoConProfesor = $tieneCursoConProfesor || !empty($row['ec_teacher_id']);
+                    }
+
+                    if (!empty($row['id_skills'])) {
+                        $tieneCursoConProfesor = $tieneCursoConProfesor || !empty($row['skills_teacher_id']);
+                    }
+
+                    $tieneProfesor = $tieneCursoConProfesor ? 'En formación' : 'Beneficiario en programación';
                 }
             }
 
@@ -301,37 +262,24 @@ function exportDataToExcel($conn)
             $data[] = [
                 'Ejecutor (contratista)' => 'UNIÓN TEMPORAL TALENTO TICS',
                 'id' => $row['id'],
-                'Tipo_documento' => $row['typeID'] === 'C.C' ? 'CC' : $row['typeID'],
+                'Tipo_documento' => $row['typeID'] === 'CC' ? 'C.C' : $row['typeID'],
                 'Número_documento' => $row['number_id'],
-                'Nombre1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'Á', 'É', 'Í', 'Ó', 'Ú'], $row['first_name'])),
-                'Nombre2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'Á', 'É', 'Í', 'Ó', 'Ú'], $row['second_name'])),
-                'Apellido1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'Á', 'É', 'Í', 'Ó', 'Ú'], $row['first_last'])),
-                'Apellido2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'Á', 'É', 'Í', 'Ó', 'Ú'], $row['second_last'])),
+                'Nombre1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])),
+                'Nombre2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])),
+                'Apellido1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_last'])),
+                'Apellido2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_last'])),
                 'Fecha_nacimiento' => date('d/m/Y', strtotime($row['birthdate'])),
                 'Correo' => $row['email'],
-                'Codigo_epartamento' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA')
-                    ? '11'
-                    : ($departamentosMap[strtoupper(normalizeString($row['departamento']))] ?? $row['department']),
-                'Departamento' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA')
-                    ? 'BOGOTA, D.C.'
-                    : $row['departamento'],
+
+                'Codigo_epartamento' => $row['department'],
+                'Departamento' => strtoupper($row['departamento']),
 
                 'Region' => 'Región 7 Lote 1',
-                
-                'Codigo_municipio' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA')
-                    ? '11001'
-                    : ($municipiosMap[strtoupper(normalizeString($row['departamento'])) . '|' . strtoupper(normalizeString($row['municipio']))] ?? $row['municipality']),
 
-                'Municipio' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'Á', 'É', 'Í', 'Ó', 'Ú'], $row['municipio'])),
+                'Codigo_municipio' => $row['municipality'],
+                'Municipio' => mb_strtoupper($row['municipio']),
 
-
-                'Telefono_movil' => $row['first_phone'],
+                'Telefono_movil' => str_replace('+57', '', $row['first_phone']),
 
                 'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']),
 
@@ -359,10 +307,10 @@ function exportDataToExcel($conn)
                 'Acepta_requisitos_convotaria' => ($row['accepts_tech_talent'] === 'Sí') ? 'SI' : $row['accepts_tech_talent'],
                 'Victima_del_conflicto' => $victimaConflictoArmado,
                 'Autoriza_manejo_datos_personales' => ($row['accept_data_policies'] === 'Sí') ? 'SI' : $row['accept_data_policies'],
-                'Disponibilidad_d_Equipo' => $row['technologies'],
-                'creationdate' => '',
+                'Disponibilidad_d_Equipo' => !empty($row['technologies']) ? 'SI' : '',
+                'creationdate' => $row['creationDate'],
                 'Presento' => $puntaje ? 'SI' : 'NO',
-                'fecha_ini' => '',
+                'fecha_ini' => $row['fecha_registro'],
                 'tiempo_segundos' => '',
                 'Eje_tematico' => $row['program'],
                 'Eje_final' => $row['program'],
@@ -408,8 +356,8 @@ function exportDataToExcel($conn)
                 'Observaciones (menos de 50 cracteres)' => '',
                 'Codigo del curso' => $row['id_bootcamp'],
                 'Nombre del curso' => $row['bootcamp_name'],
-                'Asistencias' => $attendanceCount[$row['number_id']] ?? 0,
-                'Asistencias programadas' => '159',
+                'Asistencias' => $estaEnGroups ? ($attendanceCount[$row['number_id']] ?? 0) : '',
+                'Asistencias programadas' => $estaEnGroups ? '159' : '',
                 'Documento_Mentor' => $row['bootcamp_mentor_id'],
                 'Mentor' => $row['bootcamp_mentor_name'],
                 'Documento_Monitor' => $row['bootcamp_monitor_id'],

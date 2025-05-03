@@ -108,6 +108,46 @@
                         $row['observation'] = 'Sin observaciones';
                         $row['contact_logs'] = [];
                     }
+
+                    function obtenerHorarios($conn, $mode)
+                    {
+                        $sql = "SELECT DISTINCT schedule 
+                                FROM schedules 
+                                WHERE mode = ?
+                                ORDER BY schedule ASC";
+
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("s", $mode);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+
+                        $horarios = array();
+                        while ($row = $result->fetch_assoc()) {
+                            $horarios[] = $row['schedule'];
+                        }
+
+                        return $horarios;
+                    }
+
+                    function obtenerSedes($conn, $mode)
+                    {
+                        $sql = "SELECT DISTINCT name 
+                                FROM headquarters 
+                                WHERE mode = ?
+                                ORDER BY name ASC";
+
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("s", $mode);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+
+                        $sedes = array();
+                        while ($row = $result->fetch_assoc()) {
+                            $sedes[] = $row['name'];
+                        }
+
+                        return $sedes;
+                    }
                 ?>
             </div>
 
@@ -181,8 +221,9 @@
                                 <?= htmlspecialchars($row['email']) ?>
                                 <hr>
 
-
-
+                                <strong>Es campesino:</strong><br>
+                                <?= htmlspecialchars($row['country_person']) ?>
+                                <hr>
                             </div>
 
 
@@ -263,10 +304,14 @@
                                 <?= htmlspecialchars($row['level']) ?>
                                 <hr>
 
-                                <strong>Actualizar programa nivel y sede:</strong><br>
+                                <strong>Lote:</strong><br>
+                                <?= htmlspecialchars($row['lote']) ?>
+                                <hr>
+
+                                <strong>Actualizar programa, nivel, sede y lote:</strong><br>
                                 <button type="button" class="btn btn-warning" onclick="mostrarModalActualizarPrograma(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="Cambiar programa y nivel">
+                                    data-bs-title="Cambiar información de progrma">
                                     <i class="bi bi-arrow-left-right"></i>
                                 </button>
                                 <hr>
@@ -288,11 +333,17 @@
                                     <i class="bi bi-arrow-left-right"></i></button>
                                 <hr>
 
-                                <strong>Horarios:</strong><br>
+                                <strong>Horarios: <br>Principal/Alternativo:</strong><br>
                                 <button type="button" class="btn bg-indigo-light"
                                     data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-custom-class="custom-tooltip"
                                     data-bs-title="<?= htmlspecialchars($row['schedules']) ?>">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <button type="button" class="btn bg-teal-light"
+                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                    data-bs-custom-class="custom-tooltip"
+                                    data-bs-title="<?= htmlspecialchars($row['schedules_alternative']) ?>">
                                     <i class="bi bi-clock-history"></i>
                                 </button>
                                 <hr>
@@ -376,26 +427,30 @@
                                 }
 
                                 if ($isAccepted) {
-                                    echo '<a class="btn bg-teal-dark w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="CUMPLE"><i class="bi bi-check-circle"></i></a>';
+                                    echo '<a class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="CUMPLE"><i class="bi bi-check-circle"></i></a>';
                                 } else {
-                                    echo '<a class="btn bg-danger text-white w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="NO CUMPLE"><i class="bi bi-x-circle"></i></a>';
+                                    echo '<a class="btn bg-danger text-white" style="width:43px" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="NO CUMPLE"><i class="bi bi-x-circle"></i></a>';
                                 }
                                 ?>
                                 <hr>
                                 <strong>Estado de admisión:</strong><br>
                                 <?php
                                 if ($row['statusAdmin'] == '1') {
-                                    echo '<a class="btn bg-teal-dark w-100" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></a>';
+                                    echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
                                 } elseif ($row['statusAdmin'] == '0') {
-                                    echo '<a class="btn bg-silver text-white w-100" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></a>';
+                                    echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
                                 } elseif ($row['statusAdmin'] == '2') {
-                                    echo '<a class="btn bg-danger w-100" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></a>';
+                                    echo '<button class="btn bg-danger" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></button>';
                                 } elseif ($row['statusAdmin'] == '3') {
-                                    echo '<a class="btn bg-success w-100 text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></a>';
+                                    echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
                                 } elseif ($row['statusAdmin'] == '4') {
-                                    echo '<a class="btn bg-secondary w-100 text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></a>';
+                                    echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
                                 } elseif ($row['statusAdmin'] == '5') {
-                                    echo '<a class="btn bg-warning w-100 text-white" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></a>';
+                                    echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
+                                } elseif ($row['statusAdmin'] == '6') {
+                                    echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO" data-status="6"><i class="bi bi-patch-check-fill"></i></button>';
+                                } elseif ($row['statusAdmin'] == '7') {
+                                    echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
                                 }
                                 ?>
                                 <hr>
@@ -403,7 +458,7 @@
                                 <?php
                                 if (isset($nivelesUsuarios[$row['number_id']])) {
                                     $puntaje = $nivelesUsuarios[$row['number_id']];
-                                    if ($puntaje >= 1 && $puntaje <= 5) {
+                                    if ($puntaje >= 0 && $puntaje <= 5) {
                                         echo '<button class="btn bg-magenta-dark " style="max-width: 100px;" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
                                     } elseif ($puntaje >= 6 && $puntaje <= 10) {
                                         echo '<button class="btn bg-orange-dark " style="max-width: 100px;" role="alert"role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
@@ -423,7 +478,7 @@
                                 <?php
                                 if (isset($nivelesUsuarios[$row['number_id']])) {
                                     $puntaje = $nivelesUsuarios[$row['number_id']];
-                                    if ($puntaje >= 1 && $puntaje <= 5) {
+                                    if ($puntaje >= 0 && $puntaje <= 5) {
                                         echo '<button class="btn bg-magenta-dark " style="max-width: 150px;" role="alert">Básico</div>';
                                     } elseif ($puntaje >= 6 && $puntaje <= 10) {
                                         echo '<button class="btn bg-orange-dark " style="max-width: 150px;" role="alert"role="alert">Intermedio</div>';
@@ -433,17 +488,12 @@
                                 } else {
                                     echo '<button class="btn bg-silver " style="max-width: 150px;" role="alert"role="alert  data-bs-toggle="tooltip" data-bs-placement="top"
                                                 data-bs-custom-class="custom-tooltip"
-                                                data-bs-title="No ha presebtado la prueba" >
+                                                data-bs-title="No ha presentado la prueba" >
                                                 <i class="bi bi-ban"></i></button>';
                                 }
                                 ?>
-
-
-
-
                             </div>
                             <hr>
-
 
                         </div>
                     </div>
@@ -568,48 +618,55 @@
 </div>
 
 <!-- Modal para actualizar horario -->
-<!-- Modal para actualizar horario -->
 <div id="modalActualizarHorario_<?php echo $row['number_id']; ?>" class="modal fade" aria-hidden="true" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-indigo-dark">
-                <h5 class="modal-title text-center">
-                    <i class="bi bi-clock"></i> Actualizar Horario
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-clock"></i> Actualizar Horarios
                 </h5>
                 <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="formActualizarHorario_<?php echo $row['number_id']; ?>">
-                    <div class="form-group">
-                        <label>Horario actual:</label>
+                    <!-- Horario Principal -->
+                    <div class="form-group mb-3">
+                        <label>Horario Principal actual:</label>
                         <input type="text" class="form-control" value="<?php echo !empty($row['schedules']) ? htmlspecialchars($row['schedules']) : 'Sin horario asignado'; ?>" readonly>
                     </div>
-                    <br>
-                    <div class="form-group">
-                        <label for="nuevoHorario_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario:</label>
-                        <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario" required>
-                            <option value="">Seleccionar</option>
+                    <div class="form-group mb-3">
+                        <label for="nuevoHorario_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario principal:</label>
+                        <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario">
+                            <option value="">Seleccionar horario</option>
                             <?php
-                            // Consultar los horarios disponibles según modo, sede y programa
-                            $sqlHorarios = "SELECT schedule FROM schedules 
-                                          WHERE mode = ? 
-                                          AND (headquarters = ? OR mode = 'Virtual')
-                                          AND program = ?";
-                            $stmtHorarios = $conn->prepare($sqlHorarios);
-                            $stmtHorarios->bind_param("sss", $row['mode'], $row['headquarters'], $row['program']);
-                            $stmtHorarios->execute();
-                            $resultHorarios = $stmtHorarios->get_result();
-
-                            while ($horario = $resultHorarios->fetch_assoc()) {
-                                $selected = ($row['schedules'] == $horario['schedule']) ? 'selected' : '';
-                                echo '<option value="' . htmlspecialchars($horario['schedule']) . '" ' . $selected . '>'
-                                    . htmlspecialchars($horario['schedule']) . '</option>';
-                            }
+                            $horarios = obtenerHorarios($conn, $row['mode']);
+                            foreach ($horarios as $horario):
                             ?>
+                                <option value="<?php echo htmlspecialchars($horario); ?>">
+                                    <?php echo htmlspecialchars($horario); ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
-                    <br>
-                    <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horario</button>
+
+                    <!-- Horario Alternativo -->
+                    <div class="form-group mb-3">
+                        <label>Horario Alternativo actual:</label>
+                        <input type="text" class="form-control" value="<?php echo !empty($row['schedules_alternative']) ? htmlspecialchars($row['schedules_alternative']) : 'Sin horario alternativo'; ?>" readonly>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="nuevoHorarioAlt_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario alternativo:</label>
+                        <select class="form-control" id="nuevoHorarioAlt_<?php echo $row['number_id']; ?>" name="nuevoHorarioAlternativo">
+                            <option value="">Seleccionar horario</option>
+                            <?php foreach ($horarios as $horario): ?>
+                                <option value="<?php echo htmlspecialchars($horario); ?>">
+                                    <?php echo htmlspecialchars($horario); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horarios</button>
                 </form>
             </div>
         </div>
@@ -884,7 +941,8 @@
                                     <?php endif; ?>
                                     <option value="4">Sin contacto</option>
                                     <option value="5">En proceso</option>
-
+                                    <option value="6">Culmino proceso</option>
+                                    <option value="7">Inactivo</option>
                                 </select>
                             </div>
                             <br>
@@ -1058,7 +1116,7 @@
 
             Swal.fire({
                 title: '¿Está seguro?',
-                text: "¿Desea actualizar el horario?",
+                text: "¿Desea actualizar los horarios?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -1068,17 +1126,22 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     const nuevoHorario = $('#nuevoHorario_' + id).val();
-                    actualizarHorario(id, nuevoHorario);
+                    const nuevoHorarioAlt = $('#nuevoHorarioAlt_' + id).val();
+                    actualizarHorario(id, nuevoHorario, nuevoHorarioAlt);
                     $('#modalActualizarHorario_' + id).modal('hide');
                 }
             });
         });
     }
 
-    function actualizarHorario(id, nuevoHorario) {
+    function actualizarHorario(id, nuevoHorario, nuevoHorarioAlt) {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('nuevoHorario', nuevoHorario);
+        formData.append('nuevoHorarioAlternativo', nuevoHorarioAlt);
+
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "components/registrationsContact/actualizar_Horario.php", true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
@@ -1088,7 +1151,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: '¡Actualizado!',
-                            text: 'El horario se ha actualizado correctamente.',
+                            text: 'Los horarios se han actualizado correctamente.',
                             showConfirmButton: false,
                             timer: 2000
                         }).then(() => {
@@ -1098,28 +1161,26 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Hubo un problema al actualizar el horario.'
+                            text: 'Hubo un problema al actualizar los horarios.'
                         });
                     }
                 }
             }
         };
 
-        xhr.send("id=" + id + "&nuevoHorario=" + encodeURIComponent(nuevoHorario));
+        xhr.send(formData);
     }
 
     function mostrarModalActualizarPrograma(id) {
-        // Remover cualquier modal previo del DOM
-        $('#modalActualizarPrograma_' + id).remove();
+        $('#modalActualizarPrograma_' + id).modal('show');
 
-        // Crear el modal dinámicamente con un identificador único
         const modalHtml = `
         <div id="modalActualizarPrograma_${id}" class="modal fade" aria-hidden="true" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header bg-indigo-dark">
                         <h5 class="modal-title text-center">
-                            <i class="bi bi-arrow-left-right"></i> Actualizar Programa y Nivel
+                            <i class="bi bi-arrow-left-right"></i> Actualizar Programa, Nivel, Sede y Lote
                         </h5>
                         <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -1148,20 +1209,28 @@
                             </div>
                             <div class="form-group mb-3">
                                 <label for="nuevoSede_${id}">Seleccionar nueva sede:</label>
-                                <select class="form-control" id="nuevoSede_${id}" name="nuevoNivel" >
+                                <select class="form-control" id="nuevoSede_${id}" name="nuevoNivel">
                                     <option value="">Seleccionar sede</option>
-                                    <option value="Cota">Cota</option>
-                                    <option value="Tunja">Tunja</option>
-                                    <option value="Sogamoso">Sogamoso</option>
-                                    <option value="Soacha">Soacha</option>
-                                    <option value="Ubate">Ubate</option>
-                                    <option value="Giradot">Giradot</option>
-                                    <option value="Chía">Chía</option>
-                                    <option value="Cajica">Cajica</option>
+                                    <?php
+                                    $sedes = obtenerSedes($conn, $row['mode']); 
+                                    foreach($sedes as $sede):
+                                    ?>
+                                        <option value="<?php echo htmlspecialchars($sede); ?>">
+                                            <?php echo htmlspecialchars($sede); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="nuevoLote_${id}">Seleccionar lote:</label>
+                                <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
+                                    <option value="">Seleccionar lote</option>
+                                    <option value="1">Lote 1</option>
+                                    <option value="2">Lote 2</option>
                                 </select>
                             </div>
                             <input type="hidden" name="id" value="${id}">
-                            <button type="submit" class="btn bg-indigo-dark text-white ">Actualizar</button>
+                            <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar</button>
                         </form>
                     </div>
                 </div>
@@ -1172,7 +1241,6 @@
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         $('#modalActualizarPrograma_' + id).modal('show');
 
-        // Manejar el envío del formulario
         $('#formActualizarPrograma_' + id).on('submit', function(e) {
             e.preventDefault();
 
@@ -1187,26 +1255,26 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Solo obtener valores si fueron seleccionados
                     const nuevoPrograma = $('#nuevoPrograma_' + id).val() || null;
                     const nuevoNivel = $('#nuevoNivel_' + id).val() || null;
                     const nuevoSede = $('#nuevoSede_' + id).val() || null;
+                    const nuevoLote = $('#nuevoLote_' + id).val() || null;
 
-                    actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede);
+                    actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote);
                     $('#modalActualizarPrograma_' + id).modal('hide');
                 }
             });
         });
     }
 
-    function actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede) {
+    function actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote) {
         const formData = new FormData();
         formData.append('id', id);
 
-        // Solo agregar los campos que tienen valor
         if (nuevoPrograma) formData.append('nuevoPrograma', nuevoPrograma);
         if (nuevoNivel) formData.append('nuevoNivel', nuevoNivel);
         if (nuevoSede) formData.append('nuevoSede', nuevoSede);
+        if (nuevoLote) formData.append('nuevoLote', nuevoLote);
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "components/registrationsContact/actualizar_programa.php", true);
@@ -1219,7 +1287,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: '¡Actualizado!',
-                            text: 'Se ha actualizado correctamente.',
+                            text: 'La información se ha actualizado correctamente.',
                             showConfirmButton: false,
                             timer: 2000
                         }).then(() => {
