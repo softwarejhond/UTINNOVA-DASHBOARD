@@ -471,8 +471,11 @@ function obtenerSedes($conn)
                     </td>
 
                     <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        <?php echo htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['second_name']) . ' ' . htmlspecialchars($row['first_last']) . ' ' . htmlspecialchars($row['second_last']); ?>
-                    </td>
+                        <?php echo strtoupper(str_replace(
+                            ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ'],
+                            ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U', 'n', 'N'],
+                            htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['second_name']) . ' ' . htmlspecialchars($row['first_last']) . ' ' . htmlspecialchars($row['second_last'])
+                        )); ?></td>
                     <td><?php echo $row['age']; ?></td>
                     <td><?php echo htmlspecialchars($row['email']); ?></td>
                     <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['first_phone']); ?></td>
@@ -1676,13 +1679,13 @@ function obtenerSedes($conn)
                                         <th style="width: 50%">
                                             <i class="bi bi-geo-alt-fill"></i> Departamento:
                                         </th>  
-                                        <td>${data.department || 'No especificado'}</td>
+                                        <td>${data.departamento || 'No especificado'}</td>
                                     </tr>
                                     <tr class="text-start">
                                         <th>
                                             <i class="bi bi-pin-map-fill"></i> Municipio:
                                         </th>
-                                        <td>${data.municipality || 'No especificado'}</td>
+                                        <td>${data.municipio || 'No especificado'}</td>
                                     </tr>
                                     <tr class="text-start">
                                         <th>
