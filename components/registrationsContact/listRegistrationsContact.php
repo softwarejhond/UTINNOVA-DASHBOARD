@@ -22,12 +22,17 @@ $offset = ($page - 1) * $limit;
 // Parámetro de búsqueda
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-// Obtener los datos con paginación y búsqueda
-$sql = "SELECT user_register.*, municipios.municipio, departamentos.departamento
+// Modifica la consulta SQL existente
+$sql = "SELECT user_register.*, municipios.municipio, departamentos.departamento,
+        CASE 
+            WHEN p.numero_documento IS NOT NULL THEN 1
+            ELSE 0
+        END as tiene_certificado
     FROM user_register
     INNER JOIN municipios ON user_register.municipality = municipios.id_municipio
     INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
-    WHERE departamentos.id_departamento= 11
+    LEFT JOIN participantes p ON user_register.number_id = p.numero_documento
+    WHERE departamentos.id_departamento = 11
     AND user_register.status = '1'
     AND (user_register.first_name LIKE ? OR user_register.number_id LIKE ?)
     ORDER BY user_register.first_name ASC  
@@ -168,6 +173,20 @@ function obtenerHorarios($conn, $mode)
     return $horarios;
 }
 
+function obtenerSedes($conn)
+{
+    $sql = "SELECT DISTINCT name FROM headquarters ORDER BY name ASC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $sedes = array();
+    while ($row = $result->fetch_assoc()) {
+        $sedes[] = $row['name'];
+    }
+
+    return $sedes;
+}
 ?>
 
 <div class="table-responsive">
@@ -338,6 +357,7 @@ function obtenerHorarios($conn, $mode)
                 <th>Dispositivo</th>
                 <th>Internet</th>
                 <th>Estado</th>
+                <th>Cert. Ant</th>
                 <th>Estado de admision</th>
                 <th>Actualizar medio de contacto</th>
                 <th>Puntaje de prueba</th>
@@ -444,7 +464,7 @@ function obtenerHorarios($conn, $mode)
                                 }
                             }
                         </script>
-
+                        <b></b>
                     </td>
 
                     <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -626,6 +646,27 @@ function obtenerHorarios($conn, $mode)
                         ?>
                     </td>
 
+                    <td class="text-center">
+                        <?php if ($row['tiene_certificado']): ?>
+                            <button class="btn" style="background-color: #efbf04;"
+                                onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover"
+                                data-bs-placement="top"
+                                data-bs-content="El estudiante cuenta con certificación en lotes pasados">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover"
+                                data-bs-placement="top"
+                                data-bs-content="El estudiante NO cuenta con certificación en lotes pasados">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        <?php endif; ?>
+                    </td>
+
                     <td>
                         <?php
                         if ($row['statusAdmin'] == '1') {
@@ -644,6 +685,8 @@ function obtenerHorarios($conn, $mode)
                             echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO" data-status="6"><i class="bi bi-patch-check-fill"></i></button>';
                         } elseif ($row['statusAdmin'] == '7') {
                             echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
+                        } elseif ($row['statusAdmin'] == '8') {
+                            echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
                         }
                         ?>
                     </td>
@@ -817,7 +860,7 @@ function obtenerHorarios($conn, $mode)
                     </div>
                 </div>
 
-                                <!-- Modal para actualizar horario -->
+                <!-- Modal para actualizar horario -->
                 <div id="modalActualizarHorario_<?php echo $row['number_id']; ?>" class="modal fade" aria-hidden="true" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -848,7 +891,7 @@ function obtenerHorarios($conn, $mode)
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                
+
                                     <!-- Horario Alternativo -->
                                     <div class="form-group mb-3">
                                         <label>Horario Alternativo actual:</label>
@@ -865,7 +908,7 @@ function obtenerHorarios($conn, $mode)
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                
+
                                     <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horarios</button>
                                 </form>
                             </div>
@@ -1072,67 +1115,94 @@ function obtenerHorarios($conn, $mode)
         // Remover cualquier modal previo del DOM
         $('#modalActualizarAdmision_' + id).remove();
 
-        // Crear el modal dinámicamente con un identificador único
-        const modalHtml = `
-        <div id="modalActualizarAdmision_${id}" class="modal fade" aria-hidden="true" aria-labelledby="modalActualizarAdmisionLabel" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-indigo-dark">
-                        <h5 class="modal-title text-center"><i class="bi bi-arrow-left-right"></i> Actualizar Estado de Admisión</h5>
-                        <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="formActualizarAdmision_${id}">
-                            <div class="form-group">
-                                <label for="nuevoEstado_${id}">Seleccionar nuevo estado:</label>
-                                <select class="form-control" id="nuevoEstado_${id}" name="nuevoEstado" required>
-                                   <option value="">Seleccionar</option>
-                                    <option value="1">Beneficiario</option>
-                                    <option value="2">Rechazado</option>
-                                    <?php if ($rol == 'Administrador'): ?>
-                                    <option value="3">Matriculado</option>
-                                    <?php endif; ?>
-                                    <option value="4">Sin contacto</option>
-                                    <option value="5">En proceso</option>
-                                </select>
+        // Primero verificamos si el estudiante tiene certificación anterior
+        fetch(`components/registrationsContact/verificar_participante.php?id=${id}`)
+            .then(response => response.json())
+            .then(data => {
+                // Preparar las opciones según si existe o no en participantes
+                let opcionBeneficiario = '';
+
+                if (data.existe) {
+                    // Si existe en participantes, mostrar opción de Beneficiario para contrapartida
+                    opcionBeneficiario = '<option value="8">Beneficiario para contrapartida</option>';
+                } else {
+                    // Si no existe, mostrar opción regular de Beneficiario
+                    opcionBeneficiario = '<option value="1">Beneficiario</option>';
+                }
+
+                // Crear el modal dinámicamente con un identificador único
+                const modalHtml = `
+                <div id="modalActualizarAdmision_${id}" class="modal fade" aria-hidden="true" aria-labelledby="modalActualizarAdmisionLabel" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-indigo-dark">
+                                <h5 class="modal-title text-center"><i class="bi bi-arrow-left-right"></i> Actualizar Estado de Admisión</h5>
+                                <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <br>
-                            <input type="hidden" name="id" value="${id}">
-                            <button type="submit" class="btn bg-indigo-dark text-white">Actualizar</button>
-                        </form>
+                            <div class="modal-body">
+                                <form id="formActualizarAdmision_${id}">
+                                    <div class="form-group">
+                                        <label for="nuevoEstado_${id}">Seleccionar nuevo estado:</label>
+                                        <select class="form-control" id="nuevoEstado_${id}" name="nuevoEstado" required>
+                                            <option value="">Seleccionar</option>
+                                            ${opcionBeneficiario}
+                                            <option value="2">Rechazado</option>
+                                            <?php if ($rol == 'Administrador'): ?>
+                                            <option value="3">Matriculado</option>
+                                            <?php endif; ?>
+                                            <option value="4">Sin contacto</option>
+                                            <option value="5">En proceso</option>
+                                            <option value="6">Culmino proceso</option>
+                                            <option value="7">Inactivo</option>
+                                        </select>
+                                    </div>
+                                    <br>
+                                    <input type="hidden" name="id" value="${id}">
+                                    <button type="submit" class="btn bg-indigo-dark text-white">Actualizar</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        `;
+                `;
 
-        // Añadir el modal al DOM
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+                // Añadir el modal al DOM
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-        // Mostrar el modal
-        $('#modalActualizarAdmision_' + id).modal('show');
+                // Mostrar el modal
+                $('#modalActualizarAdmision_' + id).modal('show');
 
-        // Manejar el envío del formulario
-        $('#formActualizarAdmision_' + id).on('submit', function(e) {
-            e.preventDefault();
+                // Manejar el envío del formulario
+                $('#formActualizarAdmision_' + id).on('submit', function(e) {
+                    e.preventDefault();
 
-            Swal.fire({
-                title: '¿Está seguro?',
-                text: "¿Desea actualizar el estado de admisión?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, actualizar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const nuevoEstado = $('#nuevoEstado_' + id).val();
-                    actualizarEstadoAdmision(id, nuevoEstado);
-                    $('#modalActualizarAdmision_' + id).modal('hide');
-                }
+                    Swal.fire({
+                        title: '¿Está seguro?',
+                        text: "¿Desea actualizar el estado de admisión?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, actualizar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const nuevoEstado = $('#nuevoEstado_' + id).val();
+                            actualizarEstadoAdmision(id, nuevoEstado);
+                            $('#modalActualizarAdmision_' + id).modal('hide');
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error al verificar participante:', error);
+                // Si hay error, mostrar modal con opciones predeterminadas
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo verificar la información del participante'
+                });
             });
-        });
     }
 
     function actualizarEstadoAdmision(id, nuevoEstado) {
@@ -1362,16 +1432,15 @@ function obtenerHorarios($conn, $mode)
                             </div>
                             <div class="form-group mb-3">
                                 <label for="nuevoSede_${id}">Seleccionar nueva sede:</label>
-                                <select class="form-control" id="nuevoSede_${id}" name="nuevoNivel" >
+                                <select class="form-control" id="nuevoSede_${id}" name="nuevoNivel">
                                     <option value="">Seleccionar sede</option>
-                                    <option value="Cota">Cota</option>
-                                    <option value="Tunja">Tunja</option>
-                                    <option value="Sogamoso">Sogamoso</option>
-                                    <option value="Soacha">Soacha</option>
-                                    <option value="Ubate">Ubate</option>
-                                    <option value="Giradot">Giradot</option>
-                                    <option value="Chía">Chía</option>
-                                    <option value="Cajica">Cajica</option>
+                                    <?php
+                                    $sedes = obtenerSedes($conn);
+                                    foreach ($sedes as $sede): ?>
+                                        <option value="<?php echo htmlspecialchars($sede); ?>">
+                                            <?php echo htmlspecialchars($sede); ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div class="form-group mb-3">
@@ -1546,6 +1615,137 @@ function obtenerHorarios($conn, $mode)
                 });
             });
     });
+
+    function mostrarDetallesParticipante(numeroDocumento, nombreEstudiante) {
+        // Crear y mostrar modal
+        const modalHtml = `
+            <div class="modal fade" id="modalDetallesParticipante" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-indigo-dark">
+                            <h5 class="modal-title text-white">
+                                <i class="fa-solid fa-user-graduate"></i> Certificación Anterior
+                            </h5>
+                            <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="loaderParticipante" class="text-center mb-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                            <div id="detallesParticipanteContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Agregar modal al DOM
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('modalDetallesParticipante'));
+        modal.show();
+
+        // Cargar datos
+        fetch(`components/registrationsContact/obtener_detalles_participante.php?numero_documento=${numeroDocumento}`)
+            .then(response => response.json())
+            .then(data => {
+                // Ocultar el loader
+                document.getElementById('loaderParticipante').style.display = 'none';
+
+                const contenido = `
+                    <h2 class="text-center mb-2 text-magenta-dark">${nombreEstudiante.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}</h2>
+    
+                    <p class="text-center mb-4"><b>${data.numero_documento}</b></p>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr class="text-start">
+                                        <th style="width: 50%">
+                                            <i class="bi bi-geo-alt-fill"></i> Departamento:
+                                        </th>  
+                                        <td>${data.departamento || 'No especificado'}</td>
+                                    </tr>
+                                    <tr class="text-start">
+                                        <th>
+                                            <i class="bi bi-pin-map-fill"></i> Municipio:
+                                        </th>
+                                        <td>${data.municipio || 'No especificado'}</td>
+                                    </tr>
+                                    <tr class="text-start">
+                                        <th>
+                                            <i class="bi bi-map"></i> Región:
+                                        </th>
+                                        <td>${data.region || 'No especificado'}</td>
+                                    </tr>
+                                    <tr class="text-start">
+                                        <th>
+                                            <i class="bi bi-book-half"></i> Programa:
+                                        </th>
+                                        <td>${data.eje_final || 'No especificado'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+    
+                    <div class="modal-footer">
+                        <div class="text-center w-100">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> Información cargada en tiempo real - 
+                                <span id="relojModal"></span>
+                            </small>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('detallesParticipanteContent').innerHTML = contenido;
+
+                // Inicializar el reloj después de cargar el contenido
+                let relojInterval;
+
+                function actualizarReloj() {
+                    const ahora = new Date();
+                    let horas = ahora.getHours();
+                    const minutos = ahora.getMinutes().toString().padStart(2, '0');
+                    const segundos = ahora.getSeconds().toString().padStart(2, '0');
+                    const ampm = horas >= 12 ? 'PM' : 'AM';
+
+                    // Convertir a formato 12 horas
+                    horas = horas % 12;
+                    horas = horas ? horas : 12; // la hora '0' debe ser '12'
+                    const horasFormateadas = horas.toString().padStart(2, '0');
+
+                    const relojElement = document.getElementById('relojModal');
+                    if (relojElement) {
+                        relojElement.textContent = `${horasFormateadas}:${minutos}:${segundos} ${ampm}`;
+                    }
+                }
+
+                actualizarReloj(); // Ejecutar inmediatamente
+                relojInterval = setInterval(actualizarReloj, 1000); // Actualizar cada segundo
+
+                // Limpiar el intervalo cuando se cierre el modal
+                document.getElementById('modalDetallesParticipante').addEventListener('hidden.bs.modal', function() {
+                    clearInterval(relojInterval); // Detener el reloj
+                    this.remove(); // Eliminar el modal del DOM
+                });
+            })
+            .catch(error => {
+                // Ocultar el loader
+                document.getElementById('loaderParticipante').style.display = 'none';
+
+                document.getElementById('detallesParticipanteContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        Error al cargar los datos: ${error.message}
+                    </div>
+                `;
+            });
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

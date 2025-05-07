@@ -71,6 +71,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 <?php include 'components/pqr/pqrButton.php'; ?>
             <?php endif; ?>
 
+            <?php include_once 'components/registrationsContact/previous_students_button.php'; ?>
+
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="<?php echo htmlspecialchars($infoUsuario['foto']); ?>" alt="Perfil" class="rounded-circle" width="40" height="40">
