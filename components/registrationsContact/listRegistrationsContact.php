@@ -15,7 +15,7 @@
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 
 // Parámetros de paginación
-$limit = 60; // Número de registros por página
+$limit = 30; // Número de registros por página
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
@@ -23,27 +23,30 @@ $offset = ($page - 1) * $limit;
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 // Modifica la consulta SQL existente
-$sql = "SELECT user_register.*, municipios.municipio, departamentos.departamento,
-        CASE 
-            WHEN p.numero_documento IS NOT NULL THEN 1
-            ELSE 0
-        END as tiene_certificado
-    FROM user_register
-    INNER JOIN municipios ON user_register.municipality = municipios.id_municipio
-    INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
-    LEFT JOIN participantes p ON user_register.number_id = p.numero_documento
-    WHERE departamentos.id_departamento = 11
-    AND user_register.status = '1'
-    AND (user_register.first_name LIKE ? OR user_register.number_id LIKE ?)
-    ORDER BY user_register.first_name ASC  
-    LIMIT ? OFFSET ?";
+$sql = "SELECT 
+            user_register.*, 
+            EXISTS(
+                SELECT 1 
+                FROM participantes p 
+                WHERE p.numero_documento = user_register.number_id
+            ) AS tiene_certificado
+        FROM user_register
+        WHERE user_register.status = '1'
+          AND (
+              user_register.first_name LIKE CONCAT(?, '%') 
+              OR user_register.number_id LIKE CONCAT(?, '%')
+          )
+        ORDER BY user_register.first_name ASC  
+        LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($sql);
+
 
 $sqlContactLog = "SELECT cl.*, a.name AS advisor_name
                   FROM contact_log cl
                   LEFT JOIN advisors a ON cl.idAdvisor = a.id
                   WHERE cl.number_id = ?";
 
-$stmt = $conn->prepare($sql);
+
 $searchParam = "%$search%";
 $stmt->bind_param('ssii', $searchParam, $searchParam, $limit, $offset);
 $stmt->execute();
@@ -508,18 +511,23 @@ function obtenerSedes($conn)
                     <td><?php echo htmlspecialchars($row['nationality']); ?></td>
                     <td>
                         <?php
-                        $departamento = htmlspecialchars($row['departamento']);
-                        if ($departamento === 'CUNDINAMARCA') {
-                            echo "<button class='btn bg-lime-light w-100'><b>{$departamento}</b></button>"; // Botón verde para CUNDINAMARCA
-                        } elseif ($departamento === 'BOYACÁ') {
-                            echo "<button class='btn bg-indigo-light w-100'><b>{$departamento}</b></button>"; // Botón azul para BOYACÁ
-                        } else {
-                            echo "<span>{$departamento}</span>"; // Texto normal para otros valores
-                        }
+                        $departamento = htmlspecialchars($row['department']);
+                        if ($departamento === '11') {
+                            echo "<button class='btn bg-lime-light w-100'><b>BOGOTÁ D.C.</b></button>"; // Botón verde para CUNDINAMARCA
+                        } 
                         ?>
                     </td>
 
-                    <td><b class="text-center"><?php echo htmlspecialchars($row['municipio']); ?></b></td>
+                    <td>
+                        <?php
+                        $municipio = htmlspecialchars($row['municipality']);
+                        if ($municipio === '11001') {
+                            echo "<button class='btn bg-indigo-light w-100'><b>BOGOTÁ</b></button>"; // Botón verde para Bogotá
+                        } else {
+                            echo "<button class='btn bg-gray-light w-100'><b>" . $municipio . "</b></button>"; // Botón gris para otros municipios
+                        }
+                        ?>
+                    </td>
                     <td><?php echo htmlspecialchars($row['occupation']); ?></td>
                     <td><?php echo !empty($row['country_person']) ? htmlspecialchars($row['country_person']) : 'Sin especificar'; ?></td>
                     <td><?php echo htmlspecialchars($row['time_obligations']); ?></td>
@@ -620,18 +628,18 @@ function obtenerSedes($conn)
                     <td>
                         <?php
                         // Verificar condiciones para cada registro
-                        $isAccepted = false;
+                        $isAccepted = true;
                         if ($row['mode'] === 'Presencial') {
                             if (
                                 $row['typeID'] === 'CC' && $row['age'] > 17 &&
-                                (strtoupper($row['departamento']) === 'BOGOTÁ, D.C.')
+                                (strtoupper($row['department']) === '11')
                             ) {
                                 $isAccepted = true;
                             }
                         } elseif ($row['mode'] === 'Virtual') {
                             if (
                                 $row['typeID'] === 'CC' && $row['age'] > 17 &&
-                                (strtoupper($row['departamento']) === 'BOGOTÁ, D.C.') &&
+                                (strtoupper($row['department']) === '11') &&
                                 $row['internet'] === 'Sí'
                             ) {
                                 $isAccepted = true;
@@ -1668,13 +1676,13 @@ function obtenerSedes($conn)
                                         <th style="width: 50%">
                                             <i class="bi bi-geo-alt-fill"></i> Departamento:
                                         </th>  
-                                        <td>${data.departamento || 'No especificado'}</td>
+                                        <td>${data.department || 'No especificado'}</td>
                                     </tr>
                                     <tr class="text-start">
                                         <th>
                                             <i class="bi bi-pin-map-fill"></i> Municipio:
                                         </th>
-                                        <td>${data.municipio || 'No especificado'}</td>
+                                        <td>${data.municipality || 'No especificado'}</td>
                                     </tr>
                                     <tr class="text-start">
                                         <th>
