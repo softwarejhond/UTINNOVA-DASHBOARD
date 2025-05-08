@@ -16,12 +16,12 @@ try {
     $total_usuarios = mysqli_fetch_assoc($result_total)['total'];
 
     // Obtener total de usuarios en Lote 1 (reemplaza la consulta de Cundinamarca)
-    $sql_lote1 = "SELECT COUNT(*) AS total_lote1 FROM user_register WHERE status = '1' AND statusAdmin = '0' AND lote = 1";
+    $sql_lote1 = "SELECT COUNT(*) AS total_lote1 FROM user_register WHERE  lote = 1";
     $result_lote1 = mysqli_query($conn, $sql_lote1);
     $total_lote1 = mysqli_fetch_assoc($result_lote1)['total_lote1'];
 
     // Obtener total de usuarios en Lote 2 (reemplaza la consulta de Boyacá)
-    $sql_lote2 = "SELECT COUNT(*) AS total_lote2 FROM user_register WHERE status = '1' AND statusAdmin = '0' AND lote = 2";
+    $sql_lote2 = "SELECT COUNT(*) AS total_lote2 FROM user_register WHERE lote = 2";
     $result_lote2 = mysqli_query($conn, $sql_lote2);
     $total_lote2 = mysqli_fetch_assoc($result_lote2)['total_lote2'];
 
