@@ -283,7 +283,7 @@ function obtenerSedes($conn)
             </div>
 
             <!-- Row para filtros -->
-            <div class="row mb-4">
+            <div class="row mb-4 sticky-top bg-white shadow-sm py-3" >
                 <!-- Filtro por sede -->
                 <div class="col-md-6">
                     <div class="card h-100">
@@ -326,610 +326,611 @@ function obtenerSedes($conn)
         </div>
     </div>
 
+    <div class="w-100" style="overflow-x: auto;">
+        <table id="listaInscritos" class="table table-hover table-bordered">
+            <thead class="thead-dark text-center">
+                <tr class="text-center">
+                    <th>Tipo ID</th>
+                    <th>Número</th>
+                    <th>Foto de CC</th>
+                    <th>Nombre </th>
+                    <th>Edad</th>
+                    <th>Correo</th>
+                    <th>Teléfono 1</th>
+                    <th>Teléfono 2</th>
+                    <th>Medio de contacto</th>
+                    <th>Contacto de emergencia</th>
+                    <th>Teléfono del contacto</th>
+                    <th>Nacionalidad</th>
+                    <th>Departamento</th>
+                    <th>Municipio</th>
+                    <th>Ocupación</th>
+                    <th>Campesino</th>
+                    <th>Tiempo de obligaciones</th>
+                    <th>Sede de elección</th>
+                    <th>Modalidad</th>
+                    <th>Actualizar modalidad</th>
+                    <th>Programa de interés</th>
+                    <th>Nivel de preferencia</th>
+                    <th>Lote</th>
+                    <th>Actualizar programa, nivel, sede y lote</th>
+                    <th>Horario</th>
+                    <th>Horario alternativo</th>
+                    <th>Cambiar Horarios</th>
+                    <th>Dispositivo</th>
+                    <th>Internet</th>
+                    <th>Estado</th>
+                    <th>Cert. Ant</th>
+                    <th>Estado de admision</th>
+                    <th>Actualizar medio de contacto</th>
+                    <th>Puntaje de prueba</th>
+                    <th>Nivel obtenido</th>
+                    <th>Actualizar contacto</th>
+                    <th>Actualizar admision</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                <?php foreach ($data as $row): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['typeID']); ?></td>
+                        <td><?php echo htmlspecialchars($row['number_id']); ?></td>
+                        <td>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalID_<?php echo $row['number_id']; ?>">
+                                <i class="bi bi-card-image"></i>
+                            </button>
 
-    <table id="listaInscritos" class="table table-hover table-bordered">
-        <thead class="thead-dark text-center">
-            <tr class="text-center">
-                <th>Tipo ID</th>
-                <th>Número</th>
-                <th>Foto de CC</th>
-                <th>Nombre </th>
-                <th>Edad</th>
-                <th>Correo</th>
-                <th>Teléfono 1</th>
-                <th>Teléfono 2</th>
-                <th>Medio de contacto</th>
-                <th>Contacto de emergencia</th>
-                <th>Teléfono del contacto</th>
-                <th>Nacionalidad</th>
-                <th>Departamento</th>
-                <th>Municipio</th>
-                <th>Ocupación</th>
-                <th>Campesino</th>
-                <th>Tiempo de obligaciones</th>
-                <th>Sede de elección</th>
-                <th>Modalidad</th>
-                <th>Actualizar modalidad</th>
-                <th>Programa de interés</th>
-                <th>Nivel de preferencia</th>
-                <th>Lote</th>
-                <th>Actualizar programa, nivel, sede y lote</th>
-                <th>Horario</th>
-                <th>Horario alternativo</th>
-                <th>Cambiar Horarios</th>
-                <th>Dispositivo</th>
-                <th>Internet</th>
-                <th>Estado</th>
-                <th>Cert. Ant</th>
-                <th>Estado de admision</th>
-                <th>Actualizar medio de contacto</th>
-                <th>Puntaje de prueba</th>
-                <th>Nivel obtenido</th>
-                <th>Actualizar contacto</th>
-                <th>Actualizar admision</th>
-            </tr>
-        </thead>
-        <tbody class="text-center">
-            <?php foreach ($data as $row): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($row['typeID']); ?></td>
-                    <td><?php echo htmlspecialchars($row['number_id']); ?></td>
-                    <td>
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalID_<?php echo $row['number_id']; ?>">
-                            <i class="bi bi-card-image"></i>
-                        </button>
+                            <!-- Modal para mostrar las imágenes -->
+                            <div class="modal fade" id="modalID_<?php echo $row['number_id']; ?>" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-indigo-dark">
+                                            <h5 class="modal-title">Imágenes de Identificación</h5>
+                                            <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body position-relative" style="overflow: visible;">
+                                            <div class="row">
+                                                <!-- Frente del documento -->
+                                                <div class="col-12 mb-4 text-center">
+                                                    <h6>Frente del documento</h6>
+                                                    <div class="position-relative overflow-visible">
+                                                        <img id="idImageFront_<?php echo $row['number_id']; ?>"
+                                                            src="../files/idFilesFront/<?php echo htmlspecialchars($row['file_front_id']); ?>"
+                                                            class="img-fluid w-100 zoomable"
+                                                            style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
+                                                            alt="Frente ID"
+                                                            onclick="toggleZoom('idImageFront_<?php echo $row['number_id']; ?>')">
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-primary" onclick="rotateImage('idImageFront_<?php echo $row['number_id']; ?>', -90)">↺ Rotar Izquierda</button>
+                                                        <button class="btn btn-primary" onclick="rotateImage('idImageFront_<?php echo $row['number_id']; ?>', 90)">↻ Rotar Derecha</button>
+                                                    </div>
+                                                </div>
 
-                        <!-- Modal para mostrar las imágenes -->
-                        <div class="modal fade" id="modalID_<?php echo $row['number_id']; ?>" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-indigo-dark">
-                                        <h5 class="modal-title">Imágenes de Identificación</h5>
-                                        <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body position-relative" style="overflow: visible;">
-                                        <div class="row">
-                                            <!-- Frente del documento -->
-                                            <div class="col-12 mb-4 text-center">
-                                                <h6>Frente del documento</h6>
-                                                <div class="position-relative overflow-visible">
-                                                    <img id="idImageFront_<?php echo $row['number_id']; ?>"
-                                                        src="../files/idFilesFront/<?php echo htmlspecialchars($row['file_front_id']); ?>"
-                                                        class="img-fluid w-100 zoomable"
-                                                        style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
-                                                        alt="Frente ID"
-                                                        onclick="toggleZoom('idImageFront_<?php echo $row['number_id']; ?>')">
-                                                </div>
-                                                <div class="mt-2">
-                                                    <button class="btn btn-primary" onclick="rotateImage('idImageFront_<?php echo $row['number_id']; ?>', -90)">↺ Rotar Izquierda</button>
-                                                    <button class="btn btn-primary" onclick="rotateImage('idImageFront_<?php echo $row['number_id']; ?>', 90)">↻ Rotar Derecha</button>
-                                                </div>
-                                            </div>
-
-                                            <!-- Reverso del documento -->
-                                            <div class="col-12 text-center">
-                                                <h6>Reverso del documento</h6>
-                                                <div class="position-relative overflow-visible">
-                                                    <img id="idImageBack_<?php echo $row['number_id']; ?>"
-                                                        src="../files/idFilesBack/<?php echo htmlspecialchars($row['file_back_id']); ?>"
-                                                        class="img-fluid w-100 zoomable"
-                                                        style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
-                                                        alt="Reverso ID"
-                                                        onclick="toggleZoom('idImageBack_<?php echo $row['number_id']; ?>')">
-                                                </div>
-                                                <div class="mt-2">
-                                                    <button class="btn btn-primary" onclick="rotateImage('idImageBack_<?php echo $row['number_id']; ?>', -90)">↺ Rotar Izquierda</button>
-                                                    <button class="btn btn-primary" onclick="rotateImage('idImageBack_<?php echo $row['number_id']; ?>', 90)">↻ Rotar Derecha</button>
+                                                <!-- Reverso del documento -->
+                                                <div class="col-12 text-center">
+                                                    <h6>Reverso del documento</h6>
+                                                    <div class="position-relative overflow-visible">
+                                                        <img id="idImageBack_<?php echo $row['number_id']; ?>"
+                                                            src="../files/idFilesBack/<?php echo htmlspecialchars($row['file_back_id']); ?>"
+                                                            class="img-fluid w-100 zoomable"
+                                                            style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
+                                                            alt="Reverso ID"
+                                                            onclick="toggleZoom('idImageBack_<?php echo $row['number_id']; ?>')">
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <button class="btn btn-primary" onclick="rotateImage('idImageBack_<?php echo $row['number_id']; ?>', -90)">↺ Rotar Izquierda</button>
+                                                        <button class="btn btn-primary" onclick="rotateImage('idImageBack_<?php echo $row['number_id']; ?>', 90)">↻ Rotar Derecha</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <script>
-                            // Verificar si la variable ya existe en el ámbito global
-                            if (typeof window.imageTransforms === 'undefined') {
-                                window.imageTransforms = {};
-                            }
-
-                            function rotateImage(imageId, degrees) {
-                                if (!window.imageTransforms[imageId]) {
-                                    window.imageTransforms[imageId] = {
-                                        rotation: 0,
-                                        scale: 1
-                                    };
+                            <script>
+                                // Verificar si la variable ya existe en el ámbito global
+                                if (typeof window.imageTransforms === 'undefined') {
+                                    window.imageTransforms = {};
                                 }
-                                window.imageTransforms[imageId].rotation += degrees;
-                                applyTransform(imageId);
-                            }
 
-                            function toggleZoom(imageId) {
-                                if (!window.imageTransforms[imageId]) {
-                                    window.imageTransforms[imageId] = {
-                                        rotation: 0,
-                                        scale: 1
-                                    };
+                                function rotateImage(imageId, degrees) {
+                                    if (!window.imageTransforms[imageId]) {
+                                        window.imageTransforms[imageId] = {
+                                            rotation: 0,
+                                            scale: 1
+                                        };
+                                    }
+                                    window.imageTransforms[imageId].rotation += degrees;
+                                    applyTransform(imageId);
                                 }
-                                window.imageTransforms[imageId].scale = window.imageTransforms[imageId].scale === 1 ? 2 : 1;
-                                applyTransform(imageId);
-                            }
 
-                            function applyTransform(imageId) {
-                                let imgElement = document.getElementById(imageId);
-                                if (imgElement) {
-                                    let {
-                                        rotation,
-                                        scale
-                                    } = window.imageTransforms[imageId];
-                                    imgElement.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+                                function toggleZoom(imageId) {
+                                    if (!window.imageTransforms[imageId]) {
+                                        window.imageTransforms[imageId] = {
+                                            rotation: 0,
+                                            scale: 1
+                                        };
+                                    }
+                                    window.imageTransforms[imageId].scale = window.imageTransforms[imageId].scale === 1 ? 2 : 1;
+                                    applyTransform(imageId);
                                 }
-                            }
-                        </script>
-                        <b></b>
-                    </td>
 
-                    <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        <?php echo strtoupper(str_replace(
-                            ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ'],
-                            ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U', 'n', 'N'],
-                            htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['second_name']) . ' ' . htmlspecialchars($row['first_last']) . ' ' . htmlspecialchars($row['second_last'])
-                        )); ?></td>
-                    <td><?php echo $row['age']; ?></td>
-                    <td><?php echo htmlspecialchars($row['email']); ?></td>
-                    <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['first_phone']); ?></td>
-                    <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['second_phone']); ?></td>
-                    <td id="medioContacto_<?php echo $row['number_id']; ?>">
+                                function applyTransform(imageId) {
+                                    let imgElement = document.getElementById(imageId);
+                                    if (imgElement) {
+                                        let {
+                                            rotation,
+                                            scale
+                                        } = window.imageTransforms[imageId];
+                                        imgElement.style.transform = `rotate(${rotation}deg) scale(${scale})`;
+                                    }
+                                }
+                            </script>
+                            <b></b>
+                        </td>
+
+                        <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <?php echo strtoupper(str_replace(
+                                ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ', 'Ñ'],
+                                ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U', 'n', 'N'],
+                                htmlspecialchars($row['first_name']) . ' ' . htmlspecialchars($row['second_name']) . ' ' . htmlspecialchars($row['first_last']) . ' ' . htmlspecialchars($row['second_last'])
+                            )); ?></td>
+                        <td><?php echo $row['age']; ?></td>
+                        <td><?php echo htmlspecialchars($row['email']); ?></td>
+                        <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['first_phone']); ?></td>
+                        <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['second_phone']); ?></td>
+                        <td id="medioContacto_<?php echo $row['number_id']; ?>">
+                            <?php
+                            // Asigna la clase y el ícono según el valor de 'contactMedium'
+                            $btnClass = '';
+                            $btnText = htmlspecialchars($row['contactMedium']); // El texto que aparecerá en la tooltip
+                            $icon = ''; // Ícono correspondiente
+
+                            if ($row['contactMedium'] === 'WhatsApp') {
+                                $btnClass = 'btn bg-lime-dark text-white'; // Verde para WhatsApp
+                                $icon = '<i class="bi bi-whatsapp"></i>'; // Ícono de WhatsApp
+                            } elseif ($row['contactMedium'] === 'Teléfono') {
+                                $btnClass = 'btn bg-teal-dark text-white'; // Azul para Teléfono
+                                $icon = '<i class="bi bi-telephone"></i>'; // Ícono de Teléfono
+                            } elseif ($row['contactMedium'] === 'Correo') {
+                                $btnClass = 'btn bg-orange-light'; // Amarillo para Correo
+                                $icon = '<i class="bi bi-envelope"></i>'; // Ícono de Correo
+                            } else {
+                                $btnClass = 'btn btn-secondary'; // Clase genérica si no coincide
+                                $icon = '<i class="bi bi-question-circle"></i>'; // Ícono genérico
+                                $btnText = 'Desconocido'; // Texto genérico
+                            }
+
+                            // Mostrar el botón con la clase, ícono y tooltip correspondientes
+                            echo '<a tabindex="0" role="button" class="' . $btnClass . '" data-toggle="popover" data-trigger="focus" data-placement="top" title="' . $btnText . '">'
+                                . $icon .
+                                '</a>';
+                            ?>
+                        </td>
+
+                        <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['emergency_contact_name']); ?></td>
+                        <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['emergency_contact_number']); ?></td>
+                        <td><?php echo htmlspecialchars($row['nationality']); ?></td>
+                        <td>
+                            <?php
+                            $departamento = htmlspecialchars($row['department']);
+                            if ($departamento === '11') {
+                                echo "<button class='btn bg-lime-light w-100'><b>BOGOTÁ D.C.</b></button>"; // Botón verde para CUNDINAMARCA
+                            }
+                            ?>
+                        </td>
+
+                        <td>
+                            <?php
+                            $municipio = htmlspecialchars($row['municipality']);
+                            if ($municipio === '11001') {
+                                echo "<button class='btn bg-indigo-light w-100'><b>BOGOTÁ</b></button>"; // Botón verde para Bogotá
+                            } else {
+                                echo "<button class='btn bg-gray-light w-100'><b>" . $municipio . "</b></button>"; // Botón gris para otros municipios
+                            }
+                            ?>
+                        </td>
+                        <td><?php echo htmlspecialchars($row['occupation']); ?></td>
+                        <td><?php echo !empty($row['country_person']) ? htmlspecialchars($row['country_person']) : 'Sin especificar'; ?></td>
+                        <td><?php echo htmlspecialchars($row['time_obligations']); ?></td>
+                        <td><?php echo htmlspecialchars($row['headquarters']); ?></td>
+                        <td><?php echo htmlspecialchars($row['mode']); ?></td>
+                        <td>
+                            <button class="btn text-white" style="background-color: #fc4b08;" onclick="modalActualizarModalidad(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-custom-class="custom-tooltip"
+                                data-bs-title="Cambiar modalidad">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </button>
+                        </td>
+                        <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['program']); ?></td>
+                        <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['level']); ?></td>
+                        <td class="text-center"><?php echo htmlspecialchars($row['lote']); ?></td>
+
+                        <td>
+                            <button class="btn btn-warning" onclick="mostrarModalActualizarPrograma(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-custom-class="custom-tooltip"
+                                data-bs-title="Cambiar programa y nivel">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </button>
+                        </td>
+
+
+                        <td class="text-center">
+                            <a class="btn bg-indigo-light"
+                                tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top"
+                                title="<?php echo empty($row['schedules']) ? 'Sin horario asignado' : htmlspecialchars($row['schedules']); ?>">
+                                <i class="bi bi-clock-history"></i>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a class="btn bg-teal-light"
+                                tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top"
+                                title="<?php echo empty($row['schedules_alternative']) ? 'Sin horario asignado' : htmlspecialchars($row['schedules']); ?>">
+                                <i class="bi bi-clock-history"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn text-white" style="background-color: #b624d5;" onclick="mostrarModalActualizarHorario(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-custom-class="custom-tooltip"
+                                data-bs-title="Cambiar horario">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </button>
+                        </td>
                         <?php
-                        // Asigna la clase y el ícono según el valor de 'contactMedium'
+                        // Asigna la clase, ícono y texto del tooltip según el valor de 'technologies'
                         $btnClass = '';
-                        $btnText = htmlspecialchars($row['contactMedium']); // El texto que aparecerá en la tooltip
+                        $btnText = htmlspecialchars($row['technologies']); // El texto que aparecerá en la tooltip
                         $icon = ''; // Ícono correspondiente
 
-                        if ($row['contactMedium'] === 'WhatsApp') {
-                            $btnClass = 'btn bg-lime-dark text-white'; // Verde para WhatsApp
-                            $icon = '<i class="bi bi-whatsapp"></i>'; // Ícono de WhatsApp
-                        } elseif ($row['contactMedium'] === 'Teléfono') {
-                            $btnClass = 'btn bg-teal-dark text-white'; // Azul para Teléfono
-                            $icon = '<i class="bi bi-telephone"></i>'; // Ícono de Teléfono
-                        } elseif ($row['contactMedium'] === 'Correo') {
-                            $btnClass = 'btn bg-orange-light'; // Amarillo para Correo
-                            $icon = '<i class="bi bi-envelope"></i>'; // Ícono de Correo
+                        if ($row['technologies'] === 'computador') {
+                            $btnClass = 'bg-indigo-dark text-white'; // Clase para computador
+                            $icon = '<i class="bi bi-laptop"></i>'; // Ícono de computador
+                        } elseif ($row['technologies'] === 'smartphone') {
+                            $btnClass = 'bg-teal-dark text-white'; // Clase para smartphone
+                            $icon = '<i class="bi bi-phone"></i>'; // Ícono de smartphone
+                        } elseif ($row['technologies'] === 'tablet') {
+                            $btnClass = 'bg-amber-light text-white'; // Clase para tablet
+                            $icon = '<i class="bi bi-tablet"></i>'; // Ícono de tablet
                         } else {
-                            $btnClass = 'btn btn-secondary'; // Clase genérica si no coincide
+                            $btnClass = 'btn-secondary'; // Clase genérica si no coincide
                             $icon = '<i class="bi bi-question-circle"></i>'; // Ícono genérico
-                            $btnText = 'Desconocido'; // Texto genérico
                         }
 
                         // Mostrar el botón con la clase, ícono y tooltip correspondientes
-                        echo '<a tabindex="0" role="button" class="' . $btnClass . '" data-toggle="popover" data-trigger="focus" data-placement="top" title="' . $btnText . '">'
-                            . $icon .
-                            '</a>';
-                        ?>
-                    </td>
-
-                    <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['emergency_contact_name']); ?></td>
-                    <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['emergency_contact_number']); ?></td>
-                    <td><?php echo htmlspecialchars($row['nationality']); ?></td>
-                    <td>
-                        <?php
-                        $departamento = htmlspecialchars($row['department']);
-                        if ($departamento === '11') {
-                            echo "<button class='btn bg-lime-light w-100'><b>BOGOTÁ D.C.</b></button>"; // Botón verde para CUNDINAMARCA
-                        } 
-                        ?>
-                    </td>
-
-                    <td>
-                        <?php
-                        $municipio = htmlspecialchars($row['municipality']);
-                        if ($municipio === '11001') {
-                            echo "<button class='btn bg-indigo-light w-100'><b>BOGOTÁ</b></button>"; // Botón verde para Bogotá
-                        } else {
-                            echo "<button class='btn bg-gray-light w-100'><b>" . $municipio . "</b></button>"; // Botón gris para otros municipios
-                        }
-                        ?>
-                    </td>
-                    <td><?php echo htmlspecialchars($row['occupation']); ?></td>
-                    <td><?php echo !empty($row['country_person']) ? htmlspecialchars($row['country_person']) : 'Sin especificar'; ?></td>
-                    <td><?php echo htmlspecialchars($row['time_obligations']); ?></td>
-                    <td><?php echo htmlspecialchars($row['headquarters']); ?></td>
-                    <td><?php echo htmlspecialchars($row['mode']); ?></td>
-                    <td>
-                        <button class="btn text-white" style="background-color: #fc4b08;" onclick="modalActualizarModalidad(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-custom-class="custom-tooltip"
-                            data-bs-title="Cambiar modalidad">
-                            <i class="bi bi-arrow-left-right"></i>
-                        </button>
-                    </td>
-                    <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['program']); ?></td>
-                    <td style="width: 200px; min-width: 200px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['level']); ?></td>
-                    <td class="text-center"><?php echo htmlspecialchars($row['lote']); ?></td>
-
-                    <td>
-                        <button class="btn btn-warning" onclick="mostrarModalActualizarPrograma(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-custom-class="custom-tooltip"
-                            data-bs-title="Cambiar programa y nivel">
-                            <i class="bi bi-arrow-left-right"></i>
-                        </button>
-                    </td>
-
-
-                    <td class="text-center">
-                        <a class="btn bg-indigo-light"
-                            tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top"
-                            title="<?php echo empty($row['schedules']) ? 'Sin horario asignado' : htmlspecialchars($row['schedules']); ?>">
-                            <i class="bi bi-clock-history"></i>
-                        </a>
-                    </td>
-                    <td class="text-center">
-                        <a class="btn bg-teal-light"
-                            tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top"
-                            title="<?php echo empty($row['schedules_alternative']) ? 'Sin horario asignado' : htmlspecialchars($row['schedules']); ?>">
-                            <i class="bi bi-clock-history"></i>
-                        </a>
-                    </td>
-                    <td>
-                        <button class="btn text-white" style="background-color: #b624d5;" onclick="mostrarModalActualizarHorario(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-custom-class="custom-tooltip"
-                            data-bs-title="Cambiar horario">
-                            <i class="bi bi-arrow-left-right"></i>
-                        </button>
-                    </td>
-                    <?php
-                    // Asigna la clase, ícono y texto del tooltip según el valor de 'technologies'
-                    $btnClass = '';
-                    $btnText = htmlspecialchars($row['technologies']); // El texto que aparecerá en la tooltip
-                    $icon = ''; // Ícono correspondiente
-
-                    if ($row['technologies'] === 'computador') {
-                        $btnClass = 'bg-indigo-dark text-white'; // Clase para computador
-                        $icon = '<i class="bi bi-laptop"></i>'; // Ícono de computador
-                    } elseif ($row['technologies'] === 'smartphone') {
-                        $btnClass = 'bg-teal-dark text-white'; // Clase para smartphone
-                        $icon = '<i class="bi bi-phone"></i>'; // Ícono de smartphone
-                    } elseif ($row['technologies'] === 'tablet') {
-                        $btnClass = 'bg-amber-light text-white'; // Clase para tablet
-                        $icon = '<i class="bi bi-tablet"></i>'; // Ícono de tablet
-                    } else {
-                        $btnClass = 'btn-secondary'; // Clase genérica si no coincide
-                        $icon = '<i class="bi bi-question-circle"></i>'; // Ícono genérico
-                    }
-
-                    // Mostrar el botón con la clase, ícono y tooltip correspondientes
-                    echo '<td class="text-center">
+                        echo '<td class="text-center">
                                 <a class="btn ' . $btnClass . '" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" 
                                 title="' . $btnText . '">
                                     ' . $icon . '
                                 </a>
                             </td>';
-                    ?>
+                        ?>
 
-                    <?php
-                    $btnClass = '';
-                    $btnText = htmlspecialchars($row['internet']); // El texto que aparecerá en la tooltip
-                    $icon = ''; // Ícono correspondiente
+                        <?php
+                        $btnClass = '';
+                        $btnText = htmlspecialchars($row['internet']); // El texto que aparecerá en la tooltip
+                        $icon = ''; // Ícono correspondiente
 
-                    // Mostrar el estado internet
-                    if ($row['internet'] === 'Sí') {
-                        $btnClass = 'bg-indigo-dark text-white'; // Clase para internet
-                        $icon = '<i class="bi bi-router-fill"></i>'; // Ícono de internet
-                    } elseif ($row['internet'] === 'No') {
-                        $btnClass = 'bg-red-dark text-white'; // Clase para smartphone
-                        $icon = '<i class="bi bi-wifi-off"></i>'; // Ícono de wifi off
-                    }
-                    // Mostrar el botón con la clase, ícono y tooltip correspondientes
-                    echo '<td class="text-center">
+                        // Mostrar el estado internet
+                        if ($row['internet'] === 'Sí') {
+                            $btnClass = 'bg-indigo-dark text-white'; // Clase para internet
+                            $icon = '<i class="bi bi-router-fill"></i>'; // Ícono de internet
+                        } elseif ($row['internet'] === 'No') {
+                            $btnClass = 'bg-red-dark text-white'; // Clase para smartphone
+                            $icon = '<i class="bi bi-wifi-off"></i>'; // Ícono de wifi off
+                        }
+                        // Mostrar el botón con la clase, ícono y tooltip correspondientes
+                        echo '<td class="text-center">
                     <a class="btn ' . $btnClass . '" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" 
                         title="' . $btnText . '">
                         ' . $icon . '
                     </a>
                   </td>'
-                    ?>
-
-                    <td>
-                        <?php
-                        // Verificar condiciones para cada registro
-                        $isAccepted = true;
-                        if ($row['mode'] === 'Presencial') {
-                            if (
-                                $row['typeID'] === 'CC' && $row['age'] > 17 &&
-                                (strtoupper($row['department']) === '11')
-                            ) {
-                                $isAccepted = true;
-                            }
-                        } elseif ($row['mode'] === 'Virtual') {
-                            if (
-                                $row['typeID'] === 'CC' && $row['age'] > 17 &&
-                                (strtoupper($row['department']) === '11') &&
-                                $row['internet'] === 'Sí'
-                            ) {
-                                $isAccepted = true;
-                            }
-                        }
-
-                        if ($isAccepted) {
-                            echo '<a class="btn bg-teal-dark w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="CUMPLE"><i class="bi bi-check-circle"></i></a>';
-                        } else {
-                            echo '<a class="btn bg-danger text-white w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="NO CUMPLE"><i class="bi bi-x-circle"></i></a>';
-                        }
                         ?>
-                    </td>
 
-                    <td class="text-center">
-                        <?php if ($row['tiene_certificado']): ?>
-                            <button class="btn" style="background-color: #efbf04;"
-                                onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
-                                data-bs-toggle="popover"
-                                data-bs-trigger="hover"
-                                data-bs-placement="top"
-                                data-bs-content="El estudiante cuenta con certificación en lotes pasados">
-                                <i class="fa-solid fa-user-graduate"></i>
-                            </button>
-                        <?php else: ?>
-                            <button class="btn btn-secondary"
-                                data-bs-toggle="popover"
-                                data-bs-trigger="hover"
-                                data-bs-placement="top"
-                                data-bs-content="El estudiante NO cuenta con certificación en lotes pasados">
-                                <i class="bi bi-x"></i>
-                            </button>
-                        <?php endif; ?>
-                    </td>
-
-                    <td>
-                        <?php
-                        if ($row['statusAdmin'] == '1') {
-                            echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
-                        } elseif ($row['statusAdmin'] == '0') {
-                            echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
-                        } elseif ($row['statusAdmin'] == '2') {
-                            echo '<button class="btn bg-danger" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></button>';
-                        } elseif ($row['statusAdmin'] == '3') {
-                            echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
-                        } elseif ($row['statusAdmin'] == '4') {
-                            echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
-                        } elseif ($row['statusAdmin'] == '5') {
-                            echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
-                        } elseif ($row['statusAdmin'] == '6') {
-                            echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO" data-status="6"><i class="bi bi-patch-check-fill"></i></button>';
-                        } elseif ($row['statusAdmin'] == '7') {
-                            echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
-                        } elseif ($row['statusAdmin'] == '8') {
-                            echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
-                        }
-                        ?>
-                    </td>
-                    <td>
-                        <button class="btn bg-magenta-dark text-white" onclick="mostrarModalActualizar(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-custom-class="custom-tooltip"
-                            data-bs-title="Cambiar medio de contacto">
-                            <i class="bi bi-arrow-left-right"></i></button>
-                    </td>
-                    <td><?php
-                        if (isset($nivelesUsuarios[$row['number_id']])) {
-                            $puntaje = $nivelesUsuarios[$row['number_id']];
-                            if ($puntaje >= 0 && $puntaje <= 5) {
-                                echo '<button class="btn bg-magenta-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
-                            } elseif ($puntaje >= 6 && $puntaje <= 10) {
-                                echo '<button class="btn bg-orange-dark w-100" role="alert"role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
-                            } elseif ($puntaje >= 11 && $puntaje <= 15) {
-                                echo '<button class="btn bg-teal-dark w-100" role="alert" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
+                        <td>
+                            <?php
+                            // Verificar condiciones para cada registro
+                            $isAccepted = true;
+                            if ($row['mode'] === 'Presencial') {
+                                if (
+                                    $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                    (strtoupper($row['department']) === '11')
+                                ) {
+                                    $isAccepted = true;
+                                }
+                            } elseif ($row['mode'] === 'Virtual') {
+                                if (
+                                    $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                    (strtoupper($row['department']) === '11') &&
+                                    $row['internet'] === 'Sí'
+                                ) {
+                                    $isAccepted = true;
+                                }
                             }
-                        } else {
-                            echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba" >
+
+                            if ($isAccepted) {
+                                echo '<a class="btn bg-teal-dark w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="CUMPLE"><i class="bi bi-check-circle"></i></a>';
+                            } else {
+                                echo '<a class="btn bg-danger text-white w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="NO CUMPLE"><i class="bi bi-x-circle"></i></a>';
+                            }
+                            ?>
+                        </td>
+
+                        <td class="text-center">
+                            <?php if ($row['tiene_certificado']): ?>
+                                <button class="btn" style="background-color: #efbf04;"
+                                    onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
+                                    data-bs-toggle="popover"
+                                    data-bs-trigger="hover"
+                                    data-bs-placement="top"
+                                    data-bs-content="El estudiante cuenta con certificación en lotes pasados">
+                                    <i class="fa-solid fa-user-graduate"></i>
+                                </button>
+                            <?php else: ?>
+                                <button class="btn btn-secondary"
+                                    data-bs-toggle="popover"
+                                    data-bs-trigger="hover"
+                                    data-bs-placement="top"
+                                    data-bs-content="El estudiante NO cuenta con certificación en lotes pasados">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            <?php endif; ?>
+                        </td>
+
+                        <td>
+                            <?php
+                            if ($row['statusAdmin'] == '1') {
+                                echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
+                            } elseif ($row['statusAdmin'] == '0') {
+                                echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
+                            } elseif ($row['statusAdmin'] == '2') {
+                                echo '<button class="btn bg-danger" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></button>';
+                            } elseif ($row['statusAdmin'] == '3') {
+                                echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
+                            } elseif ($row['statusAdmin'] == '4') {
+                                echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
+                            } elseif ($row['statusAdmin'] == '5') {
+                                echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
+                            } elseif ($row['statusAdmin'] == '6') {
+                                echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO" data-status="6"><i class="bi bi-patch-check-fill"></i></button>';
+                            } elseif ($row['statusAdmin'] == '7') {
+                                echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
+                            } elseif ($row['statusAdmin'] == '8') {
+                                echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
+                            }
+                            ?>
+                        </td>
+                        <td>
+                            <button class="btn bg-magenta-dark text-white" onclick="mostrarModalActualizar(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-custom-class="custom-tooltip"
+                                data-bs-title="Cambiar medio de contacto">
+                                <i class="bi bi-arrow-left-right"></i></button>
+                        </td>
+                        <td><?php
+                            if (isset($nivelesUsuarios[$row['number_id']])) {
+                                $puntaje = $nivelesUsuarios[$row['number_id']];
+                                if ($puntaje >= 0 && $puntaje <= 5) {
+                                    echo '<button class="btn bg-magenta-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
+                                } elseif ($puntaje >= 6 && $puntaje <= 10) {
+                                    echo '<button class="btn bg-orange-dark w-100" role="alert"role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
+                                } elseif ($puntaje >= 11 && $puntaje <= 15) {
+                                    echo '<button class="btn bg-teal-dark w-100" role="alert" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
+                                }
+                            } else {
+                                echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba" >
                             <i class="bi bi-ban"></i>
                             </a>';
-                        }
-                        ?>
-                    </td>
-                    <td>
-                        <?php
-                        if (isset($nivelesUsuarios[$row['number_id']])) {
-                            $puntaje = $nivelesUsuarios[$row['number_id']];
-                            if ($puntaje >= 0 && $puntaje <= 5) {
-                                echo '<button class="btn bg-magenta-dark w-100" role="alert">Básico</div>';
-                            } elseif ($puntaje >= 6 && $puntaje <= 10) {
-                                echo '<button class="btn bg-orange-dark w-100" role="alert"role="alert">Intermedio</div>';
-                            } elseif ($puntaje >= 11 && $puntaje <= 15) {
-                                echo '<button class="btn bg-teal-dark w-100" role="alert" role="alert">Avanzado</div>';
                             }
-                        } else {
-                            echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba" >
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                            if (isset($nivelesUsuarios[$row['number_id']])) {
+                                $puntaje = $nivelesUsuarios[$row['number_id']];
+                                if ($puntaje >= 0 && $puntaje <= 5) {
+                                    echo '<button class="btn bg-magenta-dark w-100" role="alert">Básico</div>';
+                                } elseif ($puntaje >= 6 && $puntaje <= 10) {
+                                    echo '<button class="btn bg-orange-dark w-100" role="alert"role="alert">Intermedio</div>';
+                                } elseif ($puntaje >= 11 && $puntaje <= 15) {
+                                    echo '<button class="btn bg-teal-dark w-100" role="alert" role="alert">Avanzado</div>';
+                                }
+                            } else {
+                                echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba" >
                             <i class="bi bi-ban"></i>
                             </a>';
-                        }
-                        ?>
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalLlamada_<?php echo $row['number_id']; ?>">
-                            <i class="bi bi-telephone"></i>
-                        </button>
-                    </td>
+                            }
+                            ?>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modalLlamada_<?php echo $row['number_id']; ?>">
+                                <i class="bi bi-telephone"></i>
+                            </button>
+                        </td>
 
-                    <td>
-                        <button class="btn bg-indigo-dark text-white" onclick="mostrarModalActualizarAdmision(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
-                            data-bs-custom-class="custom-tooltip"
-                            data-bs-title="Cambiar estado de admisión">
-                            <i class="bi bi-arrow-left-right"></i></button>
-                    </td>
-                </tr>
+                        <td>
+                            <button class="btn bg-indigo-dark text-white" onclick="mostrarModalActualizarAdmision(<?php echo $row['number_id']; ?>)" data-bs-toggle="tooltip" data-bs-placement="top"
+                                data-bs-custom-class="custom-tooltip"
+                                data-bs-title="Cambiar estado de admisión">
+                                <i class="bi bi-arrow-left-right"></i></button>
+                        </td>
+                    </tr>
 
 
 
-                <!-- Modal -->
-                <div class="modal fade" id="modalLlamada_<?php echo $row['number_id']; ?>" tabindex="-1" aria-labelledby="modalLlamadaLabel_<?php echo $row['number_id']; ?>" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-indigo-dark">
-                                <h5 class="modal-title" id="modalLlamadaLabel_<?php echo $row['number_id']; ?>">
-                                    <i class="bi bi-telephone"></i> Información de Llamada
-                                </h5>
-                                <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form id="formActualizarLlamada_<?php echo $row['number_id']; ?>" method="POST" onsubmit="return actualizarLlamada(<?php echo $row['number_id']; ?>)">
-                                <div class="modal-body">
-                                    <!-- Contenedor para asesor actual y anterior -->
-                                    <div class="row">
-                                        <!-- Columna para el asesor actual -->
-                                        <div class="col-md-6">
-                                            <div class="mb-3"><u><strong>Asesor actual:</strong></u></div>
-                                            <hr class="hr" />
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>ID de asesor:</strong></label>
-                                                <input type="text" class="form-control" name="idAdvisor" value="<?php echo htmlspecialchars($_SESSION['username']); ?>" readonly>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Nombre:</strong></label>
-                                                <input type="text" class="form-control" readonly
-                                                    value="<?php
-                                                            // Consulta para obtener todos los asesores
-                                                            $sqlAsesores = "SELECT idAdvisor, name FROM advisors ORDER BY name ASC";
-                                                            $resultAsesores = $conn->query($sqlAsesores);
+                    <!-- Modal -->
+                    <div class="modal fade" id="modalLlamada_<?php echo $row['number_id']; ?>" tabindex="-1" aria-labelledby="modalLlamadaLabel_<?php echo $row['number_id']; ?>" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-indigo-dark">
+                                    <h5 class="modal-title" id="modalLlamadaLabel_<?php echo $row['number_id']; ?>">
+                                        <i class="bi bi-telephone"></i> Información de Llamada
+                                    </h5>
+                                    <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form id="formActualizarLlamada_<?php echo $row['number_id']; ?>" method="POST" onsubmit="return actualizarLlamada(<?php echo $row['number_id']; ?>)">
+                                    <div class="modal-body">
+                                        <!-- Contenedor para asesor actual y anterior -->
+                                        <div class="row">
+                                            <!-- Columna para el asesor actual -->
+                                            <div class="col-md-6">
+                                                <div class="mb-3"><u><strong>Asesor actual:</strong></u></div>
+                                                <hr class="hr" />
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>ID de asesor:</strong></label>
+                                                    <input type="text" class="form-control" name="idAdvisor" value="<?php echo htmlspecialchars($_SESSION['username']); ?>" readonly>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Nombre:</strong></label>
+                                                    <input type="text" class="form-control" readonly
+                                                        value="<?php
+                                                                // Consulta para obtener todos los asesores
+                                                                $sqlAsesores = "SELECT idAdvisor, name FROM advisors ORDER BY name ASC";
+                                                                $resultAsesores = $conn->query($sqlAsesores);
 
-                                                            // Buscar y mostrar el nombre del asesor correspondiente
-                                                            if ($resultAsesores && $resultAsesores->num_rows > 0) {
-                                                                while ($asesor = $resultAsesores->fetch_assoc()) {
-                                                                    if ($asesor['idAdvisor'] == $_SESSION['username']) {
-                                                                        echo htmlspecialchars($asesor['name']);
-                                                                        break;
+                                                                // Buscar y mostrar el nombre del asesor correspondiente
+                                                                if ($resultAsesores && $resultAsesores->num_rows > 0) {
+                                                                    while ($asesor = $resultAsesores->fetch_assoc()) {
+                                                                        if ($asesor['idAdvisor'] == $_SESSION['username']) {
+                                                                            echo htmlspecialchars($asesor['name']);
+                                                                            break;
+                                                                        }
                                                                     }
                                                                 }
-                                                            }
-                                                            ?>">
+                                                                ?>">
+                                                </div>
+                                            </div>
+
+                                            <!-- Columna para el asesor anterior -->
+                                            <div class="col-md-6">
+                                                <div class="mb-3"><u><strong>Asesor anterior:</strong></u></div>
+                                                <hr class="hr" />
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>ID de asesor:</strong></label>
+                                                    <input type="text" class="form-control" readonly value="<?php echo htmlspecialchars($row['idAdvisor']); ?>">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Nombre:</strong></label>
+                                                    <input type="text" class="form-control" readonly
+                                                        value="<?php
+                                                                // Consulta para obtener todos los asesores
+                                                                $sqlAsesores = "SELECT idAdvisor, name FROM advisors ORDER BY name ASC";
+                                                                $resultAsesores = $conn->query($sqlAsesores);
+
+                                                                // Buscar y mostrar el nombre del asesor correspondiente
+                                                                if ($resultAsesores && $resultAsesores->num_rows > 0) {
+                                                                    while ($asesor = $resultAsesores->fetch_assoc()) {
+                                                                        if ($asesor['idAdvisor'] == $row['idAdvisor']) {
+                                                                            echo htmlspecialchars($asesor['name']);
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                ?>">
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <!-- Columna para el asesor anterior -->
-                                        <div class="col-md-6">
-                                            <div class="mb-3"><u><strong>Asesor anterior:</strong></u></div>
-                                            <hr class="hr" />
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>ID de asesor:</strong></label>
-                                                <input type="text" class="form-control" readonly value="<?php echo htmlspecialchars($row['idAdvisor']); ?>">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Nombre:</strong></label>
-                                                <input type="text" class="form-control" readonly
-                                                    value="<?php
-                                                            // Consulta para obtener todos los asesores
-                                                            $sqlAsesores = "SELECT idAdvisor, name FROM advisors ORDER BY name ASC";
-                                                            $resultAsesores = $conn->query($sqlAsesores);
-
-                                                            // Buscar y mostrar el nombre del asesor correspondiente
-                                                            if ($resultAsesores && $resultAsesores->num_rows > 0) {
-                                                                while ($asesor = $resultAsesores->fetch_assoc()) {
-                                                                    if ($asesor['idAdvisor'] == $row['idAdvisor']) {
-                                                                        echo htmlspecialchars($asesor['name']);
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-                                                            ?>">
-                                            </div>
+                                        <!-- Resto del formulario -->
+                                        <hr class="hr" />
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Detalle:</strong></label>
+                                            <select class="form-control" name="details">
+                                                <option value="Sin detalles" <?php if ($row['details'] == 'Sin detalles') echo 'selected'; ?>>Sin detalles</option>
+                                                <option value="Número equivocado" <?php if ($row['details'] == 'Número equivocado') echo 'selected'; ?>>Número equivocado</option>
+                                                <option value="Teléfono apagado" <?php if ($row['details'] == 'Teléfono apagado') echo 'selected'; ?>>Teléfono apagado</option>
+                                                <option value="Teléfono desconectado" <?php if ($row['details'] == 'Teléfono desconectado') echo 'selected'; ?>>Teléfono desconectado</option>
+                                                <option value="Sin señal" <?php if ($row['details'] == 'Sin señal') echo 'selected'; ?>>Sin señal</option>
+                                                <option value="No contestan" <?php if ($row['details'] == 'No contestan') echo 'selected'; ?>>No contestan</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Estableció Contacto:</strong></label>
+                                            <select class="form-control" name="contact_established">
+                                                <option value="0" <?php if ($row['contact_established'] == 0) echo 'selected'; ?>>No</option>
+                                                <option value="1" <?php if ($row['contact_established'] == 1) echo 'selected'; ?>>Sí</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Aún Interesado:</strong></label>
+                                            <select class="form-control" name="continues_interested">
+                                                <option value="0" <?php if ($row['continues_interested'] == 0) echo 'selected'; ?>>No</option>
+                                                <option value="1" <?php if ($row['continues_interested'] == 1) echo 'selected'; ?>>Sí</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Observación:</strong></label>
+                                            <textarea rows="3" class="form-control" name="observation"><?php echo htmlspecialchars($row['observation']); ?></textarea>
                                         </div>
                                     </div>
-
-                                    <!-- Resto del formulario -->
-                                    <hr class="hr" />
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Detalle:</strong></label>
-                                        <select class="form-control" name="details">
-                                            <option value="Sin detalles" <?php if ($row['details'] == 'Sin detalles') echo 'selected'; ?>>Sin detalles</option>
-                                            <option value="Número equivocado" <?php if ($row['details'] == 'Número equivocado') echo 'selected'; ?>>Número equivocado</option>
-                                            <option value="Teléfono apagado" <?php if ($row['details'] == 'Teléfono apagado') echo 'selected'; ?>>Teléfono apagado</option>
-                                            <option value="Teléfono desconectado" <?php if ($row['details'] == 'Teléfono desconectado') echo 'selected'; ?>>Teléfono desconectado</option>
-                                            <option value="Sin señal" <?php if ($row['details'] == 'Sin señal') echo 'selected'; ?>>Sin señal</option>
-                                            <option value="No contestan" <?php if ($row['details'] == 'No contestan') echo 'selected'; ?>>No contestan</option>
-                                        </select>
+                                    <div class="modal-footer position-relative d-flex justify-content-center">
+                                        <button type="submit" class="btn bg-indigo-dark text-white">Actualizar Información</button>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Estableció Contacto:</strong></label>
-                                        <select class="form-control" name="contact_established">
-                                            <option value="0" <?php if ($row['contact_established'] == 0) echo 'selected'; ?>>No</option>
-                                            <option value="1" <?php if ($row['contact_established'] == 1) echo 'selected'; ?>>Sí</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Aún Interesado:</strong></label>
-                                        <select class="form-control" name="continues_interested">
-                                            <option value="0" <?php if ($row['continues_interested'] == 0) echo 'selected'; ?>>No</option>
-                                            <option value="1" <?php if ($row['continues_interested'] == 1) echo 'selected'; ?>>Sí</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label"><strong>Observación:</strong></label>
-                                        <textarea rows="3" class="form-control" name="observation"><?php echo htmlspecialchars($row['observation']); ?></textarea>
-                                    </div>
-                                </div>
-                                <div class="modal-footer position-relative d-flex justify-content-center">
-                                    <button type="submit" class="btn bg-indigo-dark text-white">Actualizar Información</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal para actualizar horario -->
-                <div id="modalActualizarHorario_<?php echo $row['number_id']; ?>" class="modal fade" aria-hidden="true" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-indigo-dark">
-                                <h5 class="modal-title text-white">
-                                    <i class="bi bi-clock"></i> Actualizar Horarios
-                                </h5>
-                                <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="formActualizarHorario_<?php echo $row['number_id']; ?>">
-                                    <!-- Horario Principal -->
-                                    <div class="form-group mb-3">
-                                        <label>Horario Principal actual:</label>
-                                        <input type="text" class="form-control" value="<?php echo !empty($row['schedules']) ? htmlspecialchars($row['schedules']) : 'Sin horario asignado'; ?>" readonly>
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label for="nuevoHorario_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario principal:</label>
-                                        <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario">
-                                            <option value="">Seleccionar horario</option>
-                                            <?php
-                                            $horarios = obtenerHorarios($conn, $row['mode']);
-                                            foreach ($horarios as $horario):
-                                            ?>
-                                                <option value="<?php echo htmlspecialchars($horario); ?>">
-                                                    <?php echo htmlspecialchars($horario); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-
-                                    <!-- Horario Alternativo -->
-                                    <div class="form-group mb-3">
-                                        <label>Horario Alternativo actual:</label>
-                                        <input type="text" class="form-control" value="<?php echo !empty($row['schedules_alternative']) ? htmlspecialchars($row['schedules_alternative']) : 'Sin horario alternativo'; ?>" readonly>
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label for="nuevoHorarioAlt_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario alternativo:</label>
-                                        <select class="form-control" id="nuevoHorarioAlt_<?php echo $row['number_id']; ?>" name="nuevoHorarioAlternativo">
-                                            <option value="">Seleccionar horario</option>
-                                            <?php foreach ($horarios as $horario): ?>
-                                                <option value="<?php echo htmlspecialchars($horario); ?>">
-                                                    <?php echo htmlspecialchars($horario); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-
-                                    <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horarios</button>
                                 </form>
                             </div>
                         </div>
                     </div>
-                </div>
 
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+                    <!-- Modal para actualizar horario -->
+                    <div id="modalActualizarHorario_<?php echo $row['number_id']; ?>" class="modal fade" aria-hidden="true" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-indigo-dark">
+                                    <h5 class="modal-title text-white">
+                                        <i class="bi bi-clock"></i> Actualizar Horarios
+                                    </h5>
+                                    <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="formActualizarHorario_<?php echo $row['number_id']; ?>">
+                                        <!-- Horario Principal -->
+                                        <div class="form-group mb-3">
+                                            <label>Horario Principal actual:</label>
+                                            <input type="text" class="form-control" value="<?php echo !empty($row['schedules']) ? htmlspecialchars($row['schedules']) : 'Sin horario asignado'; ?>" readonly>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoHorario_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario principal:</label>
+                                            <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario">
+                                                <option value="">Seleccionar horario</option>
+                                                <?php
+                                                $horarios = obtenerHorarios($conn, $row['mode']);
+                                                foreach ($horarios as $horario):
+                                                ?>
+                                                    <option value="<?php echo htmlspecialchars($horario); ?>">
+                                                        <?php echo htmlspecialchars($horario); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+
+                                        <!-- Horario Alternativo -->
+                                        <div class="form-group mb-3">
+                                            <label>Horario Alternativo actual:</label>
+                                            <input type="text" class="form-control" value="<?php echo !empty($row['schedules_alternative']) ? htmlspecialchars($row['schedules_alternative']) : 'Sin horario alternativo'; ?>" readonly>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoHorarioAlt_<?php echo $row['number_id']; ?>">Seleccionar nuevo horario alternativo:</label>
+                                            <select class="form-control" id="nuevoHorarioAlt_<?php echo $row['number_id']; ?>" name="nuevoHorarioAlternativo">
+                                                <option value="">Seleccionar horario</option>
+                                                <?php foreach ($horarios as $horario): ?>
+                                                    <option value="<?php echo htmlspecialchars($horario); ?>">
+                                                        <?php echo htmlspecialchars($horario); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar Horarios</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
