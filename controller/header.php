@@ -18,16 +18,20 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     <a class="nav-link active" aria-current="page" href="main.php">Inicio</a>
                 </li>
                 <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#cohortModal">
                             Cohortes
                         </a>
-                    </li>
+                    </li> -->
                 <?php endif; ?>
 
                 <?php if ($rol === 'Administrador' || $rol === 'Empleabilidad' || $rol === 'Control maestro'): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="encuestas.php">Empleabilidad</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="codigosQR.php">Generar QR</a>
                     </li>
 
                     <li class="nav-item">
