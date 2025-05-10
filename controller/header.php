@@ -74,53 +74,73 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                 <?php include 'components/pqr/pqrButton.php'; ?>
             <?php endif; ?>
-           
-                <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
-                    <i class="fa-solid fa-user-graduate fa-shake"></i>
-                    <span id="totalCertificados" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark">
-                       <b> <?php echo isset($totalConCertificacion) ? $totalConCertificacion : 0; ?></b>
-                    </span>
-                    <div id="spinnerCertificados" class="spinner-border spinner-border-sm text-light d-none" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                </button>
 
-            <script>
-                // Función para obtener los datos del servidor
-                function fetchCertificados() {
-                    const spinner = document.getElementById('spinnerCertificados');
-                    const totalCertificados = document.getElementById('totalCertificados');
+            <div class="pqr-notification-container me-4">
+    <div class="dropdown">
+        <button id="previousStudentsDropdown" type="button" class="btn bg-warning position-relative" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-user-graduate fa-shake"></i>
 
-                    // Mostrar el spinner
-                    spinner.classList.remove('d-none');
+            <!-- Badge con contador -->
+            <span id="totalCertificados" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-magenta-dark">
+                <b><?php echo isset($totalConCertificacion) ? $totalConCertificacion : 0; ?></b>
+            </span>
 
-                    fetch('components/registrationsContact/previous_students_button.php')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status === 'success' && data.data) {
-                                // Actualizar el contenido del contador
-                                totalCertificados.textContent = data.data.total_certificados;
-                            } else {
-                                console.error('Error en la respuesta del servidor:', data);
-                                totalCertificados.textContent = 'Error';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error al realizar la solicitud:', error);
-                            totalCertificados.textContent = 'Error';
-                        })
-                        .finally(() => {
-                            // Ocultar el spinner
-                            spinner.classList.add('d-none');
-                        });
+            <!-- Spinner de carga -->
+            <div id="spinnerCertificados" class="spinner-border spinner-border-sm text-light position-absolute top-0 start-50 translate-middle d-none" role="status" style="z-index: 2;">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </button>
+
+        <div id="certificadosDropdown" class="dropdown-menu pqr-dropdown">
+            <h6 class="dropdown-header">Estudiantes certificados de otras regiones</h6>
+            <ul id="certificadosList" class="pqr-list text-uppercase mb-2">
+            <li class="dropdown-item text-center">Cargando...</li>
+            </ul>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item text-center" href="#">Ver todos</a>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const totalCertificados = document.getElementById('totalCertificados');
+        const certificadosList = document.getElementById('certificadosList');
+
+        const fetchCertificados = async () => {
+            try {
+            const response = await fetch('components/registrationsContact/previous_students_button.php');
+            const data = await response.json();
+
+            if (data.status === 'success' && data.data) {
+                totalCertificados.innerHTML = `<b>${data.data.total_certificados}</b>`;
+
+                certificadosList.innerHTML = '';
+                if (data.data.estudiantes.length > 0) {
+                data.data.estudiantes.forEach(est => {
+                    const item = document.createElement('li');
+                    item.className = 'dropdown-item';
+                    item.textContent = `Documento: ${est.numero_documento}, Nombre: ${est.first_name} ${est.second_name} ${est.first_last} ${est.second_last}, Región: ${est.region}`;
+                    certificadosList.appendChild(item);
+                });
+                } else {
+                certificadosList.innerHTML = '<li class="dropdown-item text-center">No se encontraron estudiantes</li>';
                 }
+            } else {
+                certificadosList.innerHTML = '<li class="dropdown-item text-center text-danger">Error al cargar datos</li>';
+                console.error('Error en los datos:', data);
+            }
+            } catch (err) {
+            certificadosList.innerHTML = '<li class="dropdown-item text-center text-danger">Error de conexión</li>';
+            console.error('Error en la solicitud:', err);
+            }
+        };
 
-                // Cargar los datos al cargar la página
-                document.addEventListener('DOMContentLoaded', fetchCertificados);
+        setInterval(fetchCertificados, 5000); // Cada 5 segundos
+        });
+    </script>
 
-                // Actualizar el contador cada 30 segundos
-                setInterval(fetchCertificados, 30000);
-            </script>
+</script>
 
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
