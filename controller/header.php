@@ -75,15 +75,15 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 <?php include 'components/pqr/pqrButton.php'; ?>
             <?php endif; ?>
            
-                <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
+                <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
                     <i class="fa-solid fa-user-graduate fa-shake"></i>
                     <span id="totalCertificados" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark">
-                       <b> <?php echo isset($totalConCertificacion) ? $totalConCertificacion : 0; ?></b>
+                       <b> <?php // echo isset($totalConCertificacion) ? $totalConCertificacion : 0; ?></b>
                     </span>
                     <div id="spinnerCertificados" class="spinner-border spinner-border-sm text-light d-none" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                </button>
+                </button> -->
 
             <script>
                 // Función para obtener los datos del servidor

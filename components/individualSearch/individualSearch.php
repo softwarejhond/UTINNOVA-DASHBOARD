@@ -440,20 +440,20 @@
 
                                 <strong>Certificación Anterior:</strong><br>
                                 <?php if ($row['tiene_certificado']): ?>
-                                    <button class="btn" style="background-color: #efbf04;" type="button"
+                                    <button class="btn text-white" style="background-color: #cc454e;" type="button"
                                         onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
                                         data-bs-toggle="popover"
                                         data-bs-trigger="hover"
                                         data-bs-placement="top"
-                                        data-bs-content="El estudiante cuenta con certificación en lotes pasados">
-                                        <i class="fa-solid fa-user-graduate"></i>
+                                        data-bs-content="Leer la información importante sobre este estudiante">
+                                        <i class="fa-solid fa-triangle-exclamation fa-fade"></i>
                                     </button>
                                 <?php else: ?>
                                     <button class="btn btn-secondary" type="button"
                                         data-bs-toggle="popover"
                                         data-bs-trigger="hover"
                                         data-bs-placement="top"
-                                        data-bs-content="El estudiante NO cuenta con certificación en lotes pasados">
+                                        data-bs-content="Sin información a destacar">
                                         <i class="bi bi-x"></i>
                                     </button>
                                 <?php endif; ?>
@@ -1779,7 +1779,7 @@
                     <div class="modal-content">
                         <div class="modal-header bg-indigo-dark">
                             <h5 class="modal-title text-white">
-                                <i class="fa-solid fa-user-graduate"></i> Certificación Anterior
+                                <i class="fa-solid fa-user-graduate"></i> Inscripción Anterior
                             </h5>
                             <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal"></button>
                         </div>
@@ -1813,40 +1813,65 @@
                 const contenido = `
                     <h2 class="text-center mb-2 text-magenta-dark">${nombreEstudiante.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}</h2>
     
-                    <p class="text-center mb-4"><b>${data.numero_documento}</b></p>
-                    
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="table table-borderless">
-                                <tbody>
-                                    <tr class="text-start">
-                                        <th style="width: 50%">
-                                            <i class="bi bi-geo-alt-fill"></i> Departamento:
-                                        </th>  
-                                        <td>${data.departamento || 'No especificado'}</td>
-                                    </tr>
-                                    <tr class="text-start">
-                                        <th>
-                                            <i class="bi bi-pin-map-fill"></i> Municipio:
-                                        </th>
-                                        <td>${data.municipio || 'No especificado'}</td>
-                                    </tr>
-                                    <tr class="text-start">
-                                        <th>
-                                            <i class="bi bi-map"></i> Región:
-                                        </th>
-                                        <td>${data.region || 'No especificado'}</td>
-                                    </tr>
-                                    <tr class="text-start">
-                                        <th>
-                                            <i class="bi bi-book-half"></i> Programa:
-                                        </th>
-                                        <td>${data.eje_final || 'No especificado'}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <p class="text-center mb-4"><h4><b>${data.numero_documento}</b></h4></p>
+                <small class="text-danger fw-bold mb-3 d-block text-center">Tenga en cuenta que este campista ya cuenta con una formación en otra región o una certificación.</small>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr class="text-start">
+                                    <th style="width: 50%">
+                                        <i class="bi bi-geo-alt-fill"></i> Departamento:
+                                    </th>  
+                                    <td>${data.departamento || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-pin-map-fill"></i> Municipio:
+                                    </th>
+                                    <td>${data.municipio || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-map"></i> Región:
+                                    </th>
+                                    <td>${data.region || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-person-lines-fill"></i> Cohorte:
+                                    </th>
+                                    <td>${data.cohorte || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-book-half"></i> Programa:
+                                    </th>
+                                    <td>${data.eje_final || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-check-circle-fill"></i> Matriculado:
+                                    </th>
+                                    <td>${data.matriculado || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-journal-check"></i> Estado formación:
+                                    </th>
+                                    <td>${data.estado || 'No especificado'}</td>
+                                </tr>
+                                <tr class="text-start">
+                                    <th>
+                                        <i class="bi bi-star-fill"></i> Origen:
+                                    </th>
+                                    <td>${data.origen || 'No especificado'}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
     
                     <div class="modal-footer">
                         <div class="text-center w-100">
