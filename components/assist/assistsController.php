@@ -3,7 +3,18 @@
 
 function obtenerTodasLasAsistencias($conn)
 {
-    $sql = "SELECT * FROM asistencia_empleabilidad ORDER BY created_at DESC";
+    $sql = "SELECT 
+                id, 
+                full_name, 
+                cedula, 
+                email,
+                phone,
+                attendee_type,
+                activity_type, 
+                created_at 
+            FROM asistencia_empleabilidad 
+            ORDER BY created_at DESC";
+            
     $result = mysqli_query($conn, $sql);
     $asistencias = array();
     while ($fila = mysqli_fetch_assoc($result)) {

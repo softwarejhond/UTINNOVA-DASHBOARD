@@ -61,7 +61,7 @@ if ($result && $result->num_rows > 0) {
 }
 
 // Obtener datos únicos para los filtros
-$departamentos = ['BOYACÁ', 'CUNDINAMARCA'];
+$departamentos = ['BOGOTÁ, D.C.'];
 $programas = [];
 $modalidades = [];
 $sedes = []; // Agregar array para sedes
@@ -242,7 +242,7 @@ foreach ($data as $row) {
             <div class="col-md-9">
                 <div class="d-flex gap-2 mb-3">
                     <!-- Botón para cambiar lote -->
-                    <button id="cambiarLoteBtn" class="btn bg-indigo-dark text-white">
+                    <button id="cambiarLoteBtn" class="btn bg-teal-dark text-white">
                         <i class="bi bi-arrow-repeat"></i> Cambiar Lote
                     </button>
 
@@ -378,8 +378,7 @@ foreach ($data as $row) {
                                             <div class="card-body">
                                                 <select id="filterDepartment" class="form-select">
                                                     <option value="">Todos los departamentos</option>
-                                                    <option value="BOYACÁ">BOYACÁ</option>
-                                                    <option value="CUNDINAMARCA">CUNDINAMARCA</option>
+                                                    <option value="BOGOTÁ, D.C.">BOGOTÁ, D.C.</option>
                                                 </select>
                                             </div>
                                         </div>

@@ -36,31 +36,38 @@ $asistencias = obtenerAsistenciasFiltradas($conn, $activity_type);
 
 <script>
 function exportarTabla(asistencias) {
-    // Crear un nuevo libro de Excel
     var wb = XLSX.utils.book_new();
 
-    // Crear una nueva hoja de cálculo
+    // Actualizar encabezados con nuevos campos
     var ws_data = [
-        ["ID", "Nombre Completo", "Cédula", "Tipo de Actividad", "Fecha de Creación"] // Encabezados
+        [
+            "ID", 
+            "Nombre Completo", 
+            "Cédula", 
+            "Correo", 
+            "Celular", 
+            "Tipo Asistente",
+            "Tipo de Actividad", 
+            "Fecha de Creación"
+        ]
     ];
 
-    // Agregar los datos de las asistencias a la hoja de cálculo
+    // Agregar datos incluyendo nuevos campos
     for (var i = 0; i < asistencias.length; i++) {
         ws_data.push([
             asistencias[i].id,
             asistencias[i].full_name,
             asistencias[i].cedula,
+            asistencias[i].email || 'No registrado',
+            asistencias[i].phone || 'No registrado',
+            asistencias[i].attendee_type || 'No especificado',
             asistencias[i].activity_type,
             asistencias[i].created_at
         ]);
     }
 
     var ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-    // Agregar la hoja de cálculo al libro
     XLSX.utils.book_append_sheet(wb, ws, "Asistencias");
-
-    // Escribir el libro a un archivo
     XLSX.writeFile(wb, "asistencias.xlsx");
 }
 </script>

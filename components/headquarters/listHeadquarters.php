@@ -1,7 +1,9 @@
-<div class="container">
+
+
+<div class="container-fluid px-2">
     <div class="row mb-3">
         <div class="col">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSede">
+            <button type="button" class="btn bg-indigo-dark text-white" data-bs-toggle="modal" data-bs-target="#modalSede">
                 <i class="bi bi-plus-circle"></i> Nueva Sede
             </button>
         </div>
@@ -30,13 +32,16 @@
                     echo "<td>".$row['mode']."</td>";
                     echo "<td>".$row['date_creation']."</td>";
                     echo "<td>
-                            <button class='btn btn-sm btn-primary' onclick='editarSede(".$row['id'].", `".$row['name']."`, `".$row['mode']."`)'>
+                            <button class='btn btn-sm bg-indigo-dark mx-2 text-white' onclick='editarSede(".$row['id'].", `".$row['name']."`, `".$row['mode']."`)'>
                                 <i class='bi bi-pencil'></i>
-                            </button>
-                            <button class='btn btn-sm btn-danger' onclick='eliminarSede(".$row['id'].")'>
+                            </button>";
+                    // Mostrar botón eliminar solo para Control maestro        
+                    if($_SESSION['rol'] === 12) {
+                        echo "<button class='btn btn-sm btn-danger' onclick='eliminarSede(".$row['id'].")'>
                                 <i class='bi bi-trash'></i>
-                            </button>
-                          </td>";
+                              </button>";
+                    }
+                    echo "</td>";
                     echo "</tr>";
                 }
                 ?>

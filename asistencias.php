@@ -13,7 +13,7 @@ $infoUsuario = obtenerInformacionUsuario();
 $rol = $infoUsuario['rol'];
 
 // Incluir el controlador de asistencia
-include("components/assists/assistsController.php");
+require __DIR__ . "/components/assist/assistsController.php";
 
 // Procesa las acciones (Crear, Editar, Eliminar) antes de mostrar la lista
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -23,12 +23,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $response = editarAsistencia($conn, $_POST);
             echo $response;
             exit();
-            break;
         case 'eliminar':
             $response = eliminarAsistencia($conn, $_POST['id']);
             echo $response;
             exit();
-            break;
     }
 }
 
@@ -53,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <title>Gestión de Empleabilidad</title>
-    <link rel="icon" href="img/uttInnova.png" type="image/x-icon">
+    <link rel="icon" href="https://css.mintic.gov.co/mt/mintic/new/img/logo_mintic_24_dark.svg" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 

@@ -1,6 +1,6 @@
 <?php
 // Incluir la conexión a la base de datos
-require_once(__DIR__ . '/../../controller/conexion.php');
+require_once __DIR__ . '/../../controller/conexion.php';
 
 // Función para obtener todos los códigos QR
 function getQRCodes($conn)
@@ -21,44 +21,95 @@ $qrCodes = getQRCodes($conn);
     </button>
 </div>
 
-<!-- Tabla de códigos QR -->
-<div class="table-responsive">
-    <table id="qrCodesTable" class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Título</th>
-                <th>URL</th>
-                <th>Fecha de creación</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($qrCodes as $qr): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($qr['title']); ?></td>
-                    <td><?php echo htmlspecialchars($qr['url']); ?></td>
-                    <td><?php echo date('d/m/Y H:i', strtotime($qr['created_at'])); ?></td>
-                    <td>
-                        <button class="btn bg-indigo-dark text-white btn-sm view-qr" 
-                            data-id="<?php echo $qr['id']; ?>"
-                            data-title="<?php echo htmlspecialchars($qr['title']); ?>"
-                            data-url="<?php echo htmlspecialchars($qr['url']); ?>"
-                            data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>"
-                            data-bs-toggle="modal" data-bs-target="#viewQRModal">
-                            <i class="bi bi-qr-code"></i> Ver QR
+<!-- Grid de cards para códigos QR -->
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    <?php foreach ($qrCodes as $qr): ?>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-teal-dark text-white">
+                    <h5 class="card-title mb-0 text-center">
+                        <?php echo htmlspecialchars($qr['title']); ?>
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column align-items-center">
+                    <div class="qr-image mb-3">
+                        <img src="img/qrcodes/<?php echo htmlspecialchars($qr['image_filename']); ?>"
+                            class="img-fluid"
+                            alt="Código QR"
+                            style="max-width: 200px;">
+                    </div>
+                    <div class="separator w-100 border-bottom my-2"></div>
+                    <div class="qr-info w-100">
+                        <p class="card-text small text-muted mb-2">
+                            <i class="bi bi-link-45deg"></i>
+                            <?php echo htmlspecialchars($qr['url']); ?>
+                        </p>
+                        <div class="separator w-100 border-bottom my-2"></div>
+                        <p class="card-text small mb-0">
+                            <i class="bi bi-calendar3"></i>
+                            <?php echo date('d/m/Y H:i', strtotime($qr['created_at'])); ?>
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between gap-2">
+                        <button class="btn bg-teal-dark text-white btn-sm flex-grow-1 download-qr" 
+                                data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>">
+                            <i class="bi bi-download"></i> Descargar QR
                         </button>
                         <button class="btn btn-danger btn-sm delete-qr" 
-                            data-id="<?php echo $qr['id']; ?>"
-                            data-title="<?php echo htmlspecialchars($qr['title']); ?>"
-                            data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>">
+                                data-id="<?php echo $qr['id']; ?>"
+                                data-title="<?php echo htmlspecialchars($qr['title']); ?>"
+                                data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>">
                             <i class="bi bi-trash"></i>
                         </button>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
 </div>
+
+<!-- Agregar estilos CSS -->
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        border-bottom: none;
+    }
+
+    .card-footer {
+        border-top: none;
+    }
+
+    .qr-info {
+        text-align: center;
+    }
+
+    .separator {
+        opacity: 0.2;
+    }
+
+    .card-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .btn {
+        transition: all 0.3s;
+    }
+
+    .btn:hover {
+        transform: scale(1.05);
+    }
+</style>
 
 <!-- Modal para agregar nuevo código QR -->
 <div class="modal fade" id="addQRModal" tabindex="-1" aria-labelledby="addQRModalLabel" aria-hidden="true">
@@ -158,29 +209,17 @@ $qrCodes = getQRCodes($conn);
             });
         });
 
-        // Mostrar QR en el modal
-        $('.view-qr').on('click', function() {
-            const title = $(this).data('title');
-            const url = $(this).data('url');
+        $('.download-qr').on('click', function() {
             const filename = $(this).data('filename');
-            const qrUrl = `img/qrcodes/${filename}`; // Ruta local del archivo
+            const qrUrl = `img/qrcodes/${filename}`;
 
-            $('#viewQRModalLabel').text(title);
-            $('#qrImage').attr('src', qrUrl);
-            $('#qrUrl').text(url);
-
-            // Configurar el botón de descarga
-            $('#downloadQR').off('click').on('click', function(e) {
-                e.preventDefault();
-                
-                // Crear elemento de descarga
-                const link = document.createElement('a');
-                link.href = qrUrl;
-                link.download = filename; // Usar el nombre del archivo guardado
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
+            // Crear elemento de descarga
+            const link = document.createElement('a');
+            link.href = qrUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         });
 
         // Manejar eliminación de QR
@@ -216,9 +255,9 @@ $qrCodes = getQRCodes($conn);
                             $.ajax({
                                 url: 'components/qrcodes/delete_qr.php',
                                 method: 'POST',
-                                data: { 
+                                data: {
                                     id: id,
-                                    filename: filename 
+                                    filename: filename
                                 },
                                 success: function(response) {
                                     if (response.success) {
