@@ -107,44 +107,74 @@ $rol = $infoUsuario['rol'];
         // Filtro de sede
         $('#filterHeadquarters').on('change', function() {
             var sede = $(this).val();
+            
+            // Limpiar filtros anteriores de sede
+            table.column(17).search('').draw();
+            
             if (sede) {
-                table.column(16).search(sede).draw();
+                table.column(17).search(sede).draw();
             } else {
-                table.column(16).search('').draw();
+                table.draw();
             }
         });
 
         // Filtro de estado de admisión
         $('#filterAdmissionStatus').on('change', function() {
             var estado = $(this).val();
-
+            
             // Eliminar filtros existentes para evitar duplicados
             $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(function(fn) {
                 return fn.name !== "filtroEstadoAdmision";
             });
-
+            
             // Si se seleccionó un estado, añadir el filtro personalizado
             if (estado) {
                 // Añadir un filtro con nombre para poder identificarlo
                 var filtroEstadoAdmision = function(settings, data, dataIndex) {
                     var row = table.row(dataIndex).node();
-                    var statusCell = $(row).find('td:eq(27)'); // Columna de estado de admisión
-                    var statusBtn = statusCell.find('a.btn');
-
+                    var statusCell = $(row).find('td:eq(31)'); // Columna de estado de admisión (ajustar el índice)
+                    var statusBtn = statusCell.find('button.btn');
+                    
+                    // Determinar el estado del botón basado en su clase o título
+                    var buttonState;
+                    
                     if (statusBtn.length) {
-                        var dataStatus = statusBtn.attr('data-status');
-                        return dataStatus === estado;
+                        // Intentar obtener el estado del título del popover
+                        var popoverTitle = statusBtn.attr('title') || statusBtn.attr('data-bs-original-title');
+                        
+                        switch (estado) {
+                            case "1": // Beneficiario
+                                return popoverTitle === 'BENEFICIARIO';
+                            case "0": // Sin estado
+                                return popoverTitle === 'SIN ESTADO';
+                            case "2": // Rechazado
+                                return popoverTitle === 'RECHAZADO';
+                            case "3": // Matriculado
+                                return popoverTitle === 'MATRICULADO';
+                            case "4": // Sin contacto
+                                return popoverTitle === 'PENDIENTE';
+                            case "5": // En proceso
+                                return popoverTitle === 'EN PROCESO';
+                            case "6": // Certificado
+                                return popoverTitle === 'CERTIFICADO';
+                            case "7": // Inactivo
+                                return popoverTitle === 'INACTIVO';
+                            case "8": // Beneficiario contrapartida
+                                return popoverTitle === 'BENEFICIARIO CONTRAPARTIDA';
+                            default:
+                                return false;
+                        }
                     }
                     return false;
                 };
-
+                
                 // Asignar nombre al filtro para poder identificarlo después
                 filtroEstadoAdmision.name = "filtroEstadoAdmision";
-
+                
                 // Añadir el filtro a DataTables
                 $.fn.dataTable.ext.search.push(filtroEstadoAdmision);
             }
-
+            
             // Aplicar el filtro redibujando la tabla
             table.draw();
         });

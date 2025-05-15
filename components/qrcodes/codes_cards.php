@@ -1,4 +1,6 @@
 <?php
+$rol = $infoUsuario['rol']; // Obtener el rol del usuario
+
 // Incluir la conexión a la base de datos
 require_once __DIR__ . '/../../controller/conexion.php';
 
@@ -57,12 +59,14 @@ $qrCodes = getQRCodes($conn);
                                 data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>">
                             <i class="bi bi-download"></i> Descargar QR
                         </button>
-                        <button class="btn btn-danger btn-sm delete-qr" 
-                                data-id="<?php echo $qr['id']; ?>"
-                                data-title="<?php echo htmlspecialchars($qr['title']); ?>"
-                                data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <?php if ($rol === 'Control maestro'): ?>
+                            <button class="btn btn-danger btn-sm delete-qr" 
+                                    data-id="<?php echo $qr['id']; ?>"
+                                    data-title="<?php echo htmlspecialchars($qr['title']); ?>"
+                                    data-filename="<?php echo htmlspecialchars($qr['image_filename']); ?>">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

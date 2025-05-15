@@ -316,6 +316,9 @@ function obtenerSedes($conn)
                                 <option value="3">Matriculado</option>
                                 <option value="4">Sin contacto</option>
                                 <option value="5">En proceso</option>
+                                <option value="6">Certificado</option>
+                                <option value="7">Inactivo</option>
+                                <option value="8">Beneficiario contrapartida</option>
                             </select>
                         </div>
                     </div>
@@ -360,7 +363,7 @@ function obtenerSedes($conn)
                     <th>Dispositivo</th>
                     <th>Internet</th>
                     <th>Estado</th>
-                    <th>Cert. Ant</th>
+                    <th>Part. Ant.</th>
                     <th>Estado de admision</th>
                     <th>Actualizar medio de contacto</th>
                     <th>Puntaje de prueba</th>

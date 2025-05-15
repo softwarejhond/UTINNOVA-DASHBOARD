@@ -438,7 +438,7 @@
                                 ?>
                                 <hr>
 
-                                <strong>Certificación Anterior:</strong><br>
+                                <strong>Participación Anterior:</strong><br>
                                 <?php if ($row['tiene_certificado']): ?>
                                     <button class="btn text-white" style="background-color: #cc454e;" type="button"
                                         onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"

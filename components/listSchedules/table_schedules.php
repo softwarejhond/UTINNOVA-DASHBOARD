@@ -92,23 +92,22 @@ if ($result->num_rows > 0) {
                         <label for="headquarters" class="form-label">Sede</label>
                         <select class="form-control" id="headquarters" name="headquarters" required>
                             <option value="">Seleccionar sede</option>
-                            <option value="No aplica">No aplica</option>
-                            <option value="Cota">Cota</option>
-                            <option value="Tunja">Tunja</option>
-                            <option value="Sogamoso">Sogamoso</option>
-                            <option value="Soacha">Soacha</option>
-                            <option value="Ubate">Ubate</option>
-                            <option value="Giradot">Giradot</option>
-                            <option value="Chía">Chía</option>
-                            <option value="Cajica">Cajica</option>
+                            <?php
+                            $sql_headquarters = "SELECT * FROM headquarters ORDER BY name ASC";
+                            $result_headquarters = $conn->query($sql_headquarters);
+                            if ($result_headquarters->num_rows > 0) {
+                                while($row = $result_headquarters->fetch_assoc()) {
+                                    echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                }
+                            }
+                            ?>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="department" class="form-label">Departamento</label>
                         <select class="form-control" id="department" name="department" required>
                             <option value="">Seleccionar departamento</option>
-                            <option value="Boyacá">Boyacá</option>
-                            <option value="Cundinamarca">Cundinamarca</option>
+                            <option value="BOGOTÁ, D.C.">BOGOTÁ, D.C.</option>
                             <option value="No aplica">No aplica</option>
                         </select>
                     </div>
