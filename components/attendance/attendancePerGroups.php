@@ -191,7 +191,7 @@ $courses_data = getCourses();
                                 <option value="">Seleccione una sede</option>
                                 <?php
                                 // Consulta para obtener las sedes desde la tabla headquarters
-                                $query = "SELECT name FROM headquarters_attendance";
+                                $query = "SELECT name FROM headquarters";
                                 $result = $conn->query($query);
 
                                 if ($result && $result->num_rows > 0) {
@@ -205,7 +205,7 @@ $courses_data = getCourses();
                             </select>
                         </div>
                         <!-- Selección de Fecha -->
-                        <div class="col-lg-6 col-md-6 col-sm-12 col-12"><br>
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-12" style="padding-bottom: 30px;">
                             <label class="form-label">Fecha</label>
                             <input type="date" name="class_date" id="class_date" class="form-control" required max="<?= date('Y-m-d'); ?>">
                         </div>
@@ -219,10 +219,24 @@ $courses_data = getCourses();
                             </div>
                             <p id="progressInfo" class="mt-1 small text-muted">Sin datos</p>
                         </div>
+
+                        <!-- Filtro por estado de asistencia -->
+                        <div class="row mb-3 justify-content-center">
+                            <div class="col-lg-6 col-md-6 col-sm-12 col-12">
+                                <label class="form-label">Filtrar por estado de asistencia</label>
+                                <select id="filtroAsistencia" class="form-select" disabled>
+                                    <option value="todos">Todos</option>
+                                    <option value="presente">Presente</option>  
+                                    <option value="tarde">Tarde</option>
+                                    <option value="ausente">Ausente</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
 
 
         <!-- Tabla donde se mostrarán los datos -->
@@ -407,6 +421,54 @@ $courses_data = getCourses();
             });
         });
 
+        // Función para actualizar el contador de resultados
+        function actualizarContadorResultados() {
+            const totalRows = $('#listaInscritos tbody tr').length;
+            const visibleRows = $('#listaInscritos tbody tr:visible').length;
+            const estado = $('#filtroAsistencia').val();
+
+            let mensaje = '';
+            if (estado === 'todos') {
+                mensaje = `Mostrando ${totalRows} registros totales`;
+            } else {
+                mensaje = `Mostrando ${visibleRows} de ${totalRows} registros (filtrado por: ${estado})`;
+            }
+
+            // Agregar o actualizar el elemento que muestra el contador
+            if ($('#contadorResultados').length === 0) {
+                $('#listaInscritos').before('<div id="contadorResultados" class="text-muted mb-2"></div>');
+            }
+            $('#contadorResultados').text(mensaje);
+        }
+
+        // Función para filtrar la tabla por estado de asistencia
+        function filtrarPorEstado() {
+            const estado = $('#filtroAsistencia').val();
+            const rows = $('#listaInscritos tbody tr');
+
+            // Mostrar todas las filas si se selecciona "todos"
+            if (estado === 'todos') {
+                rows.show();
+                actualizarContadorResultados(); // Asegurar que se actualice el contador
+                return;
+            }
+
+            // Filtrar filas según el estado seleccionado
+            rows.each(function() {
+                const row = $(this);
+                const radioChecked = row.find(`input[type="radio"][data-estado="${estado}"]:checked`);
+                
+                if (radioChecked.length > 0) {
+                    row.show();
+                } else {
+                    row.hide();
+                }
+            });
+
+            // Actualizar el contador después de filtrar
+            actualizarContadorResultados();
+        }
+
         $(document).ready(function() {
 
             // Función para habilitar o deshabilitar la sede según la modalidad
@@ -421,7 +483,7 @@ $courses_data = getCourses();
             // Hacer la función global para que el onchange del select la encuentre
             window.toggleSede = toggleSede;
 
-            // Función para actualizar la tabla
+            // Modificar la función updateTable para incluir el contador
             const updateTable = () => {
                 const data = {
                     bootcamp: $('#bootcamp').val(),
@@ -438,13 +500,16 @@ $courses_data = getCourses();
                 }
 
                 $.ajax({
-                    url: 'components/attendance/buscar_datos_grupales.php', // Se usa el archivo independiente para la solicitud AJAX
+                    url: 'components/attendance/buscar_datos_grupales.php',
                     type: 'POST',
                     data: data,
                     dataType: 'json',
                     success: (response) => {
                         if (response && response.html) {
                             $('#listaInscritos tbody').html(response.html);
+
+                            // Habilitar el filtro si hay datos
+                            $('#filtroAsistencia').prop('disabled', false);
 
                             // Actualizar la barra de progreso
                             if (response.progressInfo) {
@@ -464,22 +529,21 @@ $courses_data = getCourses();
                             }
                         } else {
                             $('#listaInscritos tbody').html('<tr><td colspan="10" class="text-center">No se encontraron registros</td></tr>');
-
-                            // Resetear la barra de progreso
-                            $('#progressBar').css('width', '0%').attr('aria-valuenow', 0).text('0%');
-                            $('#progressInfo').text('Sin datos');
+                            // Deshabilitar el filtro si no hay datos
+                            $('#filtroAsistencia').prop('disabled', true).val('todos');
                         }
+
+                        actualizarContadorResultados();
                     },
                     error: (xhr, status, error) => {
                         console.error('Error en la solicitud:', error);
                         $('#listaInscritos tbody').html('<tr><td colspan="10" class="text-center">Error al cargar los datos</td></tr>');
-
-                        // Resetear la barra de progreso en caso de error
-                        $('#progressBar').css('width', '0%').attr('aria-valuenow', 0).text('0%');
-                        $('#progressInfo').text('Error al cargar datos');
+                        // Deshabilitar el filtro en caso de error
+                        $('#filtroAsistencia').prop('disabled', true).val('todos');
                     }
                 });
             };
+
             // Actualizar la tabla cuando se cambie algún filtro
             $('#modalidad').change(function() {
                 toggleSede();
@@ -489,6 +553,18 @@ $courses_data = getCourses();
 
             // Ejecutar toggleSede al cargar la página
             toggleSede();
+
+            // Agregar el evento change para el filtro de asistencia
+            $('#filtroAsistencia').change(function() {
+                filtrarPorEstado();
+            });
+
+            // Resetear el filtro cuando se cambien los criterios de búsqueda
+            $('#modalidad, #bootcamp, #courseType, #sede, #class_date').change(function() {
+                $('#filtroAsistencia').val('todos');
+                updateTable();
+                actualizarContadorResultados(); // Asegurar que se actualice el contador
+            });
 
             // Función para manejar la selección de contacto
             $('#contactEstablished').change(function() {

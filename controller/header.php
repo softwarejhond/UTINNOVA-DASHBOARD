@@ -2,6 +2,8 @@
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 require_once __DIR__ . '/../components/modals/cohortes.php';
 ?>
+<?php include("components/sliderBarRight.php"); ?>
+
 
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
@@ -138,6 +140,9 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     <li><a class="dropdown-item" href="close.php">Cerrar sesión</a></li>
                 </ul>
             </div>
+            <button class="btn btn-tertiary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+                <i class="bi bi-list"></i>
+            </button>
         </div>
     </div>
 </nav>
