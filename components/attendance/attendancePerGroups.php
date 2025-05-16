@@ -189,11 +189,19 @@ $courses_data = getCourses();
                             <label class="form-label">Sede</label>
                             <select name="sede" id="sede" class="form-select">
                                 <option value="">Seleccione una sede</option>
-                                <option value="Cota">Cota</option>
-                                <option value="Tunja">Tunja</option>
-                                <option value="Sogamoso">Sogamoso</option>
-                                <option value="Soacha">Soacha</option>
-                                <option value="No aplica">No aplica</option>
+                                <?php
+                                // Consulta para obtener las sedes desde la tabla headquarters
+                                $query = "SELECT name FROM headquarters_attendance";
+                                $result = $conn->query($query);
+
+                                if ($result && $result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                    }
+                                } else {
+                                    echo '<option value="">No hay sedes disponibles</option>';
+                                }
+                                ?>
                             </select>
                         </div>
                         <!-- Selección de Fecha -->
@@ -501,6 +509,42 @@ $courses_data = getCourses();
                 }
             });
 
+            // Reemplazar el evento click del botón registrar-ausencia
+            $(document).on('click', '.registrar-ausencia', function(e) {
+                e.preventDefault();
+                const button = $(this);
+                const attendanceStatus = button.data('attendance-status');
+                const studentName = button.data('student-name');
+                const studentId = button.data('student-id');
+
+                const showModal = () => {
+                    $('#ausenciaModal').modal('show');
+                    $('#studentId').val(studentId);
+                    $('#studentName').text(studentName);
+                    $('#studentId_display').text(studentId);
+                    $('#classId').val($('#bootcamp').val());
+                };
+
+                if (attendanceStatus === 'presente') {
+                    Swal.fire({
+                        title: '¡Atención!',
+                        text: `El estudiante ${studentName} está marcado como PRESENTE. ¿Estás seguro de que deseas registrar información?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, continuar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            showModal();
+                        }
+                    });
+                } else {
+                    showModal();
+                }
+            });
+
             // Reemplaza la función existente del historial
             $('#verHistorial').click(function() {
                 const studentId = $('#studentId').val();
@@ -637,8 +681,35 @@ $courses_data = getCourses();
                 // Abrir en una nueva ventana/pestaña
                 window.open(exportUrl, '_blank');
             });
-        });
 
+            // Agregar este código en el archivo donde tienes el manejo de eventos del modal
+            $('.registrar-ausencia').on('click', function(e) {
+                const attendanceStatus = $(this).data('attendance-status');
+                const studentName = $(this).data('student-name');
+
+                if (attendanceStatus === 'presente') {
+                    e.preventDefault(); // Prevenir que se abra el modal
+                    Swal.fire({
+                        title: '¡Atención!',
+                        text: `El estudiante ${studentName} está marcado como PRESENTE. ¿Estás seguro de que deseas registrar una ausencia?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, continuar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Si el usuario confirma, abrir el modal manualmente
+                            $('#ausenciaModal').modal('show');
+                            // Configurar los datos del estudiante en el modal
+                            $('#studentId').val($(this).data('student-id'));
+                            $('#studentName').text(studentName);
+                        }
+                    });
+                }
+            });
+        });
 
 
         // Manejo del modal de ausencia

@@ -121,10 +121,19 @@ $courses_data = getCourses();
                             <select name="sede" id="sede" class="form-select">
                                 <option value="">Seleccione una sede</option>
                                 <?php
-                                $sedes = ['Cota', 'Tunja', 'Sogamoso', 'Soacha', 'No aplica'];
-                                foreach ($sedes as $sede): ?>
-                                    <option value="<?= htmlspecialchars($sede) ?>"><?= htmlspecialchars($sede) ?></option>
-                                <?php endforeach; ?>
+                                // Consulta para obtener las sedes
+                                $query = "SELECT name FROM headquarters_attendance";
+                                $result = $conn->query($query);
+
+                                if ($result && $result->num_rows > 0) {
+                                    while ($row = $result->fetch_assoc()) {
+                                        $sede = htmlspecialchars($row['name']);
+                                        echo "<option value=\"$sede\">$sede</option>";
+                                    }
+                                } else {
+                                    echo "<option value=\"\">No hay sedes disponibles</option>";
+                                }
+                                ?>
                             </select>
                         </div>
 

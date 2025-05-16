@@ -227,12 +227,10 @@ try {
 
             <td class="text-center align-middle">
                 <button type="button" 
-                    class="btn ' . ($attendanceStatus === 'ausente' ? 'btn-primary' : 'btn-secondary') . ' btn-sm registrar-ausencia" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#ausenciaModal" 
+                    class="btn btn-primary btn-sm registrar-ausencia" 
                     data-student-id="' . htmlspecialchars($row['number_id']) . '"
                     data-student-name="' . htmlspecialchars($row['full_name']) . '"
-                    ' . ($attendanceStatus !== 'ausente' ? 'disabled' : '') . '>
+                    data-attendance-status="' . htmlspecialchars($attendanceStatus) . '">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>
             </td>

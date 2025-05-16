@@ -164,8 +164,20 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                             </label>
                         </a>
                     </div>
+
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Administrar sedes activas para asistencia">
+                        <a href="headquartersAttendance.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-building-check icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Sedes asistencia</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
                 <?php endif; ?>
-                
+
                 <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
                     <a href="https://agenciaeaglesoftware.com/" target="_blank">
                         <label class="checkbox-wrapper">

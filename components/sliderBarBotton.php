@@ -124,6 +124,21 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
                 </div>
             <?php endif; ?>
 
+            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                <div class="checkbox me-3 text-center" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Administrar usuarios">	
+                    <a href="multipleMail.php">
+                        <label class="checkbox-wrapper">
+                            <span class="checkbox-tile">
+                                <span class="checkbox-icon">
+                                    <i class="bi bi-envelope-at-fill icono text-indigo-dark"></i>
+                                </span>
+                                <span class="checkbox-label">Enviar correo</span>
+                            </span>
+                        </label>
+                    </a>
+                </div>
+            <?php endif; ?>
+
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                 <div class="checkbox me-3 text-center" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Administrar usuarios">	
                     <a href="editUsers.php">
