@@ -69,9 +69,23 @@ foreach ($data as $row) {
                                 <button type="button" class="btn bg-indigo-dark text-white me-2 btn-sm" id="openFloatRecipientsSwal">
                                     <i class="bi bi-people-fill"></i> Seleccionar
                                 </button>
-                                <button type="button" class="btn bg-red-dark text-white btn-sm" id="floatClearRecipients">
+                                <button type="button" class="btn bg-red-dark text-white me-2 btn-sm" id="floatClearRecipients">
                                     <i class="bi bi-trash"></i> Limpiar
                                 </button>
+                                <!-- Nuevo botón de plantillas -->
+                                <div class="btn-group">
+                                    <button type="button" class="btn bg-teal-dark text-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-file-text"></i> Plantillas
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" id="floatSaveTemplate">
+                                            <i class="bi bi-save"></i> Guardar plantilla
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" id="floatLoadTemplate">
+                                            <i class="bi bi-folder2-open"></i> Cargar plantilla
+                                        </a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         
@@ -560,6 +574,90 @@ foreach ($data as $row) {
             } catch(e) {
                 console.error("Error al inicializar Summernote:", e);
             }
+            
+            // Sistema de plantillas para el editor flotante
+            $j('#floatSaveTemplate').click(function() {
+                Swal.fire({
+                    title: 'Guardar como plantilla',
+                    html: `
+                        <div class="form-group">
+                            <label>Nombre de la plantilla</label>
+                            <input type="text" id="floatTemplateName" class="form-control" required>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar',
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        const name = $j('#floatTemplateName').val();
+                        const subject = $j('#floatEmailSubject').val();
+                        const content = $j('#floatEmailContent').summernote('code');
+
+                        return $j.ajax({
+                            url: 'components/multipleEmail/email_templates.php',
+                            method: 'POST',
+                            data: {
+                                action: 'save',
+                                name: name,
+                                subject: subject,
+                                content: content
+                            }
+                        });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('¡Guardado!', 'La plantilla se ha guardado correctamente', 'success');
+                    }
+                });
+            });
+
+            // Cargar plantilla en el editor flotante
+            $j('#floatLoadTemplate').click(function() {
+                $j.post('components/multipleEmail/email_templates.php', {
+                    action: 'list'
+                }).done(function(response) {
+                    if (response.success && response.templates.length > 0) {
+                        const templateList = response.templates.map(t => 
+                            `<option value="${t.id}">${t.name}</option>`
+                        ).join('');
+
+                        Swal.fire({
+                            title: 'Cargar plantilla',
+                            html: `
+                                <div class="form-group">
+                                    <select id="floatTemplateSelect" class="form-control">
+                                        <option value="">Seleccione una plantilla...</option>
+                                        ${templateList}
+                                    </select>
+                                </div>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Cargar',
+                            cancelButtonText: 'Cancelar',
+                            preConfirm: () => {
+                                const templateId = $j('#floatTemplateSelect').val();
+                                if (!templateId) {
+                                    Swal.showValidationMessage('Por favor seleccione una plantilla');
+                                    return false;
+                                }
+                                return $j.post('components/multipleEmail/email_templates.php', {
+                                    action: 'load',
+                                    id: templateId
+                                });
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed && result.value.success) {
+                                const template = result.value.template;
+                                $j('#floatEmailSubject').val(template.subject);
+                                $j('#floatEmailContent').summernote('code', template.content);
+                                Swal.fire('¡Cargado!', 'La plantilla se ha cargado correctamente', 'success');
+                            }
+                        });
+                    } else {
+                        Swal.fire('Sin plantillas', 'No hay plantillas guardadas', 'info');
+                    }
+                });
+            });
             
             // Función para actualizar contadores de destinatarios
             function updateFloatCounters() {

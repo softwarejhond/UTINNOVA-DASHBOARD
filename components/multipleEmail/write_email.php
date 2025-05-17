@@ -154,9 +154,20 @@ foreach ($data as $row) {
                         <button type="button" class="btn bg-indigo-dark text-white me-2" data-bs-toggle="modal" data-bs-target="#recipientsModal">
                             <i class="bi bi-people-fill"></i> Seleccionar Destinatarios
                         </button>
-                        <button type="button" class="btn bg-red-dark text-white" id="clearRecipients">
+                        <button type="button" class="btn bg-red-dark text-white me-2" id="clearRecipients">
                             <i class="bi bi-trash"></i> Limpiar Todos
                         </button>
+                        <button type="button" class="btn bg-teal-dark text-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-text"></i> Plantillas
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" id="saveTemplate">
+                                    <i class="bi bi-save"></i> Guardar como plantilla
+                                </a></li>
+                            <li><a class="dropdown-item" href="#" id="loadTemplate">
+                                    <i class="bi bi-folder2-open"></i> Cargar plantilla
+                                </a></li>
+                        </ul>
                     </div>
                 </div>
 
@@ -443,14 +454,14 @@ foreach ($data as $row) {
 
                 // Obtener el nodo de la fila (tr) para acceder a atributos data-*
                 var rowNode = usersTable.row(dataIndex).node();
-                
+
                 // Columna Estado (índice 5) - Leer desde data-status
                 // El índice 5 corresponde a la sexta columna (Estado)
                 var rowStatus = $(rowNode).find('td:eq(5)').attr('data-status');
-                
+
                 // Columnas Sede (6), Programa (7), Modalidad (8) - Leer desde el contenido de texto de la celda (array 'data')
                 // data[6] es el contenido de la séptima celda (Sede), y así sucesivamente.
-                var rowSede = data[6]; 
+                var rowSede = data[6];
                 var rowPrograma = data[7];
                 var rowModalidad = data[8];
 
@@ -705,5 +716,89 @@ foreach ($data as $row) {
 
             processRecipients();
         }
+
+        // Sistema de plantillas
+        $('#saveTemplate').click(function() {
+            Swal.fire({
+                title: 'Guardar como plantilla',
+                html: `
+                    <div class="form-group">
+                        <label>Nombre de la plantilla</label>
+                        <input type="text" id="templateName" class="form-control" required>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const name = $('#templateName').val();
+                    const subject = $('#emailSubject').val();
+                    const content = $('#emailContent').summernote('code');
+
+                    return $.ajax({
+                        url: 'components/multipleEmail/email_templates.php',
+                        method: 'POST',
+                        data: {
+                            action: 'save',
+                            name: name,
+                            subject: subject,
+                            content: content
+                        }
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('¡Guardado!', 'La plantilla se ha guardado correctamente', 'success');
+                }
+            });
+        });
+
+        // Cargar plantilla
+        $('#loadTemplate').click(function() {
+            $.post('components/multipleEmail/email_templates.php', {
+                action: 'list'
+            }).done(function(response) {
+                if (response.success && response.templates.length > 0) {
+                    const templateList = response.templates.map(t =>
+                        `<option value="${t.id}">${t.name}</option>`
+                    ).join('');
+
+                    Swal.fire({
+                        title: 'Cargar plantilla',
+                        html: `
+                            <div class="form-group">
+                                <select id="templateSelect" class="form-control">
+                                    <option value="">Seleccione una plantilla...</option>
+                                    ${templateList}
+                                </select>
+                            </div>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Cargar',
+                        cancelButtonText: 'Cancelar',
+                        preConfirm: () => {
+                            const templateId = $('#templateSelect').val();
+                            if (!templateId) {
+                                Swal.showValidationMessage('Por favor seleccione una plantilla');
+                                return false;
+                            }
+                            return $.post('components/multipleEmail/email_templates.php', {
+                                action: 'load',
+                                id: templateId
+                            });
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value.success) {
+                            const template = result.value.template;
+                            $('#emailSubject').val(template.subject);
+                            $('#emailContent').summernote('code', template.content);
+                            Swal.fire('¡Cargado!', 'La plantilla se ha cargado correctamente', 'success');
+                        }
+                    });
+                } else {
+                    Swal.fire('Sin plantillas', 'No hay plantillas guardadas', 'info');
+                }
+            });
+        });
     });
 </script>
