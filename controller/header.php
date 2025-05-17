@@ -3,7 +3,7 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 require_once __DIR__ . '/../components/modals/cohortes.php';
 ?>
 <?php include("components/sliderBarRight.php"); ?>
-
+<?php include 'components/multipleEmail/float_email.php'; ?>
 
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
@@ -76,11 +76,12 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                 <?php include 'components/pqr/pqrButton.php'; ?>
             <?php endif; ?>
-           
-                <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
+
+            <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
                     <i class="fa-solid fa-user-graduate fa-shake"></i>
                     <span id="totalCertificados" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark">
-                       <b> <?php // echo isset($totalConCertificacion) ? $totalConCertificacion : 0; ?></b>
+                       <b> <?php // echo isset($totalConCertificacion) ? $totalConCertificacion : 0; 
+                            ?></b>
                     </span>
                     <div id="spinnerCertificados" class="spinner-border spinner-border-sm text-light d-none" role="status">
                         <span class="visually-hidden">Cargando...</span>
@@ -140,13 +141,26 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     <li><a class="dropdown-item" href="close.php">Cerrar sesión</a></li>
                 </ul>
             </div>
-            <button class="btn btn-tertiary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-                <i class="bi bi-list"></i>
-            </button>
+
+
         </div>
+
+        <button type="button" class="btn bg-teal-dark text-white" id="header-email-button"
+            data-bs-toggle="tooltip" data-bs-placement="bottom"
+            data-bs-title="Redactar Correo">
+            <i class="bi bi-envelope-at-fill"></i>
+        </button>
+
+        <button class="btn btn-tertiary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+            <i class="bi bi-list"></i>
+        </button>
     </div>
 </nav>
 <script>
+    $(function() {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+
     function descargarInforme(url, tipo) {
         // Mostrar SweetAlert sin timer
         Swal.fire({

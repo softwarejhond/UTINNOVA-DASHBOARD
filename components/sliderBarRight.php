@@ -11,16 +11,32 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
             <fieldset class="checkbox-group">
                 <legend class="checkbox-group-legend">
                 </legend>
-                <!-- Aquí puedes agregar los elementos del menú derecho similar al izquierdo -->
-                <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Ejemplo">
-                    <label class="checkbox-wrapper">
-                        <span class="checkbox-tile">
-                            <span class="checkbox-icon">
-                                <i class="bi bi-gear-fill icono"></i>
+
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Enviar correo masivo">
+                        <a href="multipleMail.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-envelope-at-fill icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Enviar <br> correos</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
+                <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
+                    <a href="https://agenciaeaglesoftware.com/" target="_blank">
+                        <label class="checkbox-wrapper">
+                            <span class="checkbox-tile">
+                                <span class="checkbox-icon">
+                                    <img src="img/icons/eagle.png" alt="LogoEagle" width="60px">
+                                </span>
                             </span>
-                            <span class="checkbox-label">Configuración</span>
-                        </span>
-                    </label>
+                        </label>
+                    </a>
+
                 </div>
                 <!-- Agrega más elementos según necesites -->
             </fieldset>

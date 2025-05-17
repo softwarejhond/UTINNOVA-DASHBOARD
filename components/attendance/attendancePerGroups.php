@@ -191,7 +191,7 @@ $courses_data = getCourses();
                                 <option value="">Seleccione una sede</option>
                                 <?php
                                 // Consulta para obtener las sedes desde la tabla headquarters
-                                $query = "SELECT name FROM headquarters";
+                                $query = "SELECT name FROM headquarters_attendance ORDER BY name";
                                 $result = $conn->query($query);
 
                                 if ($result && $result->num_rows > 0) {
