@@ -1164,27 +1164,36 @@
                     // Filtrar por categoría
                     switch (parseInt(course.categoryid)) {
                         // Bootcamp (categorías específicas)
-                        case 14:
-                        case 11:
-                        case 10:
-                        case 7:
-                        case 6:
-                        case 5:
+                        case 19:
+                        case 21:
+                        case 24:
+                        case 26:
+                        case 27:
+                        case 35:
+                        case 20:
+                        case 22:
+                        case 23:
+                        case 25:
+                        case 28:
+                        case 35:
                             bootcampOptions += courseOption;
                             break;
 
                             // Inglés nivelatorio
-                        case 4:
+                        case 18:
+                        case 17:
                             englishOptions += courseOption;
                             break;
 
                             // English Code
-                        case 12:
+                        case 31:
+                        case 30:
                             englishCodeOptions += courseOption;
                             break;
 
                             // Habilidades
-                        case 13:
+                        case 32:
+                        case 33:
                             skillsOptions += courseOption;
                             break;
                     }
