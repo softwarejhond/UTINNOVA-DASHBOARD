@@ -105,9 +105,9 @@ $(document).ready(function () {
         language: {
             url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
         },
-        pagingType: "simple",
+        paging: false,
         columnDefs: [
-            { orderable: false, targets: [4] } // Desactivar ordenación en la columna 5 (checkbox)
+            { orderable: false, targets: [7] } // Desactivar ordenación en la columna 5 (checkbox)
         ],
         // Agregar atributos personalizados a cada fila
         createdRow: function (row, data) {

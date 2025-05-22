@@ -17,7 +17,7 @@ if ($result->num_rows > 0) {
 $result = $conn->query($sql);
 
 // Obtener datos únicos para los filtros
-$departamentos = ['BOYACÁ', 'CUNDINAMARCA'];
+$departamentos = ['BOGOTÁ, D.C.'];
 $programas = [];
 $modalidades = [];
 $sedes = [];
@@ -74,8 +74,7 @@ sort($modalidades);
             <div class="card-body">
                 <select id="filterDepartment" class="form-select">
                     <option value="">Todos los departamentos</option>
-                    <option value="BOYACÁ">BOYACÁ</option>
-                    <option value="CUNDINAMARCA">CUNDINAMARCA</option>
+                    <option value="BOGOTÁ, D.C.">BOGOTÁ, D.C.</option>
                 </select>
             </div>
         </div>
@@ -185,6 +184,7 @@ sort($modalidades);
                             switch($rol) {
                                 case 'Academico':
                                 case 'Administrador':
+                                case 'Control maestro':
                                     echo '<button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal' . $row['number_id'] . '">
                                             <i class="bi bi-trash"></i>
                                           </button>';

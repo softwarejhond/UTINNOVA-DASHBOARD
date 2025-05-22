@@ -245,6 +245,9 @@ foreach ($data as $row) {
         background-color: white;
         max-height: 100px;
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
     
     /* Estilo para las etiquetas de destinatarios */
@@ -256,6 +259,7 @@ foreach ($data as $row) {
         margin: 2px;
         border: 1px solid #ddd;
         font-size: 12px;
+        order: 2;
     }
     
     .recipient-tag .remove-tag {
@@ -458,6 +462,20 @@ foreach ($data as $row) {
     .table-wrapper-swal {
         overflow-y: auto;
         max-height: inherit;
+    }
+
+    /* Estilos adicionales */
+    .input-group.input-group-sm {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
+        margin-bottom: 8px;
+        padding: 4px 0;
+    }
+
+    .input-group {
+        order: 1;
     }
 </style>
 
@@ -665,15 +683,18 @@ foreach ($data as $row) {
                 $j('#floatSelectedUsersCount').text(selectedRecipients.size);
             }
             
-            // Renderizar las etiquetas de destinatarios
+            // Modificar la función renderFloatRecipientTags
             function renderFloatRecipientTags() {
                 const container = $j('#floatRecipientsContainer');
-                container.empty();
+                const inputGroup = container.find('.input-group'); // Guardar referencia al input
+                
+                container.empty(); // Limpiar el contenedor
+                container.append(inputGroup); // Volver a añadir el input al principio
 
                 selectedRecipients.forEach((recipient) => {
                     const tag = $j(`
-                        <div class="recipient-tag">
-                            ${recipient.name} &lt;${recipient.email}&gt;
+                        <div class="recipient-tag ${recipient.name === 'Usuario Manual' ? 'manual-entry' : ''}">
+                            ${recipient.name === 'Usuario Manual' ? '' : recipient.name + ' '}&lt;${recipient.email}&gt;
                             <span class="remove-tag" data-email="${recipient.email}">
                                 <i class="bi bi-x-circle"></i>
                             </span>
@@ -1067,7 +1088,7 @@ foreach ($data as $row) {
             });
             
             // Función para enviar correos
-            function sendFloatEmails(subject, content) {
+            async function sendFloatEmails(subject, content) {
                 const recipients = Array.from(selectedRecipients.values());
 
                 Swal.fire({
@@ -1111,9 +1132,15 @@ foreach ($data as $row) {
                             }
                         } catch (error) {
                             processed++;
+                            console.error(`Error al enviar a ${recipient.email}:`, error);
+                            const detail = error.responseText
+                                || error.statusText
+                                || error.errorThrown
+                                || error.message
+                                || JSON.stringify(error);
                             errors.push({
                                 recipient: recipient.email,
-                                message: 'Error de conexión: ' + (error.message || 'Desconocido')
+                                message: `Error de conexión: ${detail}`
                             });
                         }
 
@@ -1125,6 +1152,15 @@ foreach ($data as $row) {
                             Por favor espere...
                         `);
                     }
+
+                    // Guardar historial
+                    await saveHistory({
+                        subject,
+                        content,
+                        recipients,
+                        successes,
+                        errors
+                    });
 
                     // Mostrar resultado final
                     let resultMessage = `<h4>Resumen del envío</h4>`;
@@ -1151,6 +1187,29 @@ foreach ($data as $row) {
 
                 processRecipients();
             }
+
+            // Función para guardar historial
+            const saveHistory = async (emailData) => {
+                try {
+                    const response = await $.ajax({
+                        url: 'components/multipleEmail/save_history.php',
+                        method: 'POST',
+                        data: {
+                            subject: emailData.subject,
+                            content: emailData.content,
+                            recipients_count: emailData.recipients.length,
+                            successful_count: emailData.successes,
+                            failed_count: emailData.errors.length,
+                            sent_from: 'float',
+                            recipients: JSON.stringify(emailData.recipients),
+                            errors: JSON.stringify(emailData.errors)
+                        }
+                    });
+                    console.log('Historial guardado:', response);
+                } catch (error) {
+                    console.error('Error al guardar historial:', error);
+                }
+            };
             
             // Manejar clic en botón flotante para abrir chat
             if (emailChatButton) {
@@ -1180,6 +1239,97 @@ foreach ($data as $row) {
                 });
             } else {
                 console.warn("No se encontró el botón en el header con ID 'header-email-button'");
+            }
+
+            // Agregar campo de entrada manual de correos
+            addEmailInputField('floatRecipientsContainer', selectedRecipients, updateFloatCounters);
+        });
+    }
+    
+    // Función para agregar campo de entrada manual de correos
+    function addEmailInputField(containerId, recipientsMap, updateCountersFn) {
+        const container = $(`#${containerId}`);
+        const inputGroup = $(`
+            <div class="input-group input-group-sm mt-2 mb-2">
+                <input type="email" class="form-control form-control-sm manual-email-input" 
+                       placeholder="Ingrese correo electrónico y presione Enter">
+                <button class="btn btn-outline-secondary add-manual-email" type="button">
+                    <i class="bi bi-plus-circle"></i>
+                </button>
+            </div>
+        `);
+        
+        container.prepend(inputGroup);
+
+        // Función para validar email
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        // Función para agregar email
+        function addEmail(email) {
+            if (!isValidEmail(email)) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Por favor ingrese un correo electrónico válido',
+                    icon: 'error',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return;
+            }
+
+            if (recipientsMap.has(email)) {
+                Swal.fire({
+                    title: 'Advertencia',
+                    text: 'Este correo ya está en la lista',
+                    icon: 'warning',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return;
+            }
+
+            recipientsMap.set(email, {
+                email: email,
+                name: 'Usuario Manual'
+            });
+
+            const tag = $(`
+                <div class="recipient-tag manual-entry">
+                    &lt;${email}&gt;
+                    <span class="remove-tag" data-email="${email}">
+                        <i class="bi bi-x-circle"></i>
+                    </span>
+                </div>
+            `);
+
+            tag.insertAfter(inputGroup);
+            updateCountersFn();
+        }
+
+        // Manejar entrada por Enter
+        inputGroup.find('.manual-email-input').on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                const email = $(this).val().trim();
+                if (email) {
+                    addEmail(email);
+                    $(this).val('');
+                }
+            }
+        });
+
+        // Manejar clic en botón añadir
+        inputGroup.find('.add-manual-email').on('click', function() {
+            const email = inputGroup.find('.manual-email-input').val().trim();
+            if (email) {
+                addEmail(email);
+                inputGroup.find('.manual-email-input').val('');
             }
         });
     }

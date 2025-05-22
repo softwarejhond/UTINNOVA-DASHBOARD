@@ -26,6 +26,47 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
                     </div>
                 <?php endif; ?>
 
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Enviar correo masivo">
+                        <a href="mail_history.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-envelope-exclamation-fill icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Historial <br> de correos</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Listado de pre-matriculados">
+                        <a href="course_assignments.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-journal-code icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Prematricula</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Matricular campistas con pre-asignación">
+                        <a href="moodleAssignments.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-robot icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Matricular <br> pre-asignados</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
                 <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
                     <a href="https://agenciaeaglesoftware.com/" target="_blank">
                         <label class="checkbox-wrapper">

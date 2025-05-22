@@ -108,19 +108,25 @@ function exportDataToExcel($conn)
             }
 
             //Asignacion a estado de admision
-            $estadoAdmision = 'PENDIENTE';
+            $estadoAdmision = 'SIN ESTADO';
             if ($row['statusAdmin'] === '1') {
                 $estadoAdmision = 'BENEFICIARIO';
             } elseif ($row['statusAdmin'] === '2') {
-                $estadoAdmision = 'RECHAZADO';
+                $estadoAdmision = 'RECHAZADO'; 
             } elseif ($row['statusAdmin'] === '3') {
                 $estadoAdmision = 'MATRICULADO';
             } elseif ($row['statusAdmin'] === '4') {
-                $estadoAdmision = 'SIN CONTACTO';
+                $estadoAdmision = 'PENDIENTE';
             } elseif ($row['statusAdmin'] === '5') {
                 $estadoAdmision = 'EN PROCESO';
+            } elseif ($row['statusAdmin'] === '6') {
+                $estadoAdmision = 'CERTIFICADO';
+            } elseif ($row['statusAdmin'] === '7') {
+                $estadoAdmision = 'INACTIVO';
+            } elseif ($row['statusAdmin'] === '8') {
+                $estadoAdmision = 'BENEFICIARIO CONTRAPARTIDA';
             } elseif ($row['statusAdmin'] === '0') {
-                $estadoAdmision = 'PENDIENTE';
+                $estadoAdmision = 'SIN ESTADO';
             }
 
 
