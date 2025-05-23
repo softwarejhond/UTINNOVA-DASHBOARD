@@ -35,20 +35,24 @@ if ($result_users->num_rows > 0) {
         <table id="listaCursos" class="table table-hover table-bordered">
             <thead class="thead-dark text-center">
                 <tr class="text-center">
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Activo</th>
-                    <th>Horas Reales</th>
-                    <th>Horas/Semana</th> <!-- Cambio aquí -->
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Fin</th>
-                    <th>Detalles</th>
+                    <th class="text-center">Código</th>
+                    <th class="text-center">Cohorte</th>
+                    <th class="text-center">Nombre</th>
+                    <th class="text-center">Activo</th>
+                    <th class="text-center">Horas Reales</th>
+                    <th class="text-center">Horas/Semana</th>
+                    <th class="text-center">Fecha Inicio</th>
+                    <th class="text-center">Fecha Fin</th>
+                    <th class="text-center">Fecha Límite Notas</th>
+                    <th class="text-center">Establecer fecha límite</th>
+                    <th class="text-center">Detalles</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($courses as $course) { ?>
                     <tr>
                         <td><?php echo ($course['code']); ?></td>
+                        <td class="text-center"><?php echo ($course['cohort']); ?></td>
                         <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                             <?php echo ($course['name']); ?>
                         </td>
@@ -74,6 +78,18 @@ if ($result_users->num_rows > 0) {
                         </td>
                         <td class="text-center"><?php echo ($course['start_date']); ?></td>
                         <td class="text-center"><?php echo ($course['end_date'] ?? '-'); ?></td>
+                        <td class="text-center">
+                            <?php echo ($course['notes_limit'] ?? '-'); ?>
+                        </td class="text-center">
+                        <td class="text-center">
+                            <?php if ($rol === 'Administrador' || $rol === 'Control maestro') { ?>
+                                <button class="btn btn-sm bg-indigo-dark text-white ms-2" data-bs-toggle="modal" data-bs-target="#notesLimitModal<?php echo $course['code']; ?>">
+                                    <i class="bi bi-calendar-plus"></i>
+                                </button>
+                            <?php } else { ?>
+                                <span class="badge bg-secondary"><i class="bi bi-lock-fill"></i></span>
+                            <?php } ?>
+                        </td>
                         <td class="text-center">
                             <button class="btn bg-magenta-dark btn-sm text-white" data-bs-toggle="modal" data-bs-target="#detailsModal<?php echo $course['code']; ?>">
                                 <i class="bi bi-pencil-square"></i> Editar
@@ -168,7 +184,18 @@ if ($result_users->num_rows > 0) {
                         </div>
 
                         <div class="row mb-3">
-                            <?php if ($rol === 'Control maestro' || $rol==='Administrador') { ?>
+                            <div class="col-md-6">
+                                <label for="cohortInput<?php echo $course['code']; ?>" class="form-label">Cohorte</label>
+                                <input type="number" class="form-control"
+                                    id="cohortInput<?php echo $course['code']; ?>"
+                                    name="cohort"
+                                    value="<?php echo $course['cohort']; ?>"
+                                    min="1" max="99" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <?php if ($rol === 'Control maestro' || $rol === 'Administrador') { ?>
                                 <div class="col-12 mb-3">
                                     <div class="d-flex align-items-center">
                                         <h6 class="mb-0 me-3">Habilitar edición de horas</h6>
@@ -240,7 +267,7 @@ if ($result_users->num_rows > 0) {
                                         id="fridayHours<?php echo $course['code']; ?>"
                                         name="friday_hours" value="<?php echo $course['friday_hours'] ?? 0; ?>"
                                         min="0" max="14" step="1" required
-                                        <?php echo ($rol !== 'Control maestro' || $rol !== 'Administrador' ) ? 'disabled' : 'disabled'; ?>>
+                                        <?php echo ($rol !== 'Control maestro' || $rol !== 'Administrador') ? 'disabled' : 'disabled'; ?>>
                                 </div>
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Sábado</span>
@@ -271,18 +298,49 @@ if ($result_users->num_rows > 0) {
     </div>
 <?php } ?>
 
+<!-- Modales para establecer fecha límite de notas -->
+<?php foreach ($courses as $course) { ?>
+    <div class="modal fade" id="notesLimitModal<?php echo $course['code']; ?>" tabindex="-1" aria-labelledby="notesLimitModalLabel<?php echo $course['code']; ?>" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-magenta-dark text-white">
+                    <h5 class="modal-title" id="notesLimitModalLabel<?php echo $course['code']; ?>">
+                        Fecha Límite de Notas: <?php echo ($course['code'] . ' - ' . $course['name']); ?>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="notesLimitForm<?php echo $course['code']; ?>">
+                        <div class="mb-3">
+                            <label for="notesLimit<?php echo $course['code']; ?>" class="form-label">Fecha Límite para Registro de Notas</label>
+                            <input type="date" class="form-control" id="notesLimit<?php echo $course['code']; ?>" name="notes_limit" value="<?php echo $course['notes_limit'] ?? ''; ?>">
+                            <small class="form-text text-muted">Establezca la fecha límite hasta la cual los profesores pueden registrar notas en este curso.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info" onclick="updateNotesLimit('<?php echo $course['code']; ?>')">Guardar Fecha</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
 <script>
     $(document).ready(function() {
         // Inicializar DataTable
         $('#listaCursos').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
-            },
-            "order": [
-                [0, "asc"]
-            ]
+            "responsive": true,
+            "ordering": false,
+            "order": [], // Sin ordenamiento inicial
+            // Personalizar los íconos de ordenamiento con clases de Bootstrap Icons
+            "columnDefs": [{
+                "targets": 'sorting',
+                "orderSequence": ['asc', 'desc', 'asc'],
+            }]
         });
 
         // Convertir selects estándar a select2 para tener búsqueda
@@ -319,6 +377,29 @@ if ($result_users->num_rows > 0) {
     });
 
     function updateCourse(courseCode) {
+        // Validar datos antes de enviar
+        const startDate = $(`#dateStart${courseCode}`).val();
+        const endDate = $(`#dateEnd${courseCode}`).val();
+        
+        // Validación de fechas
+        if (!startDate) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de validación',
+                text: 'La fecha de inicio es obligatoria'
+            });
+            return;
+        }
+        
+        if (!endDate) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de validación',
+                text: 'La fecha de finalización es obligatoria'
+            });
+            return;
+        }
+        
         // Mostrar cargando
         Swal.fire({
             title: 'Actualizando...',
@@ -330,23 +411,24 @@ if ($result_users->num_rows > 0) {
             }
         });
 
-        // Obtener datos del formulario
+        // Preparar datos para enviar asegurando valores por defecto para campos numéricos
         const formData = {
             code: courseCode,
+            cohort: parseInt($(`#cohortInput${courseCode}`).val()) || 1,
             teacher: $(`#teacherSelect${courseCode}`).val(),
             mentor: $(`#mentorSelect${courseCode}`).val(),
             monitor: $(`#monitorSelect${courseCode}`).val(),
             status: $(`#statusSelect${courseCode}`).val(),
-            start_date: $(`#dateStart${courseCode}`).val(),
-            end_date: $(`#dateEnd${courseCode}`).val(),
-            real_hours: $(`#realHours${courseCode}`).val(),
-            monday_hours: $(`#mondayHours${courseCode}`).val(),
-            tuesday_hours: $(`#tuesdayHours${courseCode}`).val(),
-            wednesday_hours: $(`#wednesdayHours${courseCode}`).val(),
-            thursday_hours: $(`#thursdayHours${courseCode}`).val(),
-            friday_hours: $(`#fridayHours${courseCode}`).val(),
-            saturday_hours: $(`#saturdayHours${courseCode}`).val(),
-            sunday_hours: $(`#sundayHours${courseCode}`).val()
+            start_date: startDate,
+            end_date: endDate,
+            real_hours: parseInt($(`#realHours${courseCode}`).val()) || 0,
+            monday_hours: parseInt($(`#mondayHours${courseCode}`).val()) || 0,
+            tuesday_hours: parseInt($(`#tuesdayHours${courseCode}`).val()) || 0,
+            wednesday_hours: parseInt($(`#wednesdayHours${courseCode}`).val()) || 0,
+            thursday_hours: parseInt($(`#thursdayHours${courseCode}`).val()) || 0,
+            friday_hours: parseInt($(`#fridayHours${courseCode}`).val()) || 0,
+            saturday_hours: parseInt($(`#saturdayHours${courseCode}`).val()) || 0,
+            sunday_hours: parseInt($(`#sundayHours${courseCode}`).val()) || 0
         };
 
         // Enviar datos al servidor
@@ -371,15 +453,18 @@ if ($result_users->num_rows > 0) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Error al actualizar el curso: ' + response.message
+                        text: response.message || 'Error al actualizar el curso'
                     });
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error("Error en la petición AJAX:", error);
+                console.error("Respuesta del servidor:", xhr.responseText);
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Error en la conexión'
+                    text: 'Error en la conexión con el servidor'
                 });
             }
         });
@@ -393,6 +478,64 @@ if ($result_users->num_rows > 0) {
         const diasSemana = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
         diasSemana.forEach(dia => {
             document.getElementById(`${dia}Hours${courseCode}`).disabled = !isEnabled;
+        });
+    }
+
+    // Agregar esta nueva función al JavaScript existente
+    function updateNotesLimit(courseCode) {
+        // Mostrar cargando
+        Swal.fire({
+            title: 'Actualizando fecha límite...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Obtener el valor de la fecha límite
+        const notesLimit = $(`#notesLimit${courseCode}`).val();
+
+        // Preparar datos para enviar
+        const formData = {
+            code: courseCode,
+            notes_limit: notesLimit
+        };
+
+        // Enviar datos al servidor
+        $.ajax({
+            url: 'components/editCourses/update_notes_limit.php',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Fecha límite actualizada correctamente',
+                        showConfirmButton: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al actualizar la fecha límite: ' + response.message
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la conexión'
+                });
+            }
         });
     }
 </script>
