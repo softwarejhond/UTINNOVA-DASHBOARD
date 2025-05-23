@@ -97,8 +97,8 @@ function exportDataToExcel($conn)
             // Determinar estado de prueba
             $puntaje = $nivelesUsuarios[$row['number_id']] ?? '';
             $estadoPrueba = 'No presentó prueba';
-            if ($puntaje) {
-                if ($puntaje >= 1 && $puntaje <= 5) {
+            if ($puntaje !== '') {
+                if ($puntaje >= 0 && $puntaje <= 5) {
                     $estadoPrueba = 'Básico';
                 } elseif ($puntaje >= 6 && $puntaje <= 10) {
                     $estadoPrueba = 'Intermedio';
@@ -112,7 +112,7 @@ function exportDataToExcel($conn)
             if ($row['statusAdmin'] === '1') {
                 $estadoAdmision = 'BENEFICIARIO';
             } elseif ($row['statusAdmin'] === '2') {
-                $estadoAdmision = 'RECHAZADO'; 
+                $estadoAdmision = 'RECHAZADO';
             } elseif ($row['statusAdmin'] === '3') {
                 $estadoAdmision = 'MATRICULADO';
             } elseif ($row['statusAdmin'] === '4') {
@@ -125,6 +125,8 @@ function exportDataToExcel($conn)
                 $estadoAdmision = 'INACTIVO';
             } elseif ($row['statusAdmin'] === '8') {
                 $estadoAdmision = 'BENEFICIARIO CONTRAPARTIDA';
+            } elseif ($row['statusAdmin'] === '9') {
+                $estadoAdmision = 'PENDIENTE MINTIC';
             } elseif ($row['statusAdmin'] === '0') {
                 $estadoAdmision = 'SIN ESTADO';
             }
@@ -164,7 +166,7 @@ function exportDataToExcel($conn)
                 'Contacto Establecido' => $lastLog['contact_established'] ? 'Sí' : 'No',
                 'Continúa Interesado' => $lastLog['continues_interested'] ? 'Sí' : 'No',
                 'Observación' => $lastLog['observation']
-                
+
             ];
         }
     }
@@ -290,7 +292,7 @@ function exportDataToExcel($conn)
         $rowIndex2 = 2;
         while ($row = $result2->fetch_assoc()) {
 
-            $estadoAdmision = 'PENDIENTE';
+            $estadoAdmision = 'SIN ESTADO';
             if ($row['statusAdmin'] === '1') {
                 $estadoAdmision = 'BENEFICIARIO';
             } elseif ($row['statusAdmin'] === '2') {
@@ -298,13 +300,21 @@ function exportDataToExcel($conn)
             } elseif ($row['statusAdmin'] === '3') {
                 $estadoAdmision = 'MATRICULADO';
             } elseif ($row['statusAdmin'] === '4') {
-                $estadoAdmision = 'SIN CONTACTO';
+                $estadoAdmision = 'PENDIENTE';
             } elseif ($row['statusAdmin'] === '5') {
                 $estadoAdmision = 'EN PROCESO';
+            } elseif ($row['statusAdmin'] === '6') {
+                $estadoAdmision = 'CERTIFICADO';
+            } elseif ($row['statusAdmin'] === '7') {
+                $estadoAdmision = 'INACTIVO';
+            } elseif ($row['statusAdmin'] === '8') {
+                $estadoAdmision = 'BENEFICIARIO CONTRAPARTIDA';
+            } elseif ($row['statusAdmin'] === '9') {
+                $estadoAdmision = 'PENDIENTE MINTIC';
             } elseif ($row['statusAdmin'] === '0') {
-                $estadoAdmision = 'PENDIENTE';
+                $estadoAdmision = 'SIN ESTADO';
             }
-            
+
             $sheet2->fromArray([
                 $row['typeID'],
                 $row['number_id'],

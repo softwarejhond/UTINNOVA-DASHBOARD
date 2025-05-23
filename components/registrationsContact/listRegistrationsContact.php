@@ -701,6 +701,8 @@ function obtenerSedes($conn)
                                 echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
                             } elseif ($row['statusAdmin'] == '8') {
                                 echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
+                            } elseif ($row['statusAdmin'] == '9') {
+                                echo '<button class="btn bg-magenta-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE MINTIC"><i class="bi bi-hourglass-split"></i></button>';
                             }
                             ?>
                         </td>
@@ -1139,7 +1141,8 @@ function obtenerSedes($conn)
 
                 if (data.existe) {
                     // Si existe en participantes, mostrar opción de Beneficiario para contrapartida
-                    opcionBeneficiario = '<option value="8">Beneficiario para contrapartida</option>';
+                    opcionBeneficiario = `<option value="8">Beneficiario para contrapartida</option>
+                                          <option value="9">Pendiente MINTIC</option>`;
                 } else {
                     // Si no existe, mostrar opción regular de Beneficiario
                     opcionBeneficiario = '<option value="1">Beneficiario</option>';
@@ -1169,6 +1172,7 @@ function obtenerSedes($conn)
                                             <option value="5">En proceso</option>
                                             <option value="6">Culmino proceso</option>
                                             <option value="7">Inactivo</option>
+
                                         </select>
                                     </div>
                                     <br>
