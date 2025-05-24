@@ -12,7 +12,8 @@ class MoodleAPI
         $this->format = "json";
     }
 
-    private function callAPI($function, $params = [])
+    // Hacer público el método callAPI
+    public function callAPI($function, $params = [])
     {
         $params['wstoken'] = $this->token;
         $params['wsfunction'] = $function;
@@ -38,16 +39,40 @@ class MoodleAPI
         return json_decode($response, true);
     }
 
+    /**
+     * Función para normalizar texto: convertir a mayúsculas y eliminar tildes
+     */
+    private function normalizar($texto)
+    {
+        // Convertir a mayúsculas
+        $texto = mb_strtoupper($texto, 'UTF-8');
+
+        // Array de caracteres con tilde y su equivalente sin tilde
+        $caracteres = [
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+            'Ä' => 'A', 'Ë' => 'E', 'Ï' => 'I', 'Ö' => 'O', 'Ü' => 'U',
+            'À' => 'A', 'È' => 'E', 'Ì' => 'I', 'Ò' => 'O', 'Ù' => 'U',
+            'Â' => 'A', 'Ê' => 'E', 'Î' => 'I', 'Ô' => 'O', 'Û' => 'U',
+            'Ñ' => 'N', 'Ç' => 'C'
+        ];
+
+        return strtr($texto, $caracteres);
+    }
+
     public function createUser($userData)
     {
+        // Normalizar nombre y apellido usando el método de la clase
+        $firstname = $this->normalizar($userData['firstname']);
+        $lastname = $this->normalizar($userData['lastname']);
+
         $params = [
+            'users[0][idnumber]' => $userData['username'],
             'users[0][username]' => $userData['username'],
             'users[0][password]' => $userData['password'],
-            'users[0][firstname]' => $userData['firstname'] . ' ' . ($userData['secondname'] ?? ''),
-            'users[0][lastname]' => $userData['lastname'] . ' ' . ($userData['secondlastname'] ?? ''),
+            'users[0][firstname]' => $firstname,
+            'users[0][lastname]' => $lastname,
             'users[0][email]' => $userData['email'],
             'users[0][auth]' => 'manual',
-            // Forzar cambio de contraseña en el primer login
             'users[0][preferences][0][type]' => 'auth_forcepasswordchange',
             'users[0][preferences][0][value]' => 1
         ];
@@ -59,16 +84,16 @@ class MoodleAPI
     {
         $results = [];
         $errors = [];
-        
+
         if (empty($userId) || !is_array($courses) || empty($courses)) {
             throw new Exception("ID de usuario o cursos inválidos");
         }
-        
+
         foreach ($courses as $courseId) {
             if (empty($courseId)) {
                 continue; // Saltamos cursos con ID vacío
             }
-            
+
             try {
                 $params = [
                     'enrolments[0][roleid]' => 5, // 5 = estudiante
@@ -77,7 +102,7 @@ class MoodleAPI
                 ];
 
                 $result = $this->callAPI('enrol_manual_enrol_users', $params);
-                
+
                 // Verificar si hay un error en la respuesta
                 if (isset($result['exception'])) {
                     // Si el error es que el usuario ya está inscrito, lo consideramos exitoso
@@ -85,31 +110,31 @@ class MoodleAPI
                         $results[] = ['status' => 'already_enrolled', 'courseId' => $courseId];
                         continue;
                     }
-                    
+
                     $errors[] = "Error en el curso {$courseId}: {$result['message']}";
                     continue;
                 }
-                
+
                 $results[] = $result;
             } catch (Exception $e) {
                 $errors[] = "Error en el curso {$courseId}: {$e->getMessage()}";
             }
         }
-        
+
         // Si hubo errores pero también éxitos, consideramos la operación exitosa parcialmente
         if (!empty($results) && !empty($errors)) {
             error_log("Matriculación parcial: " . implode(", ", $errors));
             return $results;
         }
-        
+
         // Si solo hubo errores, lanzamos excepción
         if (empty($results) && !empty($errors)) {
             throw new Exception("Error al matricular en cursos: " . implode(", ", $errors));
         }
-        
+
         return $results;
     }
-    
+
     /**
      * Actualiza el statusAdmin del usuario en la base de datos
      * 
@@ -123,38 +148,70 @@ class MoodleAPI
     {
         // Verificar que tengamos una conexión válida
         if (!$conn || $conn->connect_error) {
-            throw new Exception("Error de conexión a la base de datos: " . 
+            throw new Exception("Error de conexión a la base de datos: " .
                 ($conn ? $conn->connect_error : "Conexión no disponible"));
         }
-        
+
         // Verificar que el numberId sea válido
         if (empty($numberId)) {
             throw new Exception("El número de identificación no puede estar vacío");
         }
-        
+
         try {
             $updateSql = "UPDATE user_register SET statusAdmin = ? WHERE number_id = ?";
             $updateStmt = $conn->prepare($updateSql);
-            
+
             if (!$updateStmt) {
                 throw new Exception("Error al preparar la actualización de estado: " . $conn->error);
             }
 
             $updateStmt->bind_param('ss', $status, $numberId);
-            
+
             if (!$updateStmt->execute()) {
                 throw new Exception("Error al actualizar statusAdmin: " . $updateStmt->error);
             }
-            
+
             // Verificar que se haya actualizado al menos una fila
             if ($updateStmt->affected_rows === 0) {
                 throw new Exception("No se encontró ningún usuario con el número de identificación proporcionado: {$numberId}");
             }
-            
+
             $updateStmt->close();
             return true;
         } catch (Exception $e) {
             throw new Exception("Error al actualizar el estado del usuario {$numberId}: " . $e->getMessage());
         }
     }
+
+    public function assignTeacherToCourse($userId, $courseId)
+    {
+        if (empty($userId) || empty($courseId)) {
+            throw new Exception("ID de usuario o curso inválido");
+        }
+
+        try {
+            $params = [
+                'enrolments[0][roleid]' => 3, // 3 = profesor
+                'enrolments[0][userid]' => $userId,
+                'enrolments[0][courseid]' => $courseId
+            ];
+
+            $result = $this->callAPI('enrol_manual_enrol_users', $params);
+
+            // Verificar si hay un error en la respuesta
+            if (isset($result['exception'])) {
+                // Si el error es que el usuario ya está inscrito, lo consideramos exitoso
+                if (strpos($result['message'], 'already enrolled') !== false) {
+                    return ['status' => 'already_enrolled', 'courseId' => $courseId];
+                }
+
+                throw new Exception("Error al asignar profesor: {$result['message']}");
+            }
+
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("Error al asignar profesor al curso {$courseId}: {$e->getMessage()}");
+        }
+    }
 }
+?>

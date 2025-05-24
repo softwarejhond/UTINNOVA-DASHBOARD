@@ -662,16 +662,16 @@ function obtenerSedes($conn)
 
                         <td class="text-center">
                             <?php if ($row['tiene_certificado']): ?>
-                                <button class="btn text-white" style="background-color: #cc454e;" type="button"
-                                    onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
+                                <button class="btn text-white" style="background-color: #ffbf00;"
+                                    onclick="mostrarCertificacionAlert('<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
                                     data-bs-toggle="popover"
                                     data-bs-trigger="hover"
                                     data-bs-placement="top"
-                                    data-bs-content="Leer la información importante sobre este estudiante">
-                                    <i class="fa-solid fa-triangle-exclamation fa-fade"></i>
+                                    data-bs-content="El estudiante cuenta con una certificación">
+                                    <i class="fa-solid fa-graduation-cap fa-beat text-black"></i>
                                 </button>
                             <?php else: ?>
-                                <button class="btn btn-secondary" type="button"
+                                <button class="btn btn-secondary"
                                     data-bs-toggle="popover"
                                     data-bs-trigger="hover"
                                     data-bs-placement="top"
@@ -1789,6 +1789,22 @@ function obtenerSedes($conn)
                     </div>
                 `;
             });
+    }
+
+    function mostrarCertificacionAlert(nombreEstudiante) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Estudiante con certificación previa',
+            html: `
+                <div class="alert alert-warning">
+                    <p><strong>${nombreEstudiante.toUpperCase()}</strong> ya tiene registrada una certificación en otro lote o región.</p>
+                    <p>Tenga esto en cuenta antes de continuar con el proceso de asignación.</p>
+                </div>
+            `,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#ffbf00',
+            allowOutsideClick: true
+        });
     }
 </script>
 

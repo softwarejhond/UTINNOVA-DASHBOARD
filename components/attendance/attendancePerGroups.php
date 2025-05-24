@@ -156,11 +156,18 @@ $courses_data = getCourses();
                         <div class="col-lg-6 col-md-6 col-sm-12 col-12">
                             <label class="form-label">Clase</label>
                             <select id="bootcamp" class="form-select course-select">
-                                <?php foreach ($courses_data as $course): ?>
+                                <?php 
+                                $allowed_categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32];
+                                foreach ($courses_data as $course):
+                                    if (in_array($course['id'], $allowed_categories)):
+                                ?>
                                     <option value="<?= htmlspecialchars($course['id']) ?>">
                                         <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                     </option>
-                                <?php endforeach; ?>
+                                <?php 
+                                    endif;
+                                endforeach; 
+                                ?>
                             </select>
                         </div>
 

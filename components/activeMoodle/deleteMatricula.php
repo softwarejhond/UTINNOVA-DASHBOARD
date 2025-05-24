@@ -2,13 +2,18 @@
 // Iniciar sesión si no está iniciada
 session_start();
 
-// Verificar que se haya recibido el ID del usuario
-if (!isset($_POST['number_id']) || empty($_POST['number_id'])) {
+// Obtener el contenido JSON de la solicitud
+$input = json_decode(file_get_contents('php://input'), true);
+if ($input && isset($input['number_id'])) {
+    // Si viene en formato JSON (nueva implementación)
+    $number_id = $input['number_id'];
+} else if (isset($_POST['number_id'])) {
+    // Mantener compatibilidad con la versión anterior
+    $number_id = $_POST['number_id'];
+} else {
     echo json_encode(['success' => false, 'message' => 'ID de usuario no proporcionado']);
     exit;
 }
-
-$number_id = $_POST['number_id'];
 
 // Incluir archivo de configuración de base de datos
 require  '../../controller/conexion.php';
@@ -135,14 +140,48 @@ try {
     $deleteAttendanceStmt->bind_param("s", $number_id);
     $deleteAttendanceStmt->execute();
 
+    // Registrar en el historial de cambios
+    $historialSql = "INSERT INTO change_history (student_id, user_change, change_made) VALUES (?, ?, ?)";
+    $stmtHistorial = $conn->prepare($historialSql);
+    
+    if ($stmtHistorial) {
+        // Verificar si la solicitud viene de una desmatriculación múltiple
+        $descripcion = isset($input['isMultiple']) && $input['isMultiple'] === true 
+            ? "Se elimina matrícula de Moodle (Desmatricula multiple)"
+            : "Se elimina matrícula de Moodle";
+        $username = $_SESSION['username'];
+        $stmtHistorial->bind_param('iss', $number_id, $username, $descripcion);
+        
+        if (!$stmtHistorial->execute()) {
+            throw new Exception("Error al registrar el historial");
+        }
+        $stmtHistorial->close();
+    }
+
     $conn->commit();
 
-    echo json_encode(['success' => true, 'message' => 'Usuario eliminado correctamente de Moodle y registros actualizados']);
+    echo json_encode([
+        'success' => true, 
+        'message' => 'Usuario eliminado correctamente',
+        'details' => [
+            'number_id' => $number_id,
+            'institutional_email' => $institutional_email,
+            'moodle_user_id' => $moodleUserId
+        ]
+    ]);
 } catch (Exception $e) {
     if (isset($conn)) {
         $conn->rollback();
     }
-    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    echo json_encode([
+        'success' => false, 
+        'message' => 'Error: ' . $e->getMessage(),
+        'details' => [
+            'number_id' => $number_id ?? null,
+            'error_code' => $e->getCode(),
+            'error_trace' => $e->getTraceAsString()
+        ]
+    ]);
 } finally {
     if (isset($conn)) {
         $conn->close();

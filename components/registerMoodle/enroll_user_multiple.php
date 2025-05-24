@@ -122,11 +122,14 @@ try {
 
     // Crear usuario en Moodle
     $moodleAPI = new MoodleAPI();
+    $nombres = array_slice(explode(' ', $input['full_name']), 0, 2); // Obtiene los dos primeros nombres
+    $apellidos = array_slice(explode(' ', $input['full_name']), 2); // Obtiene los apellidos
+
     $moodleUser = [
         'username' => $input['number_id'],
         'password' => $input['password'],
-        'firstname' => explode(' ', $input['full_name'])[0],
-        'lastname' => explode(' ', $input['full_name'])[2],
+        'firstname' => implode(' ', $nombres), // Concatena nombres con espacio
+        'lastname' => implode(' ', $apellidos), // Concatena apellidos con espacio
         'email' => $input['institutional_email']
     ];
 

@@ -5,7 +5,7 @@
         right: 20px;
         z-index: 1000;
         color: white;
-        border-radius: 50%;
+        border-radius: 50% !important;
         width: 60px;
         height: 60px;
         display: flex;

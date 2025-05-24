@@ -88,7 +88,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     </div>
                 </button> -->
 
-            <script>
+            <!-- <script>
                 // Función para obtener los datos del servidor
                 function fetchCertificados() {
                     const spinner = document.getElementById('spinnerCertificados');
@@ -123,7 +123,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
                 // Actualizar el contador cada 30 segundos
                 setInterval(fetchCertificados, 30000);
-            </script>
+            </script> -->
 
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">

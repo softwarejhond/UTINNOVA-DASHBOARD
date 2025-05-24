@@ -41,13 +41,18 @@ function getCourses()
 $courses_data = getCourses();
 
 // Consulta para obtener usuarios
-$sql = "SELECT user_register.*, departamentos.departamento
-        FROM user_register
-        INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
-        WHERE departamentos.id_departamento = 11
-          AND user_register.status = '1' 
-          AND user_register.statusAdmin = '1'
-        ORDER BY user_register.first_name ASC";
+$sql = "SELECT user_register.*, departamentos.departamento,
+    EXISTS(
+        SELECT 1 
+        FROM participantes p 
+        WHERE p.numero_documento = user_register.number_id
+    ) AS tiene_certificado
+    FROM user_register
+    INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
+    WHERE departamentos.id_departamento = 11
+      AND user_register.status = '1' 
+      AND user_register.statusAdmin IN ('1', '8')
+    ORDER BY user_register.first_name ASC";
 
 $result = $conn->query($sql);
 $data = [];
@@ -98,6 +103,7 @@ foreach ($data as $row) {
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
     /* Estilos para la tabla con scroll */
     /* Estilos para la tabla con encabezados fijos */
@@ -168,7 +174,7 @@ foreach ($data as $row) {
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
-                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25,27, 28, 35]);
+                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 27, 28, 35]);
                                         if ($categoryAllowed):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
@@ -208,7 +214,7 @@ foreach ($data as $row) {
                             <select id="english_code" class="form-select course-select">
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                         <?php if ($course['categoryid'] == 30 || $course['categoryid'] == 31): ?>
+                                        <?php if ($course['categoryid'] == 30 || $course['categoryid'] == 31): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -227,7 +233,7 @@ foreach ($data as $row) {
                             <select id="skills" class="form-select course-select">
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                            <?php if ($course['categoryid'] == 32 || $course['categoryid'] == 33): ?>
+                                        <?php if ($course['categoryid'] == 32 || $course['categoryid'] == 33): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -317,7 +323,19 @@ foreach ($data as $row) {
                                         data-mode="<?= htmlspecialchars($row['mode']) ?>">
                                         <td><?php echo htmlspecialchars($row['typeID']); ?></td>
                                         <td><?php echo htmlspecialchars($row['number_id']); ?></td>
-                                        <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($fullName); ?></td>
+                                        <td style="width: 350px; min-width: 350px; max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <?php echo htmlspecialchars($fullName); ?>
+                                            <?php if ($row['tiene_certificado']): ?>
+                                                <button class="btn text-white ms-2" style="background-color: #ffbf00;"
+                                                    onclick="mostrarCertificacionAlert('<?php echo htmlspecialchars($fullName); ?>')"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover"
+                                                    data-bs-placement="top"
+                                                    data-bs-content="El estudiante cuenta con una certificación">
+                                                    <i class="fa-solid fa-graduation-cap fa-beat text-black"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($row['lote']); ?></td>
                                         <td><?php echo htmlspecialchars($row['program']); ?></td>
                                         <td><?php echo htmlspecialchars($row['level']); ?></td>
@@ -981,7 +999,7 @@ foreach ($data as $row) {
             // 1. Filtrar la tabla de estudiantes
             const filas = document.querySelectorAll('#listaInscritos tbody tr');
             let contadorVisibles = 0;
-            
+
             filas.forEach(fila => {
                 const loteFila = fila.querySelector('td:nth-child(4)').textContent.trim();
                 if (loteFila == lote) {
@@ -991,7 +1009,7 @@ foreach ($data as $row) {
                     fila.style.display = 'none';
                 }
             });
-            
+
             // 2. Filtrar las categorías de los cursos según el lote
             const categoriasPorLote = {
                 1: {
@@ -1007,26 +1025,26 @@ foreach ($data as $row) {
                     skills: [32]
                 }
             };
-            
+
             // Función para filtrar opciones de select por categorías
             function filtrarSelectPorCategoria(selectId, categorias) {
                 const select = document.getElementById(selectId);
                 if (!select) return;
-                
+
                 Array.from(select.options).forEach(option => {
                     if (!option.value) return; // Mantener la opción vacía
-                    
+
                     // Obtener el courseId de la descripción del curso (formato: "ID - Nombre")
                     const courseData = option.text.split(' - ');
                     const courseId = parseInt(courseData[0]);
-                    
+
                     // Obtener categoryId de los datos originales de cursos
                     const course = window.coursesData?.find(c => c.id == option.value);
                     const categoryId = course ? parseInt(course.categoryid) : 0;
-                    
+
                     const visible = categorias.includes(categoryId);
                     option.style.display = visible ? '' : 'none';
-                    
+
                     // Si la opción actual está oculta y seleccionada, seleccionar primera visible
                     if (!visible && option.selected && select.options.length > 0) {
                         for (let i = 0; i < select.options.length; i++) {
@@ -1038,16 +1056,16 @@ foreach ($data as $row) {
                     }
                 });
             }
-            
+
             // Exponer datos de cursos a nivel global
             window.coursesData = <?php echo json_encode($courses_data); ?>;
-            
+
             // Filtrar cada select por las categorías correspondientes
             filtrarSelectPorCategoria('bootcamp', categoriasPorLote[lote].bootcamp);
             filtrarSelectPorCategoria('ingles', categoriasPorLote[lote].ingles);
             filtrarSelectPorCategoria('english_code', categoriasPorLote[lote].english_code);
             filtrarSelectPorCategoria('skills', categoriasPorLote[lote].skills);
-            
+
             // Mostrar información sobre registros filtrados
             Swal.fire({
                 title: `Lote ${lote} seleccionado`,
@@ -1062,7 +1080,7 @@ foreach ($data as $row) {
         document.getElementById('cambiarLoteBtn').addEventListener('click', function() {
             const loteActual = parseInt(sessionStorage.getItem('loteSeleccionado') || '1');
             const nuevoLote = loteActual === 1 ? 2 : 1;
-            
+
             Swal.fire({
                 title: `¿Cambiar a Lote ${nuevoLote}?`,
                 text: 'Se limpiarán las selecciones actuales y se filtrarán los estudiantes según el nuevo lote.',
@@ -1076,13 +1094,13 @@ foreach ($data as $row) {
                     // Limpiar selecciones
                     selectedUsers.clear();
                     updateSelectedUsersList();
-                    
+
                     // Desmarcar todos los checkboxes
                     document.querySelectorAll('.usuario-checkbox').forEach(cb => {
                         cb.checked = false;
                         cb.style.backgroundColor = 'white';
                     });
-                    
+
                     // Actualizar lote y aplicar filtros
                     sessionStorage.setItem('loteSeleccionado', nuevoLote);
                     filtrarPorLote(nuevoLote);
@@ -1095,6 +1113,31 @@ foreach ($data as $row) {
         if (loteGuardado > 0) {
             filtrarPorLote(loteGuardado);
         }
+
+        // Agregar esta función al final del archivo, dentro de las etiquetas <script>
+        function mostrarCertificacionAlert(nombreEstudiante) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Estudiante con certificación previa',
+                html: `
+                    <div class="alert alert-warning">
+                        <p><strong>${nombreEstudiante.toUpperCase()}</strong> ya tiene registrada una certificación en otro lote o región.</p>
+                        <p>Tenga esto en cuenta antes de continuar con el proceso de asignación.</p>
+                    </div>
+                `,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ffbf00',
+                allowOutsideClick: true
+            });
+        }
+
+        // Asegúrate de que los popovers estén inicializados
+        document.addEventListener('DOMContentLoaded', function() {
+            const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+            if (popoverTriggerList.length > 0) {
+                [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+            }
+        });
     </script>
     </body>
 

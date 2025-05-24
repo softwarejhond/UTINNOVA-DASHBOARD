@@ -66,6 +66,21 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
                     </a>
                 </div>
             <?php endif; ?>
+
+            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                <div class="checkbox me-3 text-center" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Desmatricula multiple">
+                    <a href="multiple_erase.php">
+                        <label class="checkbox-wrapper">
+                            <span class="checkbox-tile">
+                                <span class="checkbox-icon icono text-indigo-dark">
+                                    <i class="bi bi-exclamation-diamond-fill icono text-indigo-dark "></i>
+                                </span>
+                                <span class="checkbox-label">Desmatricular</span>
+                            </span>
+                        </label>
+                    </a>
+                </div>
+            <?php endif; ?>
             <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
                 <div class="checkbox me-3 text-center" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Listado y edición de cursos">
                     <a href="editCourses.php"><label class="checkbox-wrapper">

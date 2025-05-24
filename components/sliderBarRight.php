@@ -27,13 +27,13 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
                 <?php endif; ?>
 
                 <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
-                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Enviar correo masivo">
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Historial de correos enviados">
                         <a href="mail_history.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">
                                     <span class="checkbox-icon">
                                         <i class="bi bi-envelope-exclamation-fill icono"></i>
                                     </span>
-                                    <span class="checkbox-label">Historial <br> de correos</span>
+                                    <span class="checkbox-label">Historial</span>
                                 </span>
                             </label>
                         </a>
@@ -61,7 +61,21 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
                                     <span class="checkbox-icon">
                                         <i class="bi bi-robot icono"></i>
                                     </span>
-                                    <span class="checkbox-label">Matricular <br> pre-asignados</span>
+                                    <span class="checkbox-label">Matricular</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Designar equipo a cada curso en Moodle">
+                        <a href="moodle_team.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="fa-solid fa-chalkboard-user icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Designar</span>
                                 </span>
                             </label>
                         </a>
