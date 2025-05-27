@@ -1,7 +1,7 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario actual
 
-// Consulta para obtener todos los usuarios
+// Consulta para obtener todos los usuarios (incluir extra_rol)
 $sql = "SELECT * FROM users ORDER BY id ASC";
 $result = $conn->query($sql);
 $users = [];
@@ -40,6 +40,7 @@ function getRolText($rolNum) {
                     <th>Usuario</th>
                     <th>Nombre</th>
                     <th>Rol</th>
+                    <th>Rol Extra</th>
                     <th>Email</th>
                     <th>Género</th>
                     <th>Teléfono</th>
@@ -54,6 +55,17 @@ function getRolText($rolNum) {
                         <td><?php echo !empty($user['username']) ? htmlspecialchars($user['username']) : '--'; ?></td>
                         <td><?php echo !empty($user['nombre']) ? htmlspecialchars($user['nombre']) : '--'; ?></td>
                         <td><?php echo !empty($user['rol']) ? htmlspecialchars(getRolText($user['rol'])) : '--'; ?></td>
+                        <td class="text-center">
+                            <?php if (isset($user['extra_rol']) && $user['extra_rol'] == 1): ?>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Activo
+                                </span>
+                            <?php else: ?>
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-dash-circle"></i> Inactivo
+                                </span>
+                            <?php endif; ?>
+                        </td>
                         <td><?php echo !empty($user['email']) ? htmlspecialchars($user['email']) : '--'; ?></td>
                         <td><?php echo !empty($user['genero']) ? htmlspecialchars($user['genero']) : '--'; ?></td>
                         <td><?php echo !empty($user['telefono']) ? htmlspecialchars($user['telefono']) : '--'; ?></td>
@@ -120,6 +132,30 @@ function getRolText($rolNum) {
                             </select>
                         </div>
 
+                        <!-- NUEVO CAMPO: Rol Extra -->
+                        <div class="mb-3">
+                            <label class="form-label">Rol Extra</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       role="switch" 
+                                       id="extraRolSwitch<?php echo $user['id']; ?>" 
+                                       name="extra_rol" 
+                                       value="1"
+                                       <?php echo (isset($user['extra_rol']) && $user['extra_rol'] == 1) ? 'checked' : ''; ?>
+                                       style="border: 2px solid #30336B; width: 3em; height: 1.5em;">
+                                <label class="form-check-label" for="extraRolSwitch<?php echo $user['id']; ?>">
+                                    <span id="extraRolLabel<?php echo $user['id']; ?>">
+                                        <?php echo (isset($user['extra_rol']) && $user['extra_rol'] == 1) ? 'Activo' : 'Inactivo'; ?>
+                                    </span>
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Activa para otorgar acceso adicional a áreas especiales del sistema
+                            </small>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Email</label>
                             <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
@@ -179,7 +215,7 @@ function getRolText($rolNum) {
         </div>
     </div>
 
-    <!-- Modal de Eliminación -->
+    <!-- Modal de Eliminación (sin cambios) -->
     <div class="modal fade" id="deleteModal<?php echo $user['id']; ?>" tabindex="-1" aria-labelledby="deleteModalLabel<?php echo $user['id']; ?>" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -234,8 +270,27 @@ $(document).ready(function() {
     // Inicializar los modales de eliminación
     <?php foreach ($users as $user) { ?>
         initDeleteModal(<?php echo $user['id']; ?>);
+        
+        // Inicializar el switch de rol extra
+        initExtraRolSwitch(<?php echo $user['id']; ?>);
     <?php } ?>
 });
+
+// Nueva función para manejar el switch de rol extra
+function initExtraRolSwitch(userId) {
+    const switchElement = document.getElementById('extraRolSwitch' + userId);
+    const labelElement = document.getElementById('extraRolLabel' + userId);
+    
+    switchElement.addEventListener('change', function() {
+        if (this.checked) {
+            labelElement.textContent = 'Activo';
+            labelElement.className = 'text-success fw-bold';
+        } else {
+            labelElement.textContent = 'Inactivo';
+            labelElement.className = 'text-muted';
+        }
+    });
+}
 
 function togglePasswordFields(userId) {
     const passwordFields = document.getElementById('passwordFields' + userId);
@@ -259,6 +314,12 @@ function updateUser(userId) {
             });
             return;
         }
+    }
+
+    // Agregar valor del extra_rol al FormData
+    const extraRolSwitch = document.getElementById('extraRolSwitch' + userId);
+    if (!extraRolSwitch.checked) {
+        formData.append('extra_rol', '0');
     }
 
     Swal.fire({
@@ -308,6 +369,7 @@ function updateUser(userId) {
     });
 }
 
+// Resto de funciones sin cambios...
 function initDeleteModal(userId) {
     let securityCode = '';
     let timer = 15;

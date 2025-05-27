@@ -308,7 +308,7 @@ foreach ($data as $row) {
                                         . substr(trim($row['number_id']), -4)
                                         . strtolower(substr(trim($row['first_last']), 0, 1))
                                         . strtolower(substr(trim($row['second_last']), 0, 1))
-                                        . '.ut@poliandino.edu.co';
+                                        . '.ut@cendi.edu.co';
                                 ?>
                                     <tr data-type-id="<?php echo htmlspecialchars($row['typeID']); ?>"
                                         data-number-id="<?php echo htmlspecialchars($row['number_id']); ?>"

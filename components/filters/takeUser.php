@@ -5,16 +5,15 @@ function obtenerInformacionUsuario()
         session_start(); // Asegúrate de que la sesión esté iniciada
     }
 
-    // Debug: Mostrar el estado de las variables de sesión
-    // var_dump($_SESSION); // Esto te mostrará todas las variables de sesión
-
     // Verificar si las variables de sesión están establecidas correctamente
-    if (isset($_SESSION['loggedin'], $_SESSION['nombre'], $_SESSION['rol'], $_SESSION['username'], $_SESSION['foto']) && $_SESSION['loggedin'] === true) {
+    if (isset($_SESSION['loggedin'], $_SESSION['nombre'], $_SESSION['rol'], $_SESSION['username'], $_SESSION['foto'], $_SESSION['extra_rol']) && $_SESSION['loggedin'] === true) {
         $mensajeRol = rolUsuario($_SESSION['rol']); // Obtener el mensaje basado en el rol
+        $mensajeExtraRol = extraRolUsuario($_SESSION['extra_rol']); // Obtener el mensaje basado en el extra_rol
 
         return [
             'nombre' => htmlspecialchars($_SESSION['nombre']),
             'rol' => $mensajeRol,
+            'extra_rol' => $mensajeExtraRol,
             'usuario' => htmlspecialchars($_SESSION['username']),
             'foto' => htmlspecialchars($_SESSION['foto'])
         ];
@@ -22,6 +21,7 @@ function obtenerInformacionUsuario()
         return [
             'nombre' => 'Usuario no logueado',
             'rol' => 'Rol no definido',
+            'extra_rol' => 'Extra rol no definido',
             'usuario' => 'Usuario no definido',
             'foto' => 'foto no definida'
         ];
@@ -55,7 +55,20 @@ function rolUsuario($rol)
             return "Superacademico";
         case 12:
             return "Control maestro";
+        case 13:
+            return "Interventoría";
         default:
             return "Rol desconocido";
     }
 }
+
+function extraRolUsuario($extra_rol)
+{
+    switch ($extra_rol) {
+        case 1:
+            return "Extra Administrador";
+        default:
+            return "Extra rol no definido";
+    }
+}
+?>

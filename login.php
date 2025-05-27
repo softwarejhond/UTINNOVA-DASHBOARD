@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Validar credenciales
     if (empty($username_err) && empty($password_err)) {
         // Preparar una declaración SQL
-        $sql = "SELECT id, username, password, nombre, rol, foto FROM users WHERE username = ?";
+        $sql = "SELECT id, username, password, nombre, rol, foto, extra_rol FROM users WHERE username = ?";
 
         if ($stmt = mysqli_prepare($conn, $sql)) {
             // Vincular variables a la declaración preparada como parámetros
@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Verificar si el nombre de usuario existe, si sí, verificar la contraseña
                 if (mysqli_stmt_num_rows($stmt) === 1) {
                     // Vincular variables de resultado
-                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto);
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto, $extra_rol);
                     if (mysqli_stmt_fetch($stmt)) {
                         if (password_verify($password, $hashed_password)) {
                             // La contraseña es correcta, iniciar una nueva sesión
@@ -95,6 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $_SESSION['rol'] = $rol; // Asignar un rol real basado en tu base de datos
                             $_SESSION['username'] = htmlspecialchars($username); // Asignar nombre de usuario
                             $_SESSION['foto'] = htmlspecialchars($foto); // Ruta de la foto del usuario
+                            $_SESSION['extra_rol'] = $extra_rol; // Agregar el nuevo campo extra_rol
 
                             // Redirigir al usuario a la página principal
                             header("location: main.php");

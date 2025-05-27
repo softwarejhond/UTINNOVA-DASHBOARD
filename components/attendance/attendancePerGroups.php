@@ -159,7 +159,7 @@ $courses_data = getCourses();
                                 <?php 
                                 $allowed_categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32];
                                 foreach ($courses_data as $course):
-                                    if (in_array($course['id'], $allowed_categories)):
+                                    if (in_array($course['categoryid'], $allowed_categories)):
                                 ?>
                                     <option value="<?= htmlspecialchars($course['id']) ?>">
                                         <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>

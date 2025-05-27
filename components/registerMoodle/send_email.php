@@ -154,8 +154,8 @@ try {
                         <p>Esperamos que este camino te acerque a tus objetivos y cuentes con nosotros hasta el final. Este es solo un paso más hacia la realización de tus sueños. 🚀</p>
 
                         <p>Si tienes dudas o inquietudes, puedes comunicarte con nuestro equipo de soporte a través de:</p>
-                        <p>📞 <b>3008959859</b></p>
-                        <p>📧 <b><a href='mailto:servicioalcliente.ut@poliandino.edu.co'>servicioalcliente.ut@poliandino.edu.co</a></b></p>
+                        <p>📞 <b>3125410929</b></p>
+                        <p>📧 <b><a href='mailto:servicioalcliente.ut2@cendi.edu.co'>servicioalcliente.ut2@cendi.edu.co</a></b></p>
                     </div>
 
                     <div class='footer'>

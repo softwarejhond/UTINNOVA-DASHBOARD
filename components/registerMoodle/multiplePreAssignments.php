@@ -621,7 +621,7 @@ foreach ($data as $row) {
                         (rowData.number_id ? rowData.number_id.slice(-4) : '') +
                         (rowData.first_last ? rowData.first_last.substring(0, 1).toLowerCase() : '') +
                         (rowData.second_last ? rowData.second_last.substring(0, 1).toLowerCase() : '') +
-                        '.ut@poliandino.edu.co'
+                        '.ut@cendi.edu.co'
                     );
 
                     // Configurar datasets

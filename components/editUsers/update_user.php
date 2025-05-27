@@ -12,6 +12,7 @@ try {
     $id = $_POST['id'];
     $nombre = trim($_POST['nombre']);
     $rol = $_POST['rol'];
+    $extra_rol = $_POST['extra_rol'];
     $email = trim($_POST['email']);
     $genero = $_POST['genero'];
     $telefono = trim($_POST['telefono']);
@@ -19,9 +20,10 @@ try {
     $edad = $_POST['edad'];
 
     // Iniciar la construcción de la consulta SQL
-    $sql = "UPDATE users SET nombre = ?, rol = ?, email = ?, genero = ?, telefono = ?, direccion = ?, edad = ?";
-    $params = [$nombre, $rol, $email, $genero, $telefono, $direccion, $edad];
-    $types = "sissssi"; // string, integer, string, string, string, string, integer
+    $sql = "UPDATE users SET nombre = ?, rol = ?, extra_rol = ?, email = ?, genero = ?, telefono = ?, direccion = ?, edad = ?";
+    $params = [$nombre, $rol, $extra_rol, $email, $genero, $telefono, $direccion, $edad];
+    $types = "siissssi"; // string, integer, integer, string, string, string, string, integer
+
 
     // Si se está actualizando la contraseña
     if (isset($_POST['password']) && !empty($_POST['password'])) {

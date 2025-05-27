@@ -1,5 +1,6 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
+$extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
 require_once __DIR__ . '/../components/modals/register_course.php';
 
 
@@ -172,6 +173,34 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                         <i class="bi bi-building-check icono"></i>
                                     </span>
                                     <span class="checkbox-label">Sedes asistencia</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($rol === 'Control maestro' || $rol === 'Administrador' || $rol === 'Académico'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Notas por bootcamp campistas">
+                        <a href="studentsNotes.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-journal-bookmark-fill icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Notas</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($extraRol === 'Extra Administrador' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Campistas en condición de culminar">
+                        <a href="studentsToApprove.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="fa-solid fa-graduation-cap icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Por aprobar</span>
                                 </span>
                             </label>
                         </a>
