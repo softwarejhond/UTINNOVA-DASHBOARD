@@ -3,17 +3,10 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../controller/conexion.php';
 
 $bootcamp = isset($_POST['bootcamp']) ? $_POST['bootcamp'] : null;
-$courseType = isset($_POST['courseType']) ? $_POST['courseType'] : null;
-$modalidad = isset($_POST['modalidad']) ? $_POST['modalidad'] : null;
-$sede = isset($_POST['sede']) ? $_POST['sede'] : null;
 
-if (!$bootcamp || !$courseType || !$modalidad || !$sede) {
-    echo json_encode(['error' => 'Faltan datos requeridos']);
+if (!$bootcamp) {
+    echo json_encode(['error' => 'Falta el curso bootcamp requerido']);
     exit;
-}
-
-if (strtolower($modalidad) === 'virtual') {
-    $sede = 'No aplica';
 }
 
 // Función para calcular horas basadas en asistencia (igual que exportHours.php)
@@ -184,37 +177,20 @@ function obtenerNombrePrograma($conn, $courseType, $courseId) {
     return $row ? $row['name'] : 'Programa no encontrado';
 }
 
-$courseIdColumn = '';
+// Simplificar: solo buscar por bootcamp
+$courseIdColumn = 'id_bootcamp'; // Solo bootcamp
+$courseType = 'bootcamp'; // Fijo como bootcamp
+
 // Total de horas: 159 (120 Técnico + 24 English Code + 15 Habilidades)
 // NO incluye leveling_english
 $horasRequeridas = 159; // Solo: Técnico + English Code + Habilidades
 
-switch ($courseType) {
-    case 'bootcamp':
-        $courseIdColumn = 'id_bootcamp';
-        break;
-    case 'leveling_english':
-        $courseIdColumn = 'id_leveling_english';
-        break;
-    case 'english_code':
-        $courseIdColumn = 'id_english_code';
-        break;
-    case 'skills':
-        $courseIdColumn = 'id_skills';
-        break;
-    default:
-        echo json_encode(['error' => 'Tipo de curso inválido']);
-        exit;
-}
-
 try {
-    // Consultar TODOS los estudiantes del curso (incluyendo aprobados)
-    $sql = "SELECT g.*, c.real_hours 
+    // Consultar TODOS los estudiantes del curso bootcamp (sin filtrar por modalidad ni sede)
+    $sql = "SELECT g.*, c.real_hours, c.name as course_name
             FROM groups g
-            LEFT JOIN courses c ON g.$courseIdColumn = c.code
-            WHERE g.$courseIdColumn = ? 
-            AND g.mode = ? 
-            AND g.headquarters = ?
+            LEFT JOIN courses c ON g.id_bootcamp = c.code
+            WHERE g.id_bootcamp = ?
             ORDER BY g.full_name ASC";
 
     $stmt = mysqli_prepare($conn, $sql);
@@ -223,7 +199,7 @@ try {
         exit;
     }
 
-    mysqli_stmt_bind_param($stmt, "iss", $bootcamp, $modalidad, $sede);
+    mysqli_stmt_bind_param($stmt, "i", $bootcamp);
 
     if (!mysqli_stmt_execute($stmt)) {
         echo json_encode(['error' => 'Error en la ejecución: ' . mysqli_stmt_error($stmt)]);
@@ -236,13 +212,31 @@ try {
         exit;
     }
 
+    // Variables para obtener información del curso (tomar del primer estudiante)
+    $courseInfo = null;
+    $estudiantesData = [];
+    
+    // Obtener todos los resultados
+    while ($row = mysqli_fetch_assoc($result)) {
+        $estudiantesData[] = $row;
+        
+        // Obtener información del curso del primer estudiante
+        if ($courseInfo === null && !empty($row['mode']) && !empty($row['headquarters'])) {
+            $courseInfo = [
+                'course_name' => $row['course_name'] ?: 'Técnico',
+                'mode' => $row['mode'],
+                'headquarters' => $row['headquarters']
+            ];
+        }
+    }
+
     // Construir el contenido de la tabla
     $tableContent = '';
-    $contador = 1; // Reiniciar contador para cada búsqueda
+    $contador = 1;
     $estudiantesAptos = 0;
     $estudiantesAprobados = 0;
     
-    while ($row = mysqli_fetch_assoc($result)) {
+    foreach ($estudiantesData as $row) {
         // Calcular horas TOTALES de todos los cursos del estudiante
         $horasAsistidas = calcularHorasTotalesEstudiante($conn, $row['number_id']);
         $porcentajeAsistencia = ($horasAsistidas / $horasRequeridas) * 100;
@@ -342,7 +336,8 @@ try {
         'html' => $tableContent,
         'aptos' => $estudiantesAptos,
         'aprobados' => $estudiantesAprobados,
-        'total' => $estudiantesAptos + $estudiantesAprobados
+        'total' => $estudiantesAptos + $estudiantesAprobados,
+        'courseInfo' => $courseInfo // Agregar información del curso
     ]);
 
 } catch (Exception $e) {

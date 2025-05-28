@@ -13,23 +13,16 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
-// Obtener parámetros
+// Obtener parámetros - Solo bootcamp es requerido ahora
 $bootcamp = isset($_POST['bootcamp']) ? $_POST['bootcamp'] : null;
-$courseType = isset($_POST['courseType']) ? $_POST['courseType'] : null;
-$modalidad = isset($_POST['modalidad']) ? $_POST['modalidad'] : null;
-$sede = isset($_POST['sede']) ? $_POST['sede'] : null;
 
-if (!$bootcamp || !$courseType || !$modalidad || !$sede) {
+if (!$bootcamp) {
     http_response_code(400);
-    echo json_encode(['error' => 'Faltan datos requeridos']);
+    echo json_encode(['error' => 'Falta el curso bootcamp requerido']);
     exit;
 }
 
-if (strtolower($modalidad) === 'virtual') {
-    $sede = 'No aplica';
-}
-
-// Copiar las funciones de buscar_aprovados.php
+// Copiar las funciones de buscar_aprovados.php (sin cambios)
 function calcularHorasAsistencia($conn, $studentId, $courseId) {
     if (empty($courseId)) return 0;
     
@@ -187,28 +180,10 @@ function obtenerNombrePrograma($conn, $courseType, $courseId) {
     return $row ? $row['name'] : 'Programa no encontrado';
 }
 
-// Determinar columna del curso
-$courseIdColumn = '';
-$horasRequeridas = 159;
-
-switch ($courseType) {
-    case 'bootcamp':
-        $courseIdColumn = 'id_bootcamp';
-        break;
-    case 'leveling_english':
-        $courseIdColumn = 'id_leveling_english';
-        break;
-    case 'english_code':
-        $courseIdColumn = 'id_english_code';
-        break;
-    case 'skills':
-        $courseIdColumn = 'id_skills';
-        break;
-    default:
-        http_response_code(400);
-        echo json_encode(['error' => 'Tipo de curso inválido']);
-        exit;
-}
+// Simplificar: solo bootcamp
+$courseIdColumn = 'id_bootcamp'; // Fijo como bootcamp
+$courseType = 'bootcamp'; // Fijo como bootcamp
+$horasRequeridas = 159; // 120 Técnico + 24 English Code + 15 Habilidades
 
 try {
     // Crear nueva hoja de cálculo
@@ -253,13 +228,11 @@ try {
 
     $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
 
-    // Consultar estudiantes aprobados
-    $sql = "SELECT g.*, c.real_hours 
+    // Consultar TODOS los estudiantes del curso bootcamp (sin filtrar por modalidad ni sede)
+    $sql = "SELECT g.*, c.real_hours, c.name as course_name
             FROM groups g
-            LEFT JOIN courses c ON g.$courseIdColumn = c.code
-            WHERE g.$courseIdColumn = ? 
-            AND g.mode = ? 
-            AND g.headquarters = ?
+            LEFT JOIN courses c ON g.id_bootcamp = c.code
+            WHERE g.id_bootcamp = ?
             ORDER BY g.full_name ASC";
 
     $stmt = mysqli_prepare($conn, $sql);
@@ -267,7 +240,7 @@ try {
         throw new Exception('Error en la preparación: ' . mysqli_error($conn));
     }
 
-    mysqli_stmt_bind_param($stmt, "iss", $bootcamp, $modalidad, $sede);
+    mysqli_stmt_bind_param($stmt, "i", $bootcamp);
 
     if (!mysqli_stmt_execute($stmt)) {
         throw new Exception('Error en la ejecución: ' . mysqli_stmt_error($stmt));
@@ -281,8 +254,18 @@ try {
     $row = 2;
     $contador = 1;
     $estudiantesExportados = 0;
+    $courseInfo = null; // Para obtener info del primer estudiante
 
     while ($data = mysqli_fetch_assoc($result)) {
+        // Obtener información del curso del primer estudiante
+        if ($courseInfo === null && !empty($data['mode']) && !empty($data['headquarters'])) {
+            $courseInfo = [
+                'course_name' => $data['course_name'] ?: 'Técnico',
+                'mode' => $data['mode'],
+                'headquarters' => $data['headquarters']
+            ];
+        }
+
         // Calcular horas totales
         $horasAsistidas = calcularHorasTotalesEstudiante($conn, $data['number_id']);
         $porcentajeAsistencia = ($horasAsistidas / $horasRequeridas) * 100;
@@ -334,7 +317,7 @@ try {
     }
 
     if ($estudiantesExportados === 0) {
-        $sheet->setCellValue('A2', 'No hay estudiantes que cumplan los criterios');
+        $sheet->setCellValue('A2', 'No hay estudiantes que cumplan los criterios (70% asistencia de 159 horas totales y nota ≥ 3.0)');
         $sheet->mergeCells('A2:L2');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
@@ -348,18 +331,16 @@ try {
     $totalRows = $row - 1;
     $sheet->getStyle('A1:L' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-    // Generar nombre del archivo
-    $tiposCurso = [
-        'bootcamp' => 'Tecnico',
-        'leveling_english' => 'Ingles_Nivelatorio',
-        'english_code' => 'English_Code',
-        'skills' => 'Habilidades'
-    ];
-    
-    $tipoCursoNombre = $tiposCurso[$courseType] ?? 'Curso';
+    // Generar nombre del archivo usando la información del curso
     $fechaHora = date('Y-m-d_H-i-s');
-    $sedeClean = str_replace(' ', '_', $sede);
-    $filename = "estudiantes_aprobados_{$tipoCursoNombre}_{$modalidad}_{$sedeClean}_{$fechaHora}.xlsx";
+    
+    if ($courseInfo) {
+        $modeClean = str_replace(' ', '_', $courseInfo['mode']);
+        $sedeClean = str_replace(' ', '_', $courseInfo['headquarters']);
+        $filename = "estudiantes_aprobados_Tecnico_{$modeClean}_{$sedeClean}_{$fechaHora}.xlsx";
+    } else {
+        $filename = "estudiantes_aprobados_Tecnico_{$fechaHora}.xlsx";
+    }
 
     // Limpiar buffer de salida
     ob_end_clean();

@@ -1012,7 +1012,7 @@
                     const nuevoEstado = $('#nuevoEstado_' + id).val();
 
                     // Si el nuevo estado es Beneficiario (1), verificar si ya tiene cursos asignados
-                    if (nuevoEstado === '1') {
+                    if (nuevoEstado === '1' || nuevoEstado === '8') {
                         // Mostrar cargando mientras verificamos
                         Swal.fire({
                             title: 'Verificando asignaciones',
@@ -1098,8 +1098,8 @@
         // Obtener el texto de la opción seleccionada
         const selectedOption = $(`#bootcamp_${id} option:selected`).text();
 
-        // Extraer el código del curso (formato G29-2V)
-        const courseCodeMatch = selectedOption.match(/G\d{2}-\d{1,2}[A-Z]?/);
+        // Extraer el código del curso (formato C1L1-G1V)
+        const courseCodeMatch = selectedOption.match(/C\d+L\d+-G\d+[A-Z]?/);
         if (!courseCodeMatch) return;
 
         const courseCode = courseCodeMatch[0];

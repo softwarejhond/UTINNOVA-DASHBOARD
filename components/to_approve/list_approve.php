@@ -324,51 +324,22 @@ $courses_data = getCourses();
                 </select>
             </div>
 
-            <!-- Tipo de Curso -->
-            <div class="form-group">
-                <label class="form-label">Tipo de Curso</label>
-                <select id="courseType" class="form-select">
-                    <option value="">Seleccione tipo de curso</option>
-                    <option value="bootcamp">Técnico</option>
-                    <option value="leveling_english">Inglés nivelatorio</option>
-                    <option value="english_code">English Code</option>
-                    <option value="skills">Habilidades de poder</option>
-                </select>
-            </div>
+            <!-- Información del Curso Seleccionado -->
+            <div id="courseInfoContainer" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Tipo de Curso</label>
+                    <input type="text" id="courseType" class="form-control" readonly value="Técnico">
+                </div>
 
-            <!-- Selección de Modalidad -->
-            <div class="form-group">
-                <label class="form-label">Modalidad</label>
-                <select name="modalidad" id="modalidad" class="form-select" onchange="toggleSede()">
-                    <option value="">Seleccione modalidad</option>
-                    <?php
-                    $modalidades = ['Virtual' => 'Virtual', 'Presencial' => 'Presencial'];
-                    foreach ($modalidades as $valor => $texto): ?>
-                        <option value="<?= htmlspecialchars($valor) ?>"><?= htmlspecialchars($texto) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label class="form-label">Modalidad</label>
+                    <input type="text" id="courseMode" class="form-control" readonly placeholder="Modalidad del curso">
+                </div>
 
-            <!-- Selección de Sede -->
-            <div class="form-group">
-                <label class="form-label">Sede</label>
-                <select name="sede" id="sede" class="form-select">
-                    <option value="">Seleccione una sede</option>
-                    <?php
-                    // Consulta para obtener las sedes
-                    $query = "SELECT name FROM headquarters_attendance";
-                    $result = $conn->query($query);
-
-                    if ($result && $result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            $sede = htmlspecialchars($row['name']);
-                            echo "<option value=\"$sede\">$sede</option>";
-                        }
-                    } else {
-                        echo "<option value=\"\">No hay sedes disponibles</option>";
-                    }
-                    ?>
-                </select>
+                <div class="form-group">
+                    <label class="form-label">Sede</label>
+                    <input type="text" id="courseSede" class="form-control" readonly placeholder="Sede del curso">
+                </div>
             </div>
         </div>
 
@@ -430,19 +401,6 @@ $courses_data = getCourses();
         function initializePopovers() {
             $('[data-bs-toggle="popover"]').popover();
         }
-
-        // Función para habilitar o deshabilitar la sede según la modalidad
-        const toggleSede = () => {
-            const modalidad = $('#modalidad').val();
-            $('#sede').prop('disabled', modalidad === 'Virtual');
-            if (modalidad === 'Virtual') {
-                $('#sede').val('No aplica');
-                $('#sede').trigger('change');
-            }
-        };
-
-        // Hacer la función global para que el onchange del select la encuentre
-        window.toggleSede = toggleSede;
 
         // Función para aprobar estudiante individual
         window.aprobarEstudiante = function(studentId) {
@@ -512,20 +470,15 @@ $courses_data = getCourses();
             }
         }
 
-        // Función para exportar a Excel
+        // Función para exportar a Excel (simplificada)
         $('#btnExportarExcel').click(function() {
-            const data = {
-                bootcamp: $('#bootcamp').val(),
-                courseType: $('#courseType').val(),
-                modalidad: $('#modalidad').val(),
-                sede: $('#sede').val()
-            };
+            const bootcamp = $('#bootcamp').val();
 
-            // Verificar que todos los campos requeridos tengan valor
-            if (!data.bootcamp || !data.courseType || !data.modalidad || !data.sede) {
+            // Verificar que el bootcamp esté seleccionado
+            if (!bootcamp) {
                 Swal.fire({
-                    title: 'Campos requeridos',
-                    text: 'Por favor, complete todos los filtros antes de exportar',
+                    title: 'Campo requerido',
+                    text: 'Por favor, seleccione un curso antes de exportar',
                     icon: 'warning'
                 });
                 return;
@@ -568,7 +521,7 @@ $courses_data = getCourses();
             $.ajax({
                 url: 'components/to_approve/export_excel_aprovados.php',
                 type: 'POST',
-                data: data,
+                data: { bootcamp: bootcamp },
                 xhr: function() {
                     var xhr = new XMLHttpRequest();
                     xhr.responseType = 'blob';
@@ -1113,16 +1066,11 @@ $courses_data = getCourses();
 
         // Función para cargar los estudiantes
         const cargarEstudiantes = () => {
-            const data = {
-                bootcamp: $('#bootcamp').val(),
-                courseType: $('#courseType').val(),
-                modalidad: $('#modalidad').val(),
-                sede: $('#sede').val()
-            };
+            const bootcamp = $('#bootcamp').val();
 
-            // Verificar que todos los campos requeridos tengan valor
-            if (!data.bootcamp || !data.courseType || !data.modalidad || !data.sede) {
-                console.log('Por favor, complete todos los campos');
+            // Verificar que el bootcamp esté seleccionado
+            if (!bootcamp) {
+                console.log('Por favor, seleccione un curso');
                 return;
             }
 
@@ -1135,11 +1083,20 @@ $courses_data = getCourses();
             $.ajax({
                 url: 'components/to_approve/buscar_aprovados.php',
                 type: 'POST',
-                data: data,
+                data: { bootcamp: bootcamp },
                 dataType: 'json',
                 success: (response) => {
                     if (response && response.html) {
                         $('#listaEstudiantes tbody').html(response.html);
+
+                        // Actualizar información del curso
+                        if (response.courseInfo) {
+                            $('#courseMode').val(response.courseInfo.mode || 'No disponible');
+                            $('#courseSede').val(response.courseInfo.headquarters || 'No disponible');
+                            $('#courseInfoContainer').show();
+                        } else {
+                            $('#courseInfoContainer').hide();
+                        }
 
                         // Actualizar lista de estudiantes aptos
                         estudiantesAptos = [];
@@ -1161,6 +1118,7 @@ $courses_data = getCourses();
                         initializePopovers();
                     } else {
                         $('#listaEstudiantes tbody').html('<tr><td colspan="11" class="text-center py-5"><i class="fa fa-exclamation-triangle fa-2x text-warning"></i><br><br>No se encontraron estudiantes que cumplan los criterios de aprobación</td></tr>');
+                        $('#courseInfoContainer').hide();
                         estudiantesAptos = [];
                         actualizarBotonFlotante();
                         actualizarBotonExportacion();
@@ -1169,6 +1127,7 @@ $courses_data = getCourses();
                 error: (xhr, status, error) => {
                     console.error('Error en la solicitud:', error);
                     $('#listaEstudiantes tbody').html('<tr><td colspan="11" class="text-center py-5"><i class="fa fa-times-circle fa-2x text-danger"></i><br><br>Error al cargar los datos</td></tr>');
+                    $('#courseInfoContainer').hide();
                     estudiantesAptos = [];
                     actualizarBotonFlotante();
                     actualizarBotonExportacion();
@@ -1176,34 +1135,21 @@ $courses_data = getCourses();
             });
         };
 
-        // Event listeners
-        $('#modalidad').change(function() {
-            toggleSede();
-        });
-
-        $('#bootcamp, #courseType, #modalidad, #sede').change(function() {
-            if ($(this).attr('id') !== 'sede') {
+        // Event listeners simplificados
+        $('#bootcamp').change(function() {
+            const bootcamp = $(this).val();
+            
+            if (bootcamp) {
+                cargarEstudiantes();
+            } else {
                 $('#listaEstudiantes tbody').html('<tr><td colspan="11" class="text-center py-5"><i class="fa fa-search fa-2x text-muted"></i><br><br>Seleccione un curso para cargar los estudiantes</td></tr>');
+                $('#courseInfoContainer').hide(); // Ocultar información del curso
                 estudiantesAptos = [];
                 actualizarBotonFlotante();
                 actualizarBotonExportacion();
             }
         });
-
-        $('#bootcamp').change(function() {
-            $('#courseType').val('');
-            $('#modalidad').val('');
-            $('#sede').val('');
-            $('#sede').prop('disabled', false);
-            $('#listaEstudiantes tbody').html('<tr><td colspan="11" class="text-center py-5"><i class="fa fa-search fa-2x text-muted"></i><br><br>Seleccione un curso para cargar los estudiantes</td></tr>');
-            estudiantesAptos = [];
-            actualizarBotonFlotante();
-            actualizarBotonExportacion();
-        });
-
-        $('#sede').change(cargarEstudiantes);
-
-        toggleSede();
+        
         actualizarBotonFlotante(); // Inicializar el estado del botón
         actualizarBotonExportacion(); // Inicializar el estado del botón de exportación
     });
