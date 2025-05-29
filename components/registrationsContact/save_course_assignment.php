@@ -2,6 +2,9 @@
 include_once('../../controller/conexion.php');
 session_start();
 
+// Configurar zona horaria de Colombia
+date_default_timezone_set('America/Bogota');
+
 // Verificar conexión
 if (!isset($conn) || $conn->connect_error) {
     header('Content-Type: application/json');
@@ -44,6 +47,9 @@ if (!isset($data['student_id']) ||
 $conn->begin_transaction();
 
 try {
+    // Obtener fecha y hora actual de Colombia
+    $fechaHoraColombia = date('Y-m-d H:i:s');
+    
     // Actualizar el estado de admisión
     $updateSql = "UPDATE user_register SET statusAdmin = ? WHERE number_id = ?";
     $stmt = $conn->prepare($updateSql);
@@ -77,34 +83,34 @@ try {
                 leveling_english_id = ?, leveling_english_name = ?,
                 english_code_id = ?, english_code_name = ?,
                 skills_id = ?, skills_name = ?,
-                assigned_by = ?, assigned_date = NOW()
+                assigned_by = ?, assigned_date = ?
             WHERE student_id = ?";
             
         $assignmentStmt = $conn->prepare($updateAssignmentSql);
         $assignmentStmt->bind_param(
-            'ssssssssss',
+            'sssssssssss',
             $data['bootcamp']['id'], $data['bootcamp']['name'],
             $data['english']['id'], $data['english']['name'],
             $data['english_code']['id'], $data['english_code']['name'],
             $data['skills']['id'], $data['skills']['name'],
-            $_SESSION['username'], $data['student_id']
+            $_SESSION['username'], $fechaHoraColombia, $data['student_id']
         );
     } else {
         // Si no existe, crear una nueva asignación
         $insertAssignmentSql = "INSERT INTO course_assignments 
             (student_id, bootcamp_id, bootcamp_name, leveling_english_id, leveling_english_name, 
-             english_code_id, english_code_name, skills_id, skills_name, assigned_by) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+             english_code_id, english_code_name, skills_id, skills_name, assigned_by, assigned_date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
         $assignmentStmt = $conn->prepare($insertAssignmentSql);
         $assignmentStmt->bind_param(
-            'ssssssssss',
+            'sssssssssss',
             $data['student_id'], 
             $data['bootcamp']['id'], $data['bootcamp']['name'],
             $data['english']['id'], $data['english']['name'],
             $data['english_code']['id'], $data['english_code']['name'],
             $data['skills']['id'], $data['skills']['name'],
-            $_SESSION['username']
+            $_SESSION['username'], $fechaHoraColombia
         );
     }
     
