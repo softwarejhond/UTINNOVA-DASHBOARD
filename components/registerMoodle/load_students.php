@@ -34,7 +34,7 @@ try {
             LEFT JOIN course_assignments ca ON ur.number_id = ca.student_id
             WHERE d.id_departamento = 11
               AND ur.status = '1' 
-              AND ur.statusAdmin = '1'";
+              AND ur.statusAdmin IN ('1', '8')";
     
     $result = $conn->query($sql);
     

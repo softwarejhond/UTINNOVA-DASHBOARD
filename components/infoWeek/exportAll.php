@@ -94,6 +94,11 @@ function exportDataToExcel($conn)
     AND user_register.status = '1' 
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
+    AND user_register.number_id NOT IN (
+        SELECT p.numero_documento 
+        FROM participantes p
+        INNER JOIN groups g ON p.numero_documento = g.number_id
+    )
     ORDER BY user_register.first_name ASC";
 
     $result = $conn->query($sql);

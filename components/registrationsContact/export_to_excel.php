@@ -81,16 +81,14 @@ function exportDataToExcel($conn)
                 $isAccepted = (
                     $row['typeID'] === 'CC' &&
                     $age > 17 &&
-                    in_array(strtoupper($row['departamento']), ['BOGOTÁ, D.C.']) &&
-                    $row['internet'] === 'Sí'
+                    (strtoupper($row['department']) === '11')
                 );
             } elseif ($row['mode'] === 'Virtual') {
                 $isAccepted = (
                     $row['typeID'] === 'CC' &&
                     $age > 17 &&
-                    in_array(strtoupper($row['departamento']), ['BOGOTÁ, D.C.']) &&
-                    $row['internet'] === 'Sí' &&
-                    $row['technologies'] === 'computador'
+                    (strtoupper($row['department']) === '11') &&
+                    $row['internet'] === 'Sí'
                 );
             }
 

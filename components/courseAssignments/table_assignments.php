@@ -35,6 +35,8 @@ $sql = "SELECT
             municipios m ON ur.municipality = m.id_municipio AND m.departamento_id = d.id_departamento
         LEFT JOIN 
             users u ON ca.assigned_by = u.username  
+        WHERE 
+            ur.statusAdmin IN (1, 8)
         ORDER BY 
             ca.assigned_date DESC";
 
