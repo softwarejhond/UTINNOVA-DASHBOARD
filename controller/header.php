@@ -160,70 +160,232 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
     </div>
 </nav>
 <script>
-    $(function() {
-        $('[data-bs-toggle="tooltip"]').tooltip();
-    });
-
     function descargarInforme(url, tipo) {
-        // Mostrar SweetAlert sin timer
+        let timerInterval;
+        let timeLeft = 300; // 5 minutos en segundos
+        
+        // Mostrar SweetAlert con contador regresivo
         Swal.fire({
             title: 'Generando informe...',
             html: `<div class="text-center">
                 <div class="spinner-border text-success" role="status">
                     <span class="visually-hidden">Cargando...</span>
                 </div>
-                <p class="mt-2">Preparando la descarga del informe de ${tipo}</p>
+                <p class="mt-3">Preparando la descarga del informe de <strong>${tipo}</strong></p>
+                <div class="alert alert-warning mt-3" style="background-color: #fff3cd; border-color: #ffeaa7;">
+                    <i class="bi bi-clock-history"></i>
+                    <strong>Tiempo límite por alto volumen de datos:</strong><br>
+                    <span id="countdown" style="font-size: 1.4em; font-weight: bold; color: #856404;">05:00</span>
+                </div>
+                <div class="progress mt-3" style="height: 8px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                         role="progressbar" style="width: 0%" id="timeProgress"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">El contador se cerrará automáticamente al completarse la descarga</small>
                </div>`,
             allowOutsideClick: false,
             showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#dc3545',
+            customClass: {
+                popup: 'swal-wide'
+            },
             didOpen: () => {
-                // Iniciar la descarga
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor');
+                // Función para actualizar el contador
+                function updateCountdown() {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    const countdownElement = document.getElementById('countdown');
+                    const progressElement = document.getElementById('timeProgress');
+                    
+                    if (countdownElement) {
+                        countdownElement.textContent = formattedTime;
+                        
+                        // Cambiar color según el tiempo restante
+                        if (timeLeft <= 60) {
+                            countdownElement.style.color = '#dc3545'; // Rojo - crítico
+                            countdownElement.classList.add('text-danger');
+                        } else if (timeLeft <= 120) {
+                            countdownElement.style.color = '#ffc107'; // Amarillo - advertencia
+                        } else {
+                            countdownElement.style.color = '#28a745'; // Verde - normal
                         }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        // Crear URL del blob
-                        const blobUrl = window.URL.createObjectURL(blob);
-                        // Crear enlace temporal
-                        const a = document.createElement('a');
-                        a.href = blobUrl;
-                        a.download = `informe_${tipo}_${new Date().toISOString().split('T')[0]}.xlsx`;
-                        // Simular clic
-                        document.body.appendChild(a);
-                        a.click();
-                        // Limpiar
-                        window.URL.revokeObjectURL(blobUrl);
-                        document.body.removeChild(a);
-
-                        // Mostrar mensaje de éxito solo después de completar la descarga
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Descarga completada!',
-                            text: `El informe de ${tipo} se ha descargado correctamente`,
-                            showConfirmButton: true,
-                            confirmButtonColor: '#30336b'
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                    }
+                    
+                    if (progressElement) {
+                        const progressPercent = ((300 - timeLeft) / 300) * 100;
+                        progressElement.style.width = progressPercent + '%';
+                        
+                        // Cambiar color de la barra según el progreso
+                        if (progressPercent > 80) {
+                            progressElement.className = 'progress-bar progress-bar-striped progress-bar-animated bg-danger';
+                        } else if (progressPercent > 60) {
+                            progressElement.className = 'progress-bar progress-bar-striped progress-bar-animated bg-warning';
+                        }
+                    }
+                    
+                    timeLeft--;
+                    
+                    // Si se agota el tiempo
+                    if (timeLeft < 0) {
+                        clearInterval(timerInterval);
                         Swal.fire({
                             icon: 'error',
-                            title: 'Error',
-                            text: 'Hubo un problema al generar el informe',
-                            confirmButtonColor: '#dc3545'
+                            title: 'Tiempo agotado',
+                            html: `<div class="text-center">
+                                <i class="bi bi-hourglass-bottom text-danger" style="font-size: 3em;"></i>
+                                <p class="mt-3">El proceso ha tardado más de 5 minutos.</p>
+                                <p class="text-muted">Esto puede deberse a la gran cantidad de datos a procesar.</p>
+                                <strong>Por favor, intente nuevamente en unos minutos.</strong>
+                            </div>`,
+                            confirmButtonColor: '#dc3545',
+                            confirmButtonText: 'Entendido'
                         });
+                        return;
+                    }
+                }
+                
+                // Iniciar el contador
+                updateCountdown();
+                timerInterval = setInterval(updateCountdown, 1000);
+                
+                // Configurar timeout para el fetch (5 minutos + 10 segundos de margen)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    clearInterval(timerInterval);
+                }, 310000);
+                
+                // Iniciar la descarga
+                fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                })
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    clearInterval(timerInterval);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Calcular tiempo transcurrido
+                    const elapsedTime = 300 - timeLeft;
+                    const elapsedMinutes = Math.floor(elapsedTime / 60);
+                    const elapsedSeconds = elapsedTime % 60;
+                    const elapsedFormatted = `${elapsedMinutes}:${elapsedSeconds.toString().padStart(2, '0')}`;
+                    
+                    // Crear URL del blob
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    // Crear enlace temporal
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = `informe_${tipo}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    // Simular clic
+                    document.body.appendChild(a);
+                    a.click();
+                    // Limpiar
+                    window.URL.revokeObjectURL(blobUrl);
+                    document.body.removeChild(a);
+
+                    // Mostrar mensaje de éxito con tiempo transcurrido
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Descarga completada!',
+                        html: `<div class="text-center">
+                            <i class="bi bi-download text-success" style="font-size: 3em;"></i>
+                            <p class="mt-3">El informe de <strong>${tipo}</strong> se ha descargado correctamente</p>
+                            <div class="alert alert-success mt-3">
+                                <i class="bi bi-stopwatch"></i>
+                                <strong>Tiempo de procesamiento:</strong> ${elapsedFormatted}
+                            </div>
+                            <small class="text-muted">El archivo se ha guardado en su carpeta de descargas</small>
+                        </div>`,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#30336b',
+                        confirmButtonText: 'Perfecto'
                     });
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    clearInterval(timerInterval);
+                    console.error('Error:', error);
+                    
+                    let errorMessage = 'Hubo un problema al generar el informe';
+                    let errorIcon = 'error';
+                    
+                    if (error.name === 'AbortError') {
+                        errorMessage = 'El proceso fue cancelado por exceder el tiempo límite de 5 minutos';
+                        errorIcon = 'warning';
+                    }
+                    
+                    Swal.fire({
+                        icon: errorIcon,
+                        title: 'Error en la generación',
+                        html: `<div class="text-center">
+                            <p>${errorMessage}</p>
+                            <div class="alert alert-info mt-3">
+                                <i class="bi bi-lightbulb"></i>
+                                <strong>Sugerencia:</strong> Intente generar el informe en horarios de menor actividad
+                            </div>
+                        </div>`,
+                        confirmButtonColor: '#dc3545',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
+            },
+            willClose: () => {
+                // Limpiar el intervalo si se cierra el modal
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+            }
+        }).then((result) => {
+            // Si el usuario cancela
+            if (result.dismiss === Swal.DismissReason.cancel) {
+                clearInterval(timerInterval);
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Proceso cancelado',
+                    text: 'La generación del informe ha sido cancelada por el usuario',
+                    confirmButtonColor: '#6c757d',
+                    confirmButtonText: 'Entendido'
+                });
             }
         });
     }
-
 
     // Inicializa todos los tooltips en la página
     $(function() {
         $('[data-bs-toggle="tooltip"]').tooltip();
     });
 </script>
+
+<style>
+    .swal-wide {
+        width: 600px !important;
+    }
+    
+    #countdown {
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        transition: color 0.3s ease;
+    }
+    
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        transition: width 1s ease;
+    }
+</style>

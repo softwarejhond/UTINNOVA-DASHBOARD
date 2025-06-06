@@ -279,8 +279,9 @@ function exportDataToExcel($conn)
                 'Codigo_epartamento' => $row['department'],
                 'Departamento' => strtoupper($row['departamento']),
 
-                'Region' => 'Región 7 Lote 1',
-
+                'Region' => 'Región 8',
+                'Lote' => 'Lote ' . $row['lote'],
+ 
                 'Codigo_municipio' => $row['municipality'],
                 'Municipio' => mb_strtoupper($row['municipio']),
 
@@ -341,7 +342,7 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => 'UTTT-R7L1',
+                'Origen' => '',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => $tieneProfesor,
                 'Programa de interés' => $estaEnGroups ? $row['program'] : '',
@@ -355,7 +356,7 @@ function exportDataToExcel($conn)
                 'Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_name'],
                 'Fecha Inicio de la formación (dd/mm/aaaa)' => $row['bootcamp_start_date'] ? date('d/m/Y', strtotime($row['bootcamp_start_date'])) : '',
                 'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['cohort'],
-                'Año Cohorte' => $row['start_date'] ? date('Y', strtotime($row['start_date'])) : '',
+                'Año Cohorte' => $row['bootcamp_start_date'] ? date('Y', strtotime($row['bootcamp_start_date'])) : '',
                 'Tipo de formación' => $row['group_mode'],
                 'Enlace al certificado en Sharepoint' => '',
                 'Observaciones (menos de 50 cracteres)' => '',
