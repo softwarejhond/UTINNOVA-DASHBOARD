@@ -48,7 +48,7 @@ try {
     }
 
     // Obtener la configuración SMTP
-    $query = "SELECT * FROM smtpConfig WHERE id=1";
+    $query = "SELECT * FROM smtpConfig WHERE id=2";
     $querySMTP = mysqli_query($conn, $query);
 
     if ($querySMTP && mysqli_num_rows($querySMTP) > 0) {

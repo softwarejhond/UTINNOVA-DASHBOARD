@@ -399,55 +399,134 @@ function exportDataToExcel($conn)
         }
     }
 
-    // Lista de tablas a exportar
-    $tablas = [
-        'usuarios'
-    ];
+    // Crear cuarta hoja con estadísticas
+    $sheet4 = $spreadsheet->createSheet();
+    $sheet4->setTitle('Estadísticas');
 
-    // Agregar una hoja por cada tabla
-    foreach ($tablas as $tabla) {
-        $resultado = $conn->query("SELECT * FROM $tabla");
+    // Consultas para estadísticas
+    
+    // 1. Estadísticas por género
+    $sqlGenero = "SELECT gender, COUNT(*) as total FROM user_register GROUP BY gender";
+    $resultGenero = $conn->query($sqlGenero);
+    $totalUsuarios = array_sum(array_column($data, 0)) ?: count($data); // Total de usuarios
+    
+    // Obtener total real de usuarios
+    $sqlTotal = "SELECT COUNT(*) as total FROM user_register";
+    $resultTotal = $conn->query($sqlTotal);
+    $totalUsuarios = $resultTotal->fetch_assoc()['total'];
 
-        if ($resultado && $resultado->num_rows > 0) {
-            $hoja = $spreadsheet->createSheet();
-            $hoja->setTitle(substr($tabla, 0, 31)); // Limitar a 31 caracteres
-
-            // Obtener datos
-            $datosTabla = [];
-            while ($fila = $resultado->fetch_assoc()) {
-                $datosTabla[] = $fila;
-            }
-
-            // Escribir encabezados
-            $encabezados = array_keys($datosTabla[0]);
-            $hoja->fromArray($encabezados, NULL, 'A1');
-
-            // Escribir datos
-            $filaIndex = 2;
-            foreach ($datosTabla as $filaDatos) {
-                $hoja->fromArray(array_values($filaDatos), NULL, "A{$filaIndex}");
-                $filaIndex++;
-            }
-
-            if (!empty($encabezados)) {
-                $lastColumnTabla = Coordinate::stringFromColumnIndex(count($encabezados));
-
-                // Estilo encabezados
-                $headerRangeTabla = 'A1:' . $lastColumnTabla . '1';
-                $headerStyleTabla = $hoja->getStyle($headerRangeTabla);
-                $headerStyleTabla->getFill()
-                    ->setFillType(Fill::FILL_SOLID)
-                    ->getStartColor()->setARGB('FFD3D3D3');
-                $headerStyleTabla->getFont()->setBold(true);
-
-                // Autoajuste
-                $hoja->getStyle('A1:' . $lastColumnTabla . $filaIndex)->getAlignment();
-                foreach (range('A', $lastColumnTabla) as $col) {
-                    $hoja->getColumnDimension($col)->setAutoSize(true);
-                }
-            }
+    // Escribir título y estadísticas de género
+    $sheet4->setCellValue('A1', 'ESTADÍSTICAS DE INSCRITOS');
+    $sheet4->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+    
+    $sheet4->setCellValue('A3', 'DISTRIBUCIÓN POR GÉNERO');
+    $sheet4->getStyle('A3')->getFont()->setBold(true);
+    $sheet4->setCellValue('A4', 'Género');
+    $sheet4->setCellValue('B4', 'Cantidad');
+    $sheet4->setCellValue('C4', 'Porcentaje');
+    
+    $row = 5;
+    if ($resultGenero && $resultGenero->num_rows > 0) {
+        while ($genero = $resultGenero->fetch_assoc()) {
+            $porcentaje = round(($genero['total'] / $totalUsuarios) * 100, 2);
+            $sheet4->setCellValue("A{$row}", $genero['gender'] ?: 'Sin especificar');
+            $sheet4->setCellValue("B{$row}", $genero['total']);
+            $sheet4->setCellValue("C{$row}", $porcentaje . '%');
+            $row++;
         }
     }
+
+    // 2. Estadísticas por programa
+    $sqlPrograma = "SELECT program, COUNT(*) as total FROM user_register GROUP BY program";
+    $resultPrograma = $conn->query($sqlPrograma);
+    
+    $row += 2; // Espacio
+    $sheet4->setCellValue("A{$row}", 'DISTRIBUCIÓN POR PROGRAMA');
+    $sheet4->getStyle("A{$row}")->getFont()->setBold(true);
+    $row++;
+    $sheet4->setCellValue("A{$row}", 'Programa');
+    $sheet4->setCellValue("B{$row}", 'Cantidad');
+    $sheet4->setCellValue("C{$row}", 'Porcentaje');
+    $row++;
+    
+    if ($resultPrograma && $resultPrograma->num_rows > 0) {
+        while ($programa = $resultPrograma->fetch_assoc()) {
+            $porcentaje = round(($programa['total'] / $totalUsuarios) * 100, 2);
+            $sheet4->setCellValue("A{$row}", $programa['program'] ?: 'Sin especificar');
+            $sheet4->setCellValue("B{$row}", $programa['total']);
+            $sheet4->setCellValue("C{$row}", $porcentaje . '%');
+            $row++;
+        }
+    }
+
+    // 3. Estadísticas por área de residencia (Rural/Urbana)
+    $sqlArea = "SELECT residence_area, COUNT(*) as total FROM user_register GROUP BY residence_area";
+    $resultArea = $conn->query($sqlArea);
+    
+    $row += 2; // Espacio
+    $sheet4->setCellValue("A{$row}", 'DISTRIBUCIÓN POR ÁREA DE RESIDENCIA');
+    $sheet4->getStyle("A{$row}")->getFont()->setBold(true);
+    $row++;
+    $sheet4->setCellValue("A{$row}", 'Área');
+    $sheet4->setCellValue("B{$row}", 'Cantidad');
+    $sheet4->setCellValue("C{$row}", 'Porcentaje');
+    $row++;
+    
+    if ($resultArea && $resultArea->num_rows > 0) {
+        while ($area = $resultArea->fetch_assoc()) {
+            $porcentaje = round(($area['total'] / $totalUsuarios) * 100, 2);
+            $sheet4->setCellValue("A{$row}", $area['residence_area'] ?: 'Sin especificar');
+            $sheet4->setCellValue("B{$row}", $area['total']);
+            $sheet4->setCellValue("C{$row}", $porcentaje . '%');
+            $row++;
+        }
+    }
+
+    // 4. Total de inscritos
+    $row += 2;
+    $sheet4->setCellValue("A{$row}", 'TOTAL DE INSCRITOS: ' . $totalUsuarios);
+    $sheet4->getStyle("A{$row}")->getFont()->setBold(true)->setSize(12);
+
+    // Aplicar estilos a la hoja de estadísticas
+    $sheet4->getStyle('A4:C4')->getFill()
+        ->setFillType(Fill::FILL_SOLID)
+        ->getStartColor()->setARGB('FFD3D3D3');
+    $sheet4->getStyle('A4:C4')->getFont()->setBold(true);
+
+    // Encontrar la fila donde están los encabezados de programa
+    $programRow = 0;
+    for ($i = 1; $i <= $row; $i++) {
+        if ($sheet4->getCell("A{$i}")->getValue() === 'Programa') {
+            $programRow = $i;
+            break;
+        }
+    }
+    if ($programRow > 0) {
+        $sheet4->getStyle("A{$programRow}:C{$programRow}")->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD3D3D3');
+        $sheet4->getStyle("A{$programRow}:C{$programRow}")->getFont()->setBold(true);
+    }
+
+    // Encontrar la fila donde están los encabezados de área
+    $areaRow = 0;
+    for ($i = 1; $i <= $row; $i++) {
+        if ($sheet4->getCell("A{$i}")->getValue() === 'Área') {
+            $areaRow = $i;
+            break;
+        }
+    }
+    if ($areaRow > 0) {
+        $sheet4->getStyle("A{$areaRow}:C{$areaRow}")->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD3D3D3');
+        $sheet4->getStyle("A{$areaRow}:C{$areaRow}")->getFont()->setBold(true);
+    }
+
+    // Ajustar ancho de columnas
+    $sheet4->getColumnDimension('A')->setWidth(30);
+    $sheet4->getColumnDimension('B')->setWidth(15);
+    $sheet4->getColumnDimension('C')->setWidth(15);
 
     ob_clean(); // Limpia cualquier salida previa
     // Configurar headers para descarga

@@ -61,9 +61,12 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             Informes
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdownPQRS">
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal')">Informe semanal</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificados')">Informe semanal contrapartida</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificados_no_matriculados')">Informe contrapartida sin matricula</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificados_no_matriculadosLote1')">Informe contrapartida sin matricula L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificados_no_matriculadosLote2')">Informe contrapartida sin matricula L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li>
@@ -163,7 +166,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
     function descargarInforme(url, tipo) {
         let timerInterval;
         let timeLeft = 300; // 5 minutos en segundos
-        
+
         // Mostrar SweetAlert con contador regresivo
         Swal.fire({
             title: 'Generando informe...',
@@ -197,13 +200,13 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     const minutes = Math.floor(timeLeft / 60);
                     const seconds = timeLeft % 60;
                     const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    
+
                     const countdownElement = document.getElementById('countdown');
                     const progressElement = document.getElementById('timeProgress');
-                    
+
                     if (countdownElement) {
                         countdownElement.textContent = formattedTime;
-                        
+
                         // Cambiar color según el tiempo restante
                         if (timeLeft <= 60) {
                             countdownElement.style.color = '#dc3545'; // Rojo - crítico
@@ -214,11 +217,11 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             countdownElement.style.color = '#28a745'; // Verde - normal
                         }
                     }
-                    
+
                     if (progressElement) {
                         const progressPercent = ((300 - timeLeft) / 300) * 100;
                         progressElement.style.width = progressPercent + '%';
-                        
+
                         // Cambiar color de la barra según el progreso
                         if (progressPercent > 80) {
                             progressElement.className = 'progress-bar progress-bar-striped progress-bar-animated bg-danger';
@@ -226,9 +229,9 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             progressElement.className = 'progress-bar progress-bar-striped progress-bar-animated bg-warning';
                         }
                     }
-                    
+
                     timeLeft--;
-                    
+
                     // Si se agota el tiempo
                     if (timeLeft < 0) {
                         clearInterval(timerInterval);
@@ -247,60 +250,60 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         return;
                     }
                 }
-                
+
                 // Iniciar el contador
                 updateCountdown();
                 timerInterval = setInterval(updateCountdown, 1000);
-                
+
                 // Configurar timeout para el fetch (5 minutos + 10 segundos de margen)
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => {
                     controller.abort();
                     clearInterval(timerInterval);
                 }, 310000);
-                
+
                 // Iniciar la descarga
                 fetch(url, {
-                    signal: controller.signal,
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
-                })
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    clearInterval(timerInterval);
-                    
-                    if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    // Calcular tiempo transcurrido
-                    const elapsedTime = 300 - timeLeft;
-                    const elapsedMinutes = Math.floor(elapsedTime / 60);
-                    const elapsedSeconds = elapsedTime % 60;
-                    const elapsedFormatted = `${elapsedMinutes}:${elapsedSeconds.toString().padStart(2, '0')}`;
-                    
-                    // Crear URL del blob
-                    const blobUrl = window.URL.createObjectURL(blob);
-                    // Crear enlace temporal
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = `informe_${tipo}_${new Date().toISOString().split('T')[0]}.xlsx`;
-                    // Simular clic
-                    document.body.appendChild(a);
-                    a.click();
-                    // Limpiar
-                    window.URL.revokeObjectURL(blobUrl);
-                    document.body.removeChild(a);
+                        signal: controller.signal,
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    })
+                    .then(response => {
+                        clearTimeout(timeoutId);
+                        clearInterval(timerInterval);
 
-                    // Mostrar mensaje de éxito con tiempo transcurrido
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Descarga completada!',
-                        html: `<div class="text-center">
+                        if (!response.ok) {
+                            throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        // Calcular tiempo transcurrido
+                        const elapsedTime = 300 - timeLeft;
+                        const elapsedMinutes = Math.floor(elapsedTime / 60);
+                        const elapsedSeconds = elapsedTime % 60;
+                        const elapsedFormatted = `${elapsedMinutes}:${elapsedSeconds.toString().padStart(2, '0')}`;
+
+                        // Crear URL del blob
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        // Crear enlace temporal
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = `informe_${tipo}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                        // Simular clic
+                        document.body.appendChild(a);
+                        a.click();
+                        // Limpiar
+                        window.URL.revokeObjectURL(blobUrl);
+                        document.body.removeChild(a);
+
+                        // Mostrar mensaje de éxito con tiempo transcurrido
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Descarga completada!',
+                            html: `<div class="text-center">
                             <i class="bi bi-download text-success" style="font-size: 3em;"></i>
                             <p class="mt-3">El informe de <strong>${tipo}</strong> se ha descargado correctamente</p>
                             <div class="alert alert-success mt-3">
@@ -309,38 +312,38 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             </div>
                             <small class="text-muted">El archivo se ha guardado en su carpeta de descargas</small>
                         </div>`,
-                        showConfirmButton: true,
-                        confirmButtonColor: '#30336b',
-                        confirmButtonText: 'Perfecto'
-                    });
-                })
-                .catch(error => {
-                    clearTimeout(timeoutId);
-                    clearInterval(timerInterval);
-                    console.error('Error:', error);
-                    
-                    let errorMessage = 'Hubo un problema al generar el informe';
-                    let errorIcon = 'error';
-                    
-                    if (error.name === 'AbortError') {
-                        errorMessage = 'El proceso fue cancelado por exceder el tiempo límite de 5 minutos';
-                        errorIcon = 'warning';
-                    }
-                    
-                    Swal.fire({
-                        icon: errorIcon,
-                        title: 'Error en la generación',
-                        html: `<div class="text-center">
+                            showConfirmButton: true,
+                            confirmButtonColor: '#30336b',
+                            confirmButtonText: 'Perfecto'
+                        });
+                    })
+                    .catch(error => {
+                        clearTimeout(timeoutId);
+                        clearInterval(timerInterval);
+                        console.error('Error:', error);
+
+                        let errorMessage = 'Hubo un problema al generar el informe';
+                        let errorIcon = 'error';
+
+                        if (error.name === 'AbortError') {
+                            errorMessage = 'El proceso fue cancelado por exceder el tiempo límite de 5 minutos';
+                            errorIcon = 'warning';
+                        }
+
+                        Swal.fire({
+                            icon: errorIcon,
+                            title: 'Error en la generación',
+                            html: `<div class="text-center">
                             <p>${errorMessage}</p>
                             <div class="alert alert-info mt-3">
                                 <i class="bi bi-lightbulb"></i>
                                 <strong>Sugerencia:</strong> Intente generar el informe en horarios de menor actividad
                             </div>
                         </div>`,
-                        confirmButtonColor: '#dc3545',
-                        confirmButtonText: 'Entendido'
+                            confirmButtonColor: '#dc3545',
+                            confirmButtonText: 'Entendido'
+                        });
                     });
-                });
             },
             willClose: () => {
                 // Limpiar el intervalo si se cierra el modal
@@ -373,18 +376,18 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
     .swal-wide {
         width: 600px !important;
     }
-    
+
     #countdown {
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         transition: color 0.3s ease;
     }
-    
+
     .progress {
         background-color: #e9ecef;
         border-radius: 10px;
         overflow: hidden;
     }
-    
+
     .progress-bar {
         transition: width 1s ease;
     }

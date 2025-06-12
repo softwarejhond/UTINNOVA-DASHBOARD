@@ -22,61 +22,6 @@ function exportDataToExcel($conn)
     define('CURRENT_YEAR', '2007');
     define('CURRENT_DATE', date('Y-m-d'));
 
-    // Obtener datos de la API DIVIPOLA
-    $divipolaData = file_get_contents('https://www.datos.gov.co/resource/gdxc-w37w.json?$limit=1112');
-    $divipolaArray = json_decode($divipolaData, true);
-
-    // Crear mapeos de nombres a códigos
-    $departamentosMap = [];
-    $municipiosMap = [];
-
-    foreach ($divipolaArray as $item) {
-        // Normalizar nombres manteniendo tildes para departamentos
-        $dptoNormalizado = strtoupper($item['dpto']); 
-        $mpioNormalizado = strtoupper(normalizeString($item['nom_mpio']));
-
-        // Guardar el código del departamento
-        $departamentosMap[normalizeString($dptoNormalizado)] = $item['cod_dpto'];
-
-        // Crear la clave para el municipio usando departamento y municipio
-        $municipioKey = normalizeString($dptoNormalizado) . '|' . normalizeString($mpioNormalizado);
-        $municipiosMap[$municipioKey] = $item['cod_mpio'];
-
-        // Debug - imprimir las claves que se están creando
-        error_log("Clave municipio creada: " . $municipioKey . " => " . $item['cod_mpio']);
-    }
-
-    // Agregar caso especial para Ubaté
-    $municipiosMap['CUNDINAMARCA|UBATE'] = '25843';
-    $municipiosMap['CUNDINAMARCA|UBATÉ'] = '25843';
-
-    // Agregar caso especial para Villa de Leiva
-    $municipiosMap['BOYACA|VILLA DE LEYVA'] = '15407';
-    $municipiosMap['BOYACÁ|VILLA DE LEYVA'] = '15407';
-    $municipiosMap['BOYACA|VILLA DE LEIVA'] = '15407';
-    $municipiosMap['BOYACÁ|VILLA DE LEIVA'] = '15407';
-
-    // Agregar caso especial para Venecia
-    $municipiosMap['CUNDINAMARCA|VENECIA'] = '25506';
-    $municipiosMap['CUNDINAMARCA|VENECIA (OSPINA PEREZ)'] = '25506';
-
-    // Agregar caso San Antonio del Tequendama
-    $municipiosMap['CUNDINAMARCA|SAN ANTONIO DE TEQUENDAMA'] = '25645';
-    $municipiosMap['CUNDINAMARCA|SAN ANTONIO DE TEQUENDAMA (SAN ANTONIO)'] = '25645';
-
-    // Agregar caso GUICAN
-    $municipiosMap['BOYACA|GUICAN'] = '15332';
-    $municipiosMap['BOYACÁ|GUICÁN'] = '15332';
-
-    //  Agregar caso San Juan de Río Seco
-    $municipiosMap['CUNDINAMARCA|SAN JUAN DE RIO SECO'] = '25662';
-
-    // Agregar caso San Jose
-    $municipiosMap['CUNDINAMARCA|SAN JOSE'] = '15664';
-
-
-
-
     // Obtener niveles de usuarios
     $nivelesUsuarios = obtenerNivelesUsuarios($conn);
 
@@ -94,7 +39,7 @@ function exportDataToExcel($conn)
     g.id_skills,
     g.skills_name,
     g.creation_date,
-    bc.cohort as bootcamp_cohort,  /* Cohorte desde la tabla courses */
+    g.cohort,
     c.start_date,
     u.fecha_registro,
     -- Bootcamp staff
@@ -145,12 +90,12 @@ function exportDataToExcel($conn)
     
     LEFT JOIN cohorts c ON g.cohort = c.cohort_number
     LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
-    WHERE departamentos.id_departamento = 11
+    WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
     AND user_register.lote = '2'
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
-    AND user_register.number_id IN (
+    AND user_register.number_id NOT IN (
         SELECT p.numero_documento 
         FROM participantes p
         INNER JOIN groups g ON p.numero_documento = g.number_id
@@ -220,14 +165,14 @@ function exportDataToExcel($conn)
             $isAccepted = false;
             if ($row['mode'] === 'Presencial') {
                 $isAccepted = (
-                    $row['typeID'] === 'C.C' &&
+                    $row['typeID'] === 'CC' &&
                     $age > 17 &&
                     in_array(strtoupper($row['departamento']), ['CUNDINAMARCA', 'BOYACÁ']) &&
                     $row['internet'] === 'Sí'
                 );
             } elseif ($row['mode'] === 'Virtual') {
                 $isAccepted = (
-                    $row['typeID'] === 'C.C' &&
+                    $row['typeID'] === 'CC' &&
                     $age > 17 &&
                     in_array(strtoupper($row['departamento']), ['CUNDINAMARCA', 'BOYACÁ']) &&
                     $row['internet'] === 'Sí' &&
@@ -323,7 +268,7 @@ function exportDataToExcel($conn)
             $data[] = [
                 'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
                 'id' => $row['id'],
-                'Tipo_documento' => $row['typeID'] === 'C.C' ? 'CC' : $row['typeID'],
+                'Tipo_documento' => $row['typeID'] === 'CC' ? 'C.C' : $row['typeID'],
                 'Número_documento' => $row['number_id'],
                 'Nombre1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])),
                 'Nombre2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])),
@@ -332,37 +277,14 @@ function exportDataToExcel($conn)
                 'Fecha_nacimiento' => date('d/m/Y', strtotime($row['birthdate'])),
                 'Correo' => $row['email'],
 
-                'Codigo_epartamento' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA')
-                    ? '11'
-                    : ($departamentosMap[strtoupper(normalizeString($row['departamento']))] ?? $row['department']),
-                'Departamento' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA')
-                    ? 'BOGOTÁ, D.C.'
-                    : ($departamentosNombreMap[substr($municipiosMap[strtoupper(normalizeString($row['departamento'])) . '|' .
-                        strtoupper(normalizeString($row['municipio']))] ?? $row['municipality'], 0, 2)] ?? strtoupper($row['departamento'])),
+                'Codigo_epartamento' => $row['department'],
+                'Departamento' => strtoupper($row['departamento']),
 
-                'Region' => 'Región 7 Lote 1',
+                'Region' => 'Región 8',
+                'Lote' => 'Lote ' . $row['lote'],
 
-                'Codigo_municipio' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
-                    strtoupper(normalizeString($row['municipio'])) === 'BOGOTA')
-                    ? '11001'
-                    : (function () use ($municipiosMap, $row) {
-                        $key = strtoupper(normalizeString($row['departamento'])) . '|' . strtoupper(normalizeString($row['municipio']));
-                        error_log("Buscando municipio con clave: " . $key);
-                        return $municipiosMap[$key] ?? $row['municipality'];
-                    })(),
-
-                'Municipio' => match (mb_strtoupper($row['municipio'])) {
-                    'BOGOTA D.C.', 'BOGOTA, D.C.', 'BOGOTA' => 'BOGOTÁ, D.C.',
-                    'CHIA' => 'CHÍA',
-                    'PUERTO BOYACA' => 'PUERTO BOYACÁ',
-                    'BOYACA' => 'BOYACÁ',
-                    default => mb_strtoupper($row['municipio']) // Usar mb_strtoupper en lugar de strtoupper
-                },
+                'Codigo_municipio' => $row['municipality'],
+                'Municipio' => mb_strtoupper($row['municipio']),
 
                 'Telefono_movil' => str_replace('+57', '', $row['first_phone']),
 
@@ -421,7 +343,7 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => 'UTTT-R7L1',
+                'Origen' => '',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => $tieneProfesor,
                 'Programa de interés' => $estaEnGroups ? $row['program'] : '',
@@ -434,8 +356,8 @@ function exportDataToExcel($conn)
                 'Documento_Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_id'],
                 'Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_name'],
                 'Fecha Inicio de la formación (dd/mm/aaaa)' => $row['bootcamp_start_date'] ? date('d/m/Y', strtotime($row['bootcamp_start_date'])) : '',
-                'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['bootcamp_cohort'],
-                'Año Cohorte' => $row['start_date'] ? date('Y', strtotime($row['start_date'])) : '',
+                'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['cohort'],
+                'Año Cohorte' => $row['bootcamp_start_date'] ? date('Y', strtotime($row['bootcamp_start_date'])) : '',
                 'Tipo de formación' => $row['group_mode'],
                 'Enlace al certificado en Sharepoint' => '',
                 'Observaciones (menos de 50 cracteres)' => '',
@@ -450,8 +372,7 @@ function exportDataToExcel($conn)
                 'Documento_Ejecutor_ingles' => $row['ec_teacher_id'],
                 'Ejecutor de ingles' => $row['ec_teacher_name'],
                 'Documento_Ejecutor de habilidades de poder' => $row['skills_teacher_id'],
-                'Ejecutor de habilidades de poder' => $row['skills_teacher_name'],
-                'Estado Admisi'
+                'Ejecutor de habilidades de poder' => $row['skills_teacher_name']
             ];
         }
     }

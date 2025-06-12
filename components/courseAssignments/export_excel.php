@@ -28,13 +28,14 @@ $headers = [
     'G' => 'Programa',
     'H' => 'Nivel',
     'I' => 'Modalidad',
-    'J' => 'Estado',
-    'K' => 'Bootcamp',
-    'L' => 'Inglés Nivelador',
-    'M' => 'English Code',
-    'N' => 'Habilidades',
-    'O' => 'Fecha Asignación',
-    'P' => 'Asignado por'
+    'J' => 'Lote',
+    'K' => 'Estado',
+    'L' => 'Bootcamp',
+    'M' => 'Inglés Nivelador',
+    'N' => 'English Code',
+    'O' => 'Habilidades',
+    'P' => 'Fecha Asignación',
+    'Q' => 'Asignado por'
 ];
 
 // Aplicar encabezados
@@ -57,6 +58,7 @@ $sql = "SELECT
             ur.program,
             ur.level,
             ur.mode,
+            ur.lote,
             d.departamento AS department_name,
             m.municipio AS municipality_name,
             u.nombre AS assigned_by_name  
@@ -70,6 +72,8 @@ $sql = "SELECT
             municipios m ON ur.municipality = m.id_municipio AND m.departamento_id = d.id_departamento
         LEFT JOIN 
             users u ON ca.assigned_by = u.username  
+        WHERE 
+            ur.statusAdmin != 3
         ORDER BY 
             ca.assigned_date DESC";
 
@@ -81,6 +85,7 @@ $statusLabels = [
     '0' => 'Pendiente',
     '1' => 'Beneficiario',
     '2' => 'Rechazado',
+    '3' => 'Matriculado',
     '4' => 'Sin contacto',
     '5' => 'En proceso',
     '6' => 'Culminó proceso',
@@ -103,30 +108,31 @@ while ($data = $result->fetch_assoc()) {
     $sheet->setCellValue('G' . $row, $data['program']);
     $sheet->setCellValue('H' . $row, $data['level']);
     $sheet->setCellValue('I' . $row, $data['mode']);
-    $sheet->setCellValue('J' . $row, $statusLabels[$data['statusAdmin']] ?? 'Desconocido');
-    $sheet->setCellValue('K' . $row, $data['bootcamp_name']);
-    $sheet->setCellValue('L' . $row, $data['leveling_english_name']);
-    $sheet->setCellValue('M' . $row, $data['english_code_name']);
-    $sheet->setCellValue('N' . $row, $data['skills_name']);
-    $sheet->setCellValue('O' . $row, date('d/m/Y H:i', strtotime($data['assigned_date'])));
-    $sheet->setCellValue('P' . $row, $data['assigned_by_name']);
+    $sheet->setCellValue('J' . $row, $data['lote']);
+    $sheet->setCellValue('K' . $row, $statusLabels[$data['statusAdmin']] ?? 'Desconocido');
+    $sheet->setCellValue('L' . $row, $data['bootcamp_name']);
+    $sheet->setCellValue('M' . $row, $data['leveling_english_name']);
+    $sheet->setCellValue('N' . $row, $data['english_code_name']);
+    $sheet->setCellValue('O' . $row, $data['skills_name']);
+    $sheet->setCellValue('P' . $row, date('d/m/Y H:i', strtotime($data['assigned_date'])));
+    $sheet->setCellValue('Q' . $row, $data['assigned_by_name']);
     
     $row++;
 }
 
 // Autoajustar ancho de columnas
-foreach(range('A', 'P') as $columnID) {
+foreach(range('A', 'Q') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
 }
 
 // Establecer estilo para encabezados
-$sheet->getStyle('A1:P1')->getFill()
+$sheet->getStyle('A1:Q1')->getFill()
     ->setFillType(Fill::FILL_SOLID)
     ->getStartColor()
     ->setARGB('FF808080');
 
 // Establecer bordes para todas las celdas
-$sheet->getStyle('A1:P' . ($row - 1))
+$sheet->getStyle('A1:Q' . ($row - 1))
     ->getBorders()
     ->getAllBorders()
     ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);

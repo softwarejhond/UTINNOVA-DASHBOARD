@@ -148,12 +148,13 @@ function exportDataToExcel($conn)
     WHERE departamentos.id_departamento = 11
     AND user_register.status = '1' 
     AND user_register.lote = '2'
+    AND user_register.statusAdmin != '3' 
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
     AND user_register.number_id IN (
         SELECT p.numero_documento 
         FROM participantes p
-        INNER JOIN groups g ON p.numero_documento = g.number_id
+        INNER JOIN user_register ur ON p.numero_documento = ur.number_id
     )
     ORDER BY user_register.first_name ASC";
 
@@ -321,7 +322,7 @@ function exportDataToExcel($conn)
 
             // Construir fila de datos
             $data[] = [
-                'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
+                'Ejecutor (contratista)' => 'UNIÓN TEMPORAL TALENTO TICS',
                 'id' => $row['id'],
                 'Tipo_documento' => $row['typeID'] === 'C.C' ? 'CC' : $row['typeID'],
                 'Número_documento' => $row['number_id'],
@@ -451,7 +452,19 @@ function exportDataToExcel($conn)
                 'Ejecutor de ingles' => $row['ec_teacher_name'],
                 'Documento_Ejecutor de habilidades de poder' => $row['skills_teacher_id'],
                 'Ejecutor de habilidades de poder' => $row['skills_teacher_name'],
-                'Estado Admisi'
+                'Estado Admision' => match ($row['statusAdmin']) {
+                    '1' => 'BENEFICIARIO',
+                    '0' => 'SIN ESTADO', 
+                    '2' => 'RECHAZADO',
+                    '3' => 'MATRICULADO',
+                    '4' => 'SIN CONTACTO',
+                    '5' => 'EN PROCESO',
+                    '6' => 'CERTIFICADO',
+                    '7' => 'INACTIVO',
+                    '8' => 'BENEFICIARIO CONTRAPARTIDA',
+                    '9' => 'PENDIENTE MINTIC',
+                    default => ''
+                },
             ];
         }
     }

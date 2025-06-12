@@ -92,6 +92,7 @@ function exportDataToExcel($conn)
     LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
     WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
+    AND user_register.lote = '1'
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
     AND user_register.number_id NOT IN (
@@ -265,7 +266,7 @@ function exportDataToExcel($conn)
 
             // Construir fila de datos
             $data[] = [
-                'Ejecutor (contratista)' => 'UNIÓN TEMPORAL TALENTO TICS',
+                'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
                 'id' => $row['id'],
                 'Tipo_documento' => $row['typeID'] === 'CC' ? 'C.C' : $row['typeID'],
                 'Número_documento' => $row['number_id'],
@@ -314,9 +315,9 @@ function exportDataToExcel($conn)
                 'Victima_del_conflicto' => $victimaConflictoArmado,
                 'Autoriza_manejo_datos_personales' => ($row['accept_data_policies'] === 'Sí') ? 'SI' : $row['accept_data_policies'],
                 'Disponibilidad_d_Equipo' => !empty($row['technologies']) ? 'SI' : '',
-                'creationdate' => $row['creationDate'],
+                'creationdate' => $row['creationDate'] ? date('d/m/Y', strtotime($row['creationDate'])) : '',
                 'Presento' => $puntaje ? 'SI' : 'NO',
-                'fecha_ini' => $row['fecha_registro'],
+                'fecha_ini' => $row['fecha_registro'] ? date('d/m/Y', strtotime($row['fecha_registro'])) : '',
                 'tiempo_segundos' => '',
                 'Eje_tematico' => $row['program'],
                 'Eje_final' => $row['program'],
@@ -371,7 +372,7 @@ function exportDataToExcel($conn)
                 'Documento_Ejecutor_ingles' => $row['ec_teacher_id'],
                 'Ejecutor de ingles' => $row['ec_teacher_name'],
                 'Documento_Ejecutor de habilidades de poder' => $row['skills_teacher_id'],
-                'Ejecutor de habilidades de poder' => $row['skills_teacher_name'],
+                'Ejecutor de habilidades de poder' => $row['skills_teacher_name']
             ];
         }
     }

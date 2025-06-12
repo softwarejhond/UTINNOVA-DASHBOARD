@@ -30,7 +30,7 @@ $estados = [
 $titulos = [
     'ID', 'Tipo', 'Asunto', 'Descripción', 'Fecha Registro', 
     'Nombre', 'Cédula', 'Email', 'Teléfono 1', 'Teléfono 2', 
-    'Fecha Creación', 'Fecha Resolución', 'Respuesta', 
+    'Programa', 'Lote', 'Fecha Creación', 'Fecha Resolución', 'Respuesta', 
     'ID Administrador', 'Nombre Asesor', 'Número Radicado', 'Estado'
 ];
 
@@ -75,9 +75,10 @@ foreach ($estados as $estadoId => $estadoNombre) {
     ]);
     
     // Obtener datos de PQRS según el estado
-    $sql = "SELECT p.*, u.nombre AS nombre_asesor 
+    $sql = "SELECT p.*, u.nombre AS nombre_asesor, ur.program, ur.lote
             FROM pqr p
             LEFT JOIN users u ON p.admin_id = u.id
+            LEFT JOIN user_register ur ON CAST(p.cedula AS UNSIGNED) = ur.number_id
             WHERE p.estado = $estadoId
             ORDER BY p.fecha_creacion DESC";
     
@@ -100,13 +101,15 @@ foreach ($estados as $estadoId => $estadoNombre) {
         $sheet->setCellValue('H' . $row, $pqr['email']);
         $sheet->setCellValue('I' . $row, $pqr['telefono1']);
         $sheet->setCellValue('J' . $row, $pqr['telefono2']);
-        $sheet->setCellValue('K' . $row, $pqr['fecha_creacion']);
-        $sheet->setCellValue('L' . $row, $pqr['fecha_resolucion']);
-        $sheet->setCellValue('M' . $row, $pqr['respuesta']);
-        $sheet->setCellValue('N' . $row, $pqr['admin_id']);
-        $sheet->setCellValue('O' . $row, $pqr['nombre_asesor']);
-        $sheet->setCellValue('P' . $row, $pqr['numero_radicado']);
-        $sheet->setCellValue('Q' . $row, $estadoNombre);
+        $sheet->setCellValue('K' . $row, $pqr['program']);
+        $sheet->setCellValue('L' . $row, $pqr['lote']);
+        $sheet->setCellValue('M' . $row, $pqr['fecha_creacion']);
+        $sheet->setCellValue('N' . $row, $pqr['fecha_resolucion']);
+        $sheet->setCellValue('O' . $row, $pqr['respuesta']);
+        $sheet->setCellValue('P' . $row, $pqr['admin_id']);
+        $sheet->setCellValue('Q' . $row, $pqr['nombre_asesor']);
+        $sheet->setCellValue('R' . $row, $pqr['numero_radicado']);
+        $sheet->setCellValue('S' . $row, $estadoNombre);
         
         $row++;
     }
@@ -118,8 +121,8 @@ foreach ($estados as $estadoId => $estadoNombre) {
     
     // Formato para fechas
     $sheet->getStyle('E2:E' . ($row-1))->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DDMMYYYY);
-    $sheet->getStyle('K2:K' . ($row-1))->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
-    $sheet->getStyle('L2:L' . ($row-1))->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
+    $sheet->getStyle('M2:M' . ($row-1))->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
+    $sheet->getStyle('N2:N' . ($row-1))->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_DATE_DATETIME);
     
     $sheetIndex++;
 }

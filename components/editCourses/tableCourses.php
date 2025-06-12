@@ -1,8 +1,15 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 
-// Consulta para obtener todos los cursos
-$sql = "SELECT * FROM courses";
+// Consulta modificada para obtener todos los cursos con conteo de estudiantes
+$sql = "SELECT c.*, 
+        (SELECT COUNT(*) FROM `groups` g WHERE 
+            g.id_bootcamp = c.code OR 
+            g.id_leveling_english = c.code OR 
+            g.id_english_code = c.code OR 
+            g.id_skills = c.code
+        ) AS student_count 
+        FROM courses c";
 $result = $conn->query($sql);
 $courses = [];
 
@@ -41,6 +48,7 @@ if ($result_users->num_rows > 0) {
                     <th class="text-center">Activo</th>
                     <th class="text-center">Horas Reales</th>
                     <th class="text-center">Horas/Semana</th>
+                    <th class="text-center">Estudiantes</th> <!-- Nueva columna -->
                     <th class="text-center">Fecha Inicio</th>
                     <th class="text-center">Fecha Fin</th>
                     <th class="text-center">Fecha Límite Notas</th>
@@ -75,6 +83,11 @@ if ($result_users->num_rows > 0) {
                                 ($course['sunday_hours'] ?? 0);
                             echo $horasSemana;
                             ?>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge <?php echo ($course['student_count'] > 0) ? 'bg-indigo-dark' : 'bg-secondary'; ?> text-white">
+                                <?php echo $course['student_count']; ?>
+                            </span>
                         </td>
                         <td class="text-center"><?php echo ($course['start_date']); ?></td>
                         <td class="text-center"><?php echo ($course['end_date'] ?? '-'); ?></td>

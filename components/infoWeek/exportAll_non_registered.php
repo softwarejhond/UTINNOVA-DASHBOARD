@@ -147,6 +147,7 @@ function exportDataToExcel($conn)
     LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
     WHERE departamentos.id_departamento = 11
     AND user_register.status = '1' 
+    AND user_register.lote = '1'
     AND user_register.statusAdmin != '3' 
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
@@ -393,9 +394,9 @@ function exportDataToExcel($conn)
                 'Victima_del_conflicto' => $victimaConflictoArmado,
                 'Autoriza_manejo_datos_personales' => ($row['accept_data_policies'] === 'Sí') ? 'SI' : $row['accept_data_policies'],
                 'Disponibilidad_d_Equipo' => !empty($row['technologies']) ? 'SI' : '',
-                'creationdate' => $row['creationDate'],
+                'creationdate' => $row['creationDate'] ? date('d/m/Y', strtotime($row['creationDate'])) : '',
                 'Presento' => $puntaje ? 'SI' : 'NO',
-                'fecha_ini' => $row['fecha_registro'],
+                'fecha_ini' => $row['fecha_registro'] ? date('d/m/Y', strtotime($row['fecha_registro'])) : '',
                 'tiempo_segundos' => '',
                 'Eje_tematico' => $row['program'],
                 'Eje_final' => $row['program'],

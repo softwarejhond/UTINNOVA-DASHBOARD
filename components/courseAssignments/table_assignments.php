@@ -21,6 +21,7 @@ $sql = "SELECT
             ur.municipality,
             ur.program,
             ur.level,
+            ur.lote,
             ur.mode,
             d.departamento AS department_name,
             m.municipio AS municipality_name,
@@ -34,9 +35,7 @@ $sql = "SELECT
         LEFT JOIN 
             municipios m ON ur.municipality = m.id_municipio AND m.departamento_id = d.id_departamento
         LEFT JOIN 
-            users u ON ca.assigned_by = u.username  
-        WHERE 
-            ur.statusAdmin IN (1, 8)
+            users u ON ca.assigned_by = u.username
         ORDER BY 
             ca.assigned_date DESC";
 
@@ -54,17 +53,20 @@ $bootcampSql = "SELECT DISTINCT bootcamp_id, bootcamp_name FROM course_assignmen
 $englishSql = "SELECT DISTINCT leveling_english_id, leveling_english_name FROM course_assignments ORDER BY leveling_english_name";
 $englishCodeSql = "SELECT DISTINCT english_code_id, english_code_name FROM course_assignments ORDER BY english_code_name";
 $skillsSql = "SELECT DISTINCT skills_id, skills_name FROM course_assignments ORDER BY skills_name";
+$loteSql = "SELECT DISTINCT ur.lote FROM course_assignments ca JOIN user_register ur ON ca.student_id = ur.number_id WHERE ur.lote IS NOT NULL AND ur.lote != '' ORDER BY ur.lote";
 
 $bootcampResult = $conn->query($bootcampSql);
 $englishResult = $conn->query($englishSql);
 $englishCodeResult = $conn->query($englishCodeSql);
 $skillsResult = $conn->query($skillsSql);
+$loteResult = $conn->query($loteSql);
 
 // Mapeo de códigos de estado a etiquetas descriptivas
 $statusLabels = [
     '0' => 'Pendiente',
     '1' => 'Beneficiario',
     '2' => 'Rechazado',
+    '3' => 'Matriculado',
     '4' => 'Sin contacto',
     '5' => 'En proceso',
     '6' => 'Culminó proceso',
@@ -77,6 +79,7 @@ $statusClasses = [
     '0' => 'bg-secondary',
     '1' => 'bg-success',
     '2' => 'bg-danger',
+    '3' => 'bg-lime-dark',
     '4' => 'bg-warning',
     '5' => 'bg-info',
     '6' => 'bg-primary',
@@ -144,6 +147,23 @@ $statusClasses = [
                 ?>
             </select>
         </div>
+        
+        <div class="row mb-2 mt-3">
+            <div class="col-md-3 offset-md-4">
+                <label for="filter-lote" class="form-label fw-bold text-center">Filtrar por Lote</label>
+                <select id="filter-lote" class="form-select">
+                    <option value="">Todos los Lotes</option>
+                    <?php
+                    if ($loteResult && $loteResult->num_rows > 0) {
+                        while ($lote = $loteResult->fetch_assoc()) {
+                            echo '<option value="' . htmlspecialchars($lote['lote']) . '">' .
+                                htmlspecialchars($lote['lote']) . '</option>';
+                        }
+                    }
+                    ?>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="row mb-3">
@@ -168,6 +188,7 @@ $statusClasses = [
                     <th>Programa</th>
                     <th>Nivel</th>
                     <th>Modalidad</th>
+                    <th>Lote</th>
                     <th>Estado</th>
                     <th>Bootcamp</th>
                     <th>Inglés Nivelador</th>
@@ -183,7 +204,9 @@ $statusClasses = [
                     <tr data-bootcamp-id="<?= htmlspecialchars($row['bootcamp_id']) ?>"
                         data-english-id="<?= htmlspecialchars($row['leveling_english_id']) ?>"
                         data-english-code-id="<?= htmlspecialchars($row['english_code_id']) ?>"
-                        data-skills-id="<?= htmlspecialchars($row['skills_id']) ?>">
+                        data-skills-id="<?= htmlspecialchars($row['skills_id']) ?>"
+                        data-lote="<?= htmlspecialchars($row['lote']) ?>">
+
                         <td><?= htmlspecialchars($row['student_id']) ?></td>
                         <td>
                             <?= htmlspecialchars(string: $row['first_name'] . ' ' . $row['second_name'] . ' ' . $row['first_last'] . ' ' . $row['second_last']) ?>
@@ -195,6 +218,7 @@ $statusClasses = [
                         <td><?= htmlspecialchars($row['program']) ?></td>
                         <td><?= htmlspecialchars($row['level']) ?></td>
                         <td><?= htmlspecialchars($row['mode']) ?></td>
+                        <td><?= htmlspecialchars($row['lote']) ?></td>
                         <td>
                             <span class="badge <?= $statusClasses[$row['statusAdmin']] ?? 'bg-secondary' ?>">
                                 <?= $statusLabels[$row['statusAdmin']] ?? 'Desconocido' ?>
@@ -249,7 +273,7 @@ $statusClasses = [
                 url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
             },
             order: [
-                [11, 'desc']
+                [15, 'desc']
             ], // Ordenar por fecha de asignación descendente
             pageLength: 25
         });
@@ -266,6 +290,7 @@ $statusClasses = [
                 const englishFilter = $('#filter-english').val();
                 const englishCodeFilter = $('#filter-english-code').val();
                 const skillsFilter = $('#filter-skills').val();
+                const loteFilter = $('#filter-lote').val();
 
                 // Para cada filtro, si está activo, verificar si la fila coincide.
                 // Si un filtro no está activo, se considera que la fila pasa ese filtro.
@@ -296,6 +321,12 @@ $statusClasses = [
                     }
                 }
 
+                if (loteFilter) { // Si el filtro de Lote está activo
+                    if (String($row.data('lote')) !== loteFilter) {
+                        showRow = false; // No coincide, no mostrar
+                    }
+                }
+
                 return showRow; // Devolver true si la fila pasa todos los filtros activos
             });
 
@@ -304,7 +335,7 @@ $statusClasses = [
         }
 
         // Eventos para los filtros
-        $('#filter-bootcamp, #filter-english, #filter-english-code, #filter-skills').on('change', function() {
+        $('#filter-bootcamp, #filter-english, #filter-english-code, #filter-skills, #filter-lote').on('change', function() {
             applyFilters();
         });
 

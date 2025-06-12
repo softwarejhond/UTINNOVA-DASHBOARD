@@ -194,7 +194,7 @@ foreach ($data as $row) {
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
-                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 35]);
+                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 35, 19, 21, 24, 26,27, 35]);
                                         if ($categoryAllowed):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
@@ -226,7 +226,7 @@ foreach ($data as $row) {
                             <select id="ingles" class="form-select course-select" readonly>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if ($course['categoryid'] == 17): ?>
+                                        <?php if (in_array($course['categoryid'], [17, 18])): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -245,7 +245,7 @@ foreach ($data as $row) {
                             <select id="english_code" class="form-select course-select" readonly>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if ($course['categoryid'] == 30): ?>
+                                        <?php if (in_array($course['categoryid'], [30, 31])): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -264,7 +264,7 @@ foreach ($data as $row) {
                             <select id="skills" class="form-select course-select" readonly>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if ($course['categoryid'] == 33): ?>
+                                        <?php if (in_array($course['categoryid'], [32, 33])): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -499,7 +499,7 @@ foreach ($data as $row) {
                 // 3. Función para obtener el código del curso
                 function getCourseCode(courseName) {
                     if (courseName && courseName.length >= 6) {
-                        const match = courseName.match(/G\d{2}-\d{1,2}[A-Z]?/);
+                        const match = courseName.match(/C\d+L\d+-G\d+[A-Z]?/);
                         return match ? match[0] : courseName.slice(-6);
                     }
                     return null;
