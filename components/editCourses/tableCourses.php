@@ -399,7 +399,6 @@ if ($result_users->num_rows > 0) {
             });
             return;
         }
-        
         // Mostrar cargando
         Swal.fire({
             title: 'Actualizando...',
