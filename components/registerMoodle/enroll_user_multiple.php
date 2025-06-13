@@ -154,6 +154,102 @@ try {
     // Actualizar statusAdmin
     $moodleAPI->updateUserStatus($input['number_id'], $conn);
 
+    // **NUEVA FUNCIONALIDAD: Registrar en plataforma de empleos**
+    try {
+        // Obtener datos del usuario desde user_register para obtener todos los campos necesarios
+        $userQuery = "SELECT * FROM user_register WHERE number_id = ?";
+        $userStmt = $conn->prepare($userQuery);
+        $userStmt->bind_param('s', $input['number_id']);
+        $userStmt->execute();
+        $userData = $userStmt->get_result()->fetch_assoc();
+        
+        if ($userData) {
+            // Incluir la conexión a plataforma_empleos (ahora usa $connEmpleos)
+            require_once '../../controller/conexion_empleos.php';
+            
+            // Verificar que la conexión de empleos esté disponible
+            if (!$connEmpleos || $connEmpleos->connect_error) {
+                throw new Exception("Error en la conexión a base de datos de empleos");
+            }
+            
+            // Verificar si el usuario ya existe en plataforma_empleos
+            $checkQuery = "SELECT id FROM usuarios WHERE numero_id = ? OR email = ?";
+            $checkStmt = $connEmpleos->prepare($checkQuery);
+            $checkStmt->bind_param('ss', $input['number_id'], $input['email']);
+            $checkStmt->execute();
+            
+            if ($checkStmt->get_result()->num_rows == 0) {
+                // Preparar datos para insertar
+                $hashedPassword = password_hash($input['number_id'], PASSWORD_DEFAULT);
+                
+                // Limpiar y normalizar nombres (remover tildes y convertir a mayúsculas)
+                $primer_nombre = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['first_name'])));
+                $segundo_nombre = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['second_name'])));
+                $primer_apellido = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['first_last'])));
+                $segundo_apellido = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['second_last'])));
+                
+                $queryEmpleos = "INSERT INTO usuarios (
+                    email,
+                    numero_id,
+                    password,
+                    primer_nombre,
+                    segundo_nombre,
+                    primer_apellido,
+                    segundo_apellido,
+                    telefono,
+                    tipo,
+                    foto_perfil
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'candidato', 'default.jpg')";
+                
+                $stmtEmpleos = $connEmpleos->prepare($queryEmpleos);
+                if (!$stmtEmpleos) {
+                    error_log("Error preparando consulta empleos: " . $connEmpleos->error);
+                } else {
+                    $stmtEmpleos->bind_param(
+                        'ssssssss',
+                        $input['email'],
+                        $input['number_id'],
+                        $hashedPassword,
+                        $primer_nombre,
+                        $segundo_nombre,
+                        $primer_apellido,
+                        $segundo_apellido,
+                        $userData['first_phone']
+                    );
+                    
+                    if (!$stmtEmpleos->execute()) {
+                        error_log("Error en INSERT a plataforma_empleos: " . $stmtEmpleos->error);
+                        error_log("Datos enviados: " . json_encode([
+                            'email' => $input['email'],
+                            'numero_id' => $input['number_id'],
+                            'primer_nombre' => $primer_nombre,
+                            'segundo_nombre' => $segundo_nombre,
+                            'primer_apellido' => $primer_apellido,
+                            'segundo_apellido' => $segundo_apellido,
+                            'telefono' => $userData['first_phone']
+                        ]));
+                    } else {
+                        error_log("Usuario registrado exitosamente en plataforma de empleos: " . $input['number_id']);
+                    }
+                    
+                    $stmtEmpleos->close();
+                }
+            } else {
+                error_log("Usuario ya existe en plataforma de empleos: " . $input['number_id']);
+            }
+            
+            $checkStmt->close();
+            $connEmpleos->close();
+        } else {
+            error_log("No se encontraron datos del usuario en user_register: " . $input['number_id']);
+        }
+        
+        $userStmt->close();
+    } catch (Exception $empleosError) {
+        // Log del error pero no interrumpir el proceso principal
+        error_log("Error al registrar en plataforma de empleos: " . $empleosError->getMessage());
+    }
+
     // Confirmar transacción
     $conn->commit();
 

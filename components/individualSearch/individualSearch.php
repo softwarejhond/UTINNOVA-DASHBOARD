@@ -440,13 +440,14 @@
 
                                 <strong>Participación Anterior:</strong><br>
                                 <?php if ($row['tiene_certificado']): ?>
-                                    <button class="btn text-white" style="background-color: #cc454e;" type="button"
-                                        onclick="mostrarDetallesParticipante('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
+                                    <button class="btn text-white" style="background-color: #ffbf00;"
+                                        type="button"
+                                        onclick="mostrarCertificacionSwal('<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['first_last']); ?>')"
                                         data-bs-toggle="popover"
                                         data-bs-trigger="hover"
                                         data-bs-placement="top"
-                                        data-bs-content="Leer la información importante sobre este estudiante">
-                                        <i class="fa-solid fa-triangle-exclamation fa-fade"></i>
+                                        data-bs-content="El estudiante cuenta con una certificación">
+                                        <i class="fa-solid fa-graduation-cap fa-beat text-black"></i>
                                     </button>
                                 <?php else: ?>
                                     <button class="btn btn-secondary" type="button"
@@ -2275,160 +2276,20 @@
         xhr.send(formData);
     }
 
-    function mostrarDetallesParticipante(numeroDocumento, nombreEstudiante) {
-        // Crear y mostrar modal
-        const modalHtml = `
-            <div class="modal fade" id="modalDetallesParticipante" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-indigo-dark">
-                            <h5 class="modal-title text-white">
-                                <i class="fa-solid fa-user-graduate"></i> Inscripción Anterior
-                            </h5>
-                            <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="loaderParticipante" class="text-center mb-3">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Cargando...</span>
-                                </div>
-                            </div>
-                            <div id="detallesParticipanteContent"></div>
-                        </div>
-                    </div>
+    function mostrarCertificacionSwal(nombreEstudiante) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Estudiante con certificación previa',
+            html: `
+                <div class="alert alert-warning">
+                    <p><strong>${nombreEstudiante.toUpperCase()}</strong> ya tiene registrada una certificación en otro lote o región.</p>
+                    <p>Tenga esto en cuenta antes de continuar con el proceso de asignación.</p>
                 </div>
-            </div>
-        `;
-
-        // Agregar modal al DOM
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Mostrar modal
-        const modal = new bootstrap.Modal(document.getElementById('modalDetallesParticipante'));
-        modal.show();
-
-        // Cargar datos
-        fetch(`components/registrationsContact/obtener_detalles_participante.php?numero_documento=${numeroDocumento}`)
-            .then(response => response.json())
-            .then(data => {
-                // Ocultar el loader
-                document.getElementById('loaderParticipante').style.display = 'none';
-
-                const contenido = `
-                    <h2 class="text-center mb-2 text-magenta-dark">${nombreEstudiante.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')}</h2>
-    
-                    <p class="text-center mb-4"><h4><b>${data.numero_documento}</b></h4></p>
-                <small class="text-danger fw-bold mb-3 d-block text-center">Tenga en cuenta que este campista ya cuenta con una formación en otra región o una certificación.</small>
-                
-                <div class="row">
-                    <div class="col-md-12">
-                        <table class="table table-borderless">
-                            <tbody>
-                                <tr class="text-start">
-                                    <th style="width: 50%">
-                                        <i class="bi bi-geo-alt-fill"></i> Departamento:
-                                    </th>  
-                                    <td>${data.departamento || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-pin-map-fill"></i> Municipio:
-                                    </th>
-                                    <td>${data.municipio || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-map"></i> Región:
-                                    </th>
-                                    <td>${data.region || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-person-lines-fill"></i> Cohorte:
-                                    </th>
-                                    <td>${data.cohorte || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-book-half"></i> Programa:
-                                    </th>
-                                    <td>${data.eje_final || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-check-circle-fill"></i> Matriculado:
-                                    </th>
-                                    <td>${data.matriculado || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-journal-check"></i> Estado formación:
-                                    </th>
-                                    <td>${data.estado || 'No especificado'}</td>
-                                </tr>
-                                <tr class="text-start">
-                                    <th>
-                                        <i class="bi bi-star-fill"></i> Origen:
-                                    </th>
-                                    <td>${data.origen || 'No especificado'}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-    
-                    <div class="modal-footer">
-                        <div class="text-center w-100">
-                            <small class="text-muted">
-                                <i class="bi bi-clock"></i> Información cargada en tiempo real - 
-                                <span id="relojModal"></span>
-                            </small>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('detallesParticipanteContent').innerHTML = contenido;
-
-                // Inicializar el reloj después de cargar el contenido
-                let relojInterval;
-
-                function actualizarReloj() {
-                    const ahora = new Date();
-                    let horas = ahora.getHours();
-                    const minutos = ahora.getMinutes().toString().padStart(2, '0');
-                    const segundos = ahora.getSeconds().toString().padStart(2, '0');
-                    const ampm = horas >= 12 ? 'PM' : 'AM';
-
-                    // Convertir a formato 12 horas
-                    horas = horas % 12;
-                    horas = horas ? horas : 12; // la hora '0' debe ser '12'
-                    const horasFormateadas = horas.toString().padStart(2, '0');
-
-                    const relojElement = document.getElementById('relojModal');
-                    if (relojElement) {
-                        relojElement.textContent = `${horasFormateadas}:${minutos}:${segundos} ${ampm}`;
-                    }
-                }
-
-                actualizarReloj(); // Ejecutar inmediatamente
-                relojInterval = setInterval(actualizarReloj, 1000); // Actualizar cada segundo
-
-                // Limpiar el intervalo cuando se cierre el modal
-                document.getElementById('modalDetallesParticipante').addEventListener('hidden.bs.modal', function() {
-                    clearInterval(relojInterval); // Detener el reloj
-                    this.remove(); // Eliminar el modal del DOM
-                });
-            })
-            .catch(error => {
-                // Ocultar el loader
-                document.getElementById('loaderParticipante').style.display = 'none';
-
-                document.getElementById('detallesParticipanteContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        Error al cargar los datos: ${error.message}
-                    </div>
-                `;
-            });
+            `,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#ffbf00',
+            allowOutsideClick: true
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
