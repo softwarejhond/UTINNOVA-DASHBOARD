@@ -96,7 +96,7 @@ if ($result->num_rows > 0) {
                             $sql_headquarters = "SELECT * FROM headquarters ORDER BY name ASC";
                             $result_headquarters = $conn->query($sql_headquarters);
                             if ($result_headquarters->num_rows > 0) {
-                                while($row = $result_headquarters->fetch_assoc()) {
+                                while ($row = $result_headquarters->fetch_assoc()) {
                                     echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
                                 }
                             }
@@ -155,27 +155,26 @@ if ($result->num_rows > 0) {
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="headquarters<?php echo $schedule['id']; ?>" class="form-label">Sede</label>
-                            <select class="form-control headquarters-select" id="headquarters<?php echo $schedule['id']; ?>" 
-                                name="headquarters" required <?php echo ($schedule['mode'] == 'Virtual') ? 'disabled' : ''; ?>>
-                                <option value="No aplica" <?php echo ($schedule['headquarters'] == 'No aplica') ? 'selected' : ''; ?>>No aplica</option>
-                                <option value="Cota" <?php echo ($schedule['headquarters'] == 'Cota') ? 'selected' : ''; ?>>Cota</option>
-                                <option value="Tunja" <?php echo ($schedule['headquarters'] == 'Tunja') ? 'selected' : ''; ?>>Tunja</option>
-                                <option value="Sogamoso" <?php echo ($schedule['headquarters'] == 'Sogamoso') ? 'selected' : ''; ?>>Sogamoso</option>
-                                <option value="Soacha" <?php echo ($schedule['headquarters'] == 'Soacha') ? 'selected' : ''; ?>>Soacha</option>
-                                <option value="Ubate" <?php echo ($schedule['headquarters'] == 'Ubate') ? 'selected' : ''; ?>>Ubate</option>
-                                <option value="Giradot" <?php echo ($schedule['headquarters'] == 'Giradot') ? 'selected' : ''; ?>>Giradot</option>
-                                <option value="Chía" <?php echo ($schedule['headquarters'] == 'Chía') ? 'selected' : ''; ?>>Chía</option>
-                                <option value="Cajica" <?php echo ($schedule['headquarters'] == 'Cajica') ? 'selected' : ''; ?>>Cajica</option>
+                            <label for="headquarters" class="form-label">Sede</label>
+                            <select class="form-control" id="headquarters" name="headquarters" required>
+                                <option value="">Seleccionar sede</option>
+                                <?php
+                                $sql_headquarters = "SELECT * FROM headquarters ORDER BY name ASC";
+                                $result_headquarters = $conn->query($sql_headquarters);
+                                if ($result_headquarters->num_rows > 0) {
+                                    while ($row = $result_headquarters->fetch_assoc()) {
+                                        echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                    }
+                                }
+                                ?>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="department<?php echo $schedule['id']; ?>" class="form-label">Departamento</label>
-                            <select class="form-control department-select" id="department<?php echo $schedule['id']; ?>" 
-                                name="department" required <?php echo ($schedule['mode'] == 'Virtual') ? 'disabled' : ''; ?>>
-                                <option value="No aplica" <?php echo ($schedule['department'] == 'No aplica') ? 'selected' : ''; ?>>No aplica</option>
-                                <option value="Boyacá" <?php echo ($schedule['department'] == 'Boyacá') ? 'selected' : ''; ?>>Boyacá</option>
-                                <option value="Cundinamarca" <?php echo ($schedule['department'] == 'Cundinamarca') ? 'selected' : ''; ?>>Cundinamarca</option>
+                            <label for="department" class="form-label">Departamento</label>
+                            <select class="form-control" id="department" name="department" required>
+                                <option value="">Seleccionar departamento</option>
+                                <option value="BOGOTÁ, D.C.">BOGOTÁ, D.C.</option>
+                                <option value="No aplica">No aplica</option>
                             </select>
                         </div>
                     </form>
@@ -205,7 +204,7 @@ if ($result->num_rows > 0) {
         const form = document.getElementById('addScheduleForm');
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
-        
+
         // Verificar campos vacíos
         if (!data.schedule || !data.program || !data.mode) {
             Swal.fire({
