@@ -29,13 +29,18 @@ $sql = "SELECT
                 SELECT 1 
                 FROM participantes p 
                 WHERE p.numero_documento = user_register.number_id
-            ) AS tiene_certificado
+            ) AS tiene_certificado,
+            EXISTS(
+                SELECT 1 
+                FROM course_assignments ca 
+                WHERE ca.student_id = user_register.number_id
+            ) AS tiene_preasignacion
         FROM user_register
         WHERE user_register.status = '1'
-          AND (
-              user_register.first_name LIKE CONCAT(?, '%') 
-              OR user_register.number_id LIKE CONCAT(?, '%')
-          )
+            AND (
+                user_register.first_name LIKE CONCAT(?, '%') 
+                OR user_register.number_id LIKE CONCAT(?, '%')
+            )
         ORDER BY user_register.first_name ASC  
         LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($sql);
@@ -684,7 +689,12 @@ function obtenerSedes($conn)
                         <td>
                             <?php
                             if ($row['statusAdmin'] == '1') {
-                                echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
+                                // Verificar si tiene preasignación
+                                if ($row['tiene_preasignacion']) {
+                                    echo '<button class="btn bg-lime-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CON CURSOS ASIGNADOS"><i class="bi bi-check-circle-fill"></i></button>';
+                                } else {
+                                    echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
+                                }
                             } elseif ($row['statusAdmin'] == '0') {
                                 echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
                             } elseif ($row['statusAdmin'] == '2') {
@@ -692,7 +702,7 @@ function obtenerSedes($conn)
                             } elseif ($row['statusAdmin'] == '3') {
                                 echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
                             } elseif ($row['statusAdmin'] == '4') {
-                                echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
+                                echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN CONTACTO"><i class="bi bi-telephone-x"></i></button>';
                             } elseif ($row['statusAdmin'] == '5') {
                                 echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
                             } elseif ($row['statusAdmin'] == '6') {
@@ -700,9 +710,16 @@ function obtenerSedes($conn)
                             } elseif ($row['statusAdmin'] == '7') {
                                 echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
                             } elseif ($row['statusAdmin'] == '8') {
-                                echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
+                                // Verificar si tiene preasignación para contrapartida también
+                                if ($row['tiene_preasignacion']) {
+                                    echo '<button class="btn bg-cyan-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA CON CURSOS ASIGNADOS"><i class="bi bi-check-circle-fill"></i></button>';
+                                } else {
+                                    echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
+                                }
                             } elseif ($row['statusAdmin'] == '9') {
-                                echo '<button class="btn bg-magenta-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE MINTIC"><i class="bi bi-hourglass-split"></i></button>';
+                                echo '<button class="btn bg-magenta-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="APLAZADO"><i class="bi bi-hourglass-split"></i></button>';
+                            } elseif ($row['statusAdmin'] == '10') {
+                                echo '<button class="btn bg-cyan-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="FORMADO"><i class="bi bi-mortarboard-fill"></i></button>';
                             }
                             ?>
                         </td>
@@ -1216,11 +1233,37 @@ function obtenerSedes($conn)
                                     // Si ya tiene cursos, preguntar si quiere actualizar los cursos existentes
                                     Swal.fire({
                                         title: 'El estudiante ya tiene cursos asignados',
-                                        text: '¿Desea mantener la asignación actual o realizar una nueva?',
+                                        html: `
+                                            <div class="alert alert-info">
+                                                <h6><strong>Cursos actualmente asignados:</strong></h6>
+                                                <ul class="list-group mt-3">
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><strong>Bootcamp:</strong></span>
+                                                        <span class="badge bg-primary rounded-pill">${data.cursos.bootcamp.name || 'No asignado'}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><strong>Inglés Nivelatorio:</strong></span>
+                                                        <span class="badge bg-success rounded-pill">${data.cursos.english.name || 'No asignado'}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><strong>English Code:</strong></span>
+                                                        <span class="badge bg-warning rounded-pill">${data.cursos.english_code.name || 'No asignado'}</span>
+                                                    </li>
+                                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span><strong>Habilidades:</strong></span>
+                                                        <span class="badge bg-info rounded-pill">${data.cursos.skills.name || 'No asignado'}</span>
+                                                    </li>
+                                                </ul>
+                                                <p class="mt-3 mb-0"><strong>¿Desea mantener la asignación actual o realizar una nueva?</strong></p>
+                                            </div>
+                                        `,
                                         icon: 'question',
                                         showDenyButton: true,
                                         confirmButtonText: 'Mantener actual',
                                         denyButtonText: 'Nueva asignación',
+                                        confirmButtonColor: '#28a745',
+                                        denyButtonColor: '#007bff',
+                                        width: '600px'
                                     }).then((result) => {
                                         if (result.isConfirmed) {
                                             // Mantener la asignación actual, solo actualizar el estado
@@ -1451,7 +1494,7 @@ function obtenerSedes($conn)
                         autoSelectRelatedCourses(id, bootcampId);
                     }
                 });
-                
+
                 // Asegurar que el modal se muestre después de que el SweetAlert esté completamente cerrado
                 setTimeout(() => {
                     // Mostrar el modal usando Bootstrap

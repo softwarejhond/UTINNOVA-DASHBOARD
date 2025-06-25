@@ -1,40 +1,50 @@
 <?php
-// Incluir conexión y obtener datos de Moodle
+// Incluir conexión
 require_once __DIR__ . '/../../controller/conexion.php';
 
-// Definir las variables globales para Moodle
-$api_url = "https://talento-tech.uttalento.co/webservice/rest/server.php";
-$token   = "3f158134506350615397c83d861c2104";
-$format  = "json";
+// Iniciar sesión si no está iniciada
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Función para llamar a la API de Moodle
-function callMoodleAPI($function, $params = [])
-{
-    global $api_url, $token, $format;
-    $params['wstoken'] = $token;
-    $params['wsfunction'] = $function;
-    $params['moodlewsrestformat'] = $format;
-    $url = $api_url . '?' . http_build_query($params);
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    $response = curl_exec($ch);
-    if (curl_errno($ch)) {
-        echo 'Error en la solicitud cURL: ' . curl_error($ch);
+// Función para obtener cursos desde la base de datos local
+function getCoursesFromDB($conn) {
+    // Verificar que el usuario esté logueado
+    if (!isset($_SESSION['username'])) {
+        return [];
     }
-    curl_close($ch);
-    return json_decode($response, true);
+    
+    $current_user = $_SESSION['username'];
+    
+    $sql = "SELECT c.*, u.nombre as teacher_name 
+            FROM courses c 
+            LEFT JOIN users u ON c.teacher = u.username 
+            WHERE c.status = '1' 
+            AND (c.teacher = ? OR c.mentor = ? OR c.monitor = ?)
+            ORDER BY c.code ASC";
+    
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        return [];
+    }
+    
+    $stmt->bind_param("sss", $current_user, $current_user, $current_user);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $courses = [];
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $courses[] = $row;
+        }
+    }
+    
+    $stmt->close();
+    return $courses;
 }
 
-// Función para obtener cursos desde Moodle
-function getCourses()
-{
-    return callMoodleAPI('core_course_get_courses');
-}
-
-// Obtener cursos y almacenarlos en $courses_data
-$courses_data = getCourses();
+// Obtener cursos desde la BD local
+$courses_data = getCoursesFromDB($conn);
 
 ?>
 <!DOCTYPE html>
@@ -75,6 +85,13 @@ $courses_data = getCourses();
 
     <div class="container-fluid mt-4">
 
+        <?php if (empty($courses_data)): ?>
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                No tienes cursos asignados como docente, mentor o monitor. Contacta al administrador si crees que esto es un error.
+            </div>
+        <?php endif; ?>
+
         <div class="card shadow mb-3">
             <div class="card-body rounded-0">
                 <div class="container-fluid">
@@ -82,19 +99,16 @@ $courses_data = getCourses();
                         <!-- Selección de Bootcamp (Clase) -->
                         <div class="col-lg-6 col-md-6 col-sm-12 col-12">
                             <label class="form-label">Clase</label>
-                            <select id="bootcamp" class="form-select course-select">
-                                <?php 
-                                $allowed_categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 35, 18, 17, 30, 31, 32];
-                                foreach ($courses_data as $course):
-                                    if (isset($course['categoryid']) && in_array($course['categoryid'], $allowed_categories)):
-                                ?>
-                                    <option value="<?= htmlspecialchars($course['id']) ?>">
-                                        <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
-                                    </option>
-                                <?php 
-                                    endif;
-                                endforeach; 
-                                ?>
+                            <select id="bootcamp" class="form-select course-select" <?= empty($courses_data) ? 'disabled' : '' ?>>
+                                <option value="">Seleccione un curso</option>
+                                <?php if (!empty($courses_data)): ?>
+                                    <?php foreach ($courses_data as $course): ?>
+                                        <option value="<?= htmlspecialchars($course['code']) ?>" 
+                                                data-teacher-name="<?= htmlspecialchars($course['teacher_name'] ?? 'Sin asignar') ?>">
+                                            <?= htmlspecialchars($course['code'] . ' - ' . $course['name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </select>
                         </div>
 
@@ -160,8 +174,8 @@ $courses_data = getCourses();
 
                         <!-- Título con nombre del usuario -->
                         <div class="col-12 mb-3"><br>
-                            <h4>
-                                Docente: ...
+                            <h4 id="teacher-display">
+                                Docente: Seleccione un curso
                             </h4>
                         </div>
                     </div>
@@ -270,6 +284,21 @@ $courses_data = getCourses();
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            
+            // Función para actualizar el nombre del docente cuando se selecciona un curso
+            $('#bootcamp').change(function() {
+                const selectedOption = $(this).find('option:selected');
+                const teacherName = selectedOption.data('teacher-name');
+                
+                if (teacherName && teacherName !== 'Sin asignar') {
+                    $('#teacher-display').text('Docente: ' + teacherName);
+                } else {
+                    $('#teacher-display').text('Docente: Sin asignar');
+                }
+                
+                validateExportButton();
+                updateTable();
+            });
 
             // Función para habilitar o deshabilitar la sede según la modalidad
             const toggleSede = () => {
@@ -290,7 +319,6 @@ $courses_data = getCourses();
                 const modalidad = $('#modalidad').val();
                 const sede = $('#sede').val();
                 const fecha = $('#class_date').val();
-                // Eliminar la verificación de intensidad
                 
                 // Habilitar los botones si todos los campos están completos
                 if (bootcamp && courseType && modalidad && sede && fecha) {
@@ -358,7 +386,7 @@ $courses_data = getCourses();
                             
                             // Actualizar el nombre del profesor si está disponible
                             if (response.teacher_name) {
-                                $('h4:contains("Docente:")').html('Docente: ' + response.teacher_name);
+                                $('#teacher-display').html('Docente: ' + response.teacher_name);
                             }
                             
                             // Almacenar el ID del profesor para usarlo al guardar
@@ -391,16 +419,13 @@ $courses_data = getCourses();
             });
 
             // Verificar si se deben habilitar los botones cuando cambian los campos relevantes
-            // Eliminar intensidad de los campos monitoreados
-            $('#bootcamp, #courseType, #class_date, #sede').change(function() {
+            $('#courseType, #class_date, #sede').change(function() {
                 validateExportButton();
                 updateTable();
             });
 
             // También verificar cuando cambian los otros campos pero solo para actualizar la tabla
             $('#sede').change(updateTable);
-            
-            // Eliminar el listener para #intensidad
 
             // Ejecutar toggleSede al cargar la página
             toggleSede();
@@ -613,7 +638,7 @@ $courses_data = getCourses();
                             
                             // Actualizar el nombre del profesor si está disponible
                             if (response.teacher_name) {
-                                $('h4:contains("Docente:")').html('Docente: ' + response.teacher_name);
+                                $('#teacher-display').html('Docente: ' + response.teacher_name);
                             }
                             
                             // Almacenar el ID del profesor para usarlo al guardar

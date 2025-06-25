@@ -28,24 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Determinar el campo del profesor según el tipo de curso
-    $teacher_id_field = '';
+    // Determinar el campo según el tipo de curso
     $course_id_field = '';
     switch ($course_type) {
         case 'bootcamp':
-            $teacher_id_field = 'bootcamp_teacher_id';
             $course_id_field = 'id_bootcamp';
             break;
         case 'leveling_english':
-            $teacher_id_field = 'le_teacher_id';
             $course_id_field = 'id_leveling_english';
             break;
         case 'english_code':
-            $teacher_id_field = 'ec_teacher_id';
             $course_id_field = 'id_english_code';
             break;
         case 'skills':
-            $teacher_id_field = 'skills_teacher_id';
             $course_id_field = 'id_skills';
             break;
         default:
@@ -53,14 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
     }
 
-    // Obtener información del curso y el profesor
+    // Obtener información del curso y el profesor desde la tabla courses
     $course_query = "SELECT 
-                       g.bootcamp_name, 
-                       g.{$teacher_id_field} as teacher_id, 
+                       c.teacher, 
                        u.nombre as teacher_name
-                     FROM groups g
-                     LEFT JOIN users u ON g.{$teacher_id_field} = u.username
-                     WHERE g.{$course_id_field} = ?
+                     FROM courses c
+                     LEFT JOIN users u ON c.teacher = u.username
+                     WHERE c.code = ?
                      LIMIT 1";
 
     $stmt_course = mysqli_prepare($conn, $course_query);
@@ -79,9 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // No sobrescribir el nombre del curso que viene de POST
-    // $course_name = $course_data['bootcamp_name']; <- Comentar o eliminar esta línea
-    $teacher_id = $course_data['teacher_id'];
+    $teacher_id = $course_data['teacher'];
     $teacher_name = $course_data['teacher_name'] ?? 'Sin asignar';
 
     // Obtener los datos de asistencia del mes, año y curso especificados

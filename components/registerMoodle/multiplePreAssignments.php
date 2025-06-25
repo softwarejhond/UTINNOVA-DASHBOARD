@@ -1093,8 +1093,43 @@ foreach ($data as $row) {
                         // Si la matrícula fue exitosa
                         if (enrollData.success) {
                             successes++;
+                            let carnetFilePath = null;
                             try {
-                                const emailResponse = await sendEnrollmentEmail(formData);
+                                // Intentar generar/obtener el carnet
+                                // Llamamos a generate_carnet.php sin el parámetro 'download=1' para obtener la ruta del archivo
+                                const carnetResponse = await fetch(`components/listCredentials/generate_carnet.php?generate_carnet=1&number_id=${formData.number_id}&username=${encodeURIComponent(formData.full_name)}`); // Asumimos que el nombre de usuario para el registro del carnet puede ser el nombre completo. Ajustar si es necesario.
+                                if (carnetResponse.ok) {
+                                    const carnetData = await carnetResponse.json();
+                                    if (carnetData.success && carnetData.file_path) {
+                                        carnetFilePath = carnetData.file_path;
+                                    } else {
+                                        console.warn(`Advertencia al generar/obtener carnet para ${formData.number_id}: ${carnetData.message || 'Respuesta no exitosa o sin ruta de archivo.'}`);
+                                        errors.push({
+                                            student: formData.number_id,
+                                            message: `Matrícula exitosa, pero advertencia al generar/obtener carnet: ${carnetData.message || 'Error desconocido en carnet'}`,
+                                            type: 'carnet_warning'
+                                        });
+                                    }
+                                } else {
+                                     const errorText = await carnetResponse.text();
+                                     console.error(`Error HTTP al generar/obtener carnet para ${formData.number_id}: ${carnetResponse.status} - ${errorText}`);
+                                     errors.push({
+                                        student: formData.number_id,
+                                        message: `Matrícula exitosa, pero error HTTP (${carnetResponse.status}) al generar/obtener carnet.`,
+                                        type: 'carnet_http_error'
+                                    });
+                                }
+                            } catch (carnetError) {
+                                console.error(`Error en la llamada para generar/obtener carnet para ${formData.number_id}:`, carnetError);
+                                errors.push({
+                                    student: formData.number_id,
+                                    message: `Matrícula exitosa, pero error al procesar generación/obtención de carnet: ${carnetError.message}`,
+                                    type: 'carnet_fetch_error'
+                                });
+                            }
+
+                            try {
+                                const emailResponse = await sendEnrollmentEmail(formData, carnetFilePath); // Pasar la ruta del carnet
                                 if (emailResponse && emailResponse.success) {
                                     emailSuccesses++;
                                 } else {

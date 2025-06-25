@@ -46,6 +46,7 @@ $courses_data = getCourses();
     <meta charset="UTF-8">
     <title>Filtrar Inscritos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         /* Estilos para la tabla */
         #listaInscritos {
@@ -139,6 +140,28 @@ $courses_data = getCourses();
         #progressInfo {
             font-size: 0.75rem;
         }
+
+        /* Personalización para mantener el estilo consistente */
+        .select2-container--default .select2-selection--single {
+            height: calc(1.5em + 0.75rem + 2px) !important;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: calc(1.5em + 0.75rem);
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: calc(1.5em + 0.75rem);
+        }
+
+        /* Asegurar que el dropdown mantenga el mismo ancho */
+        .select2-dropdown {
+            width: 660px !important;
+        }
     </style>
 </head>
 
@@ -156,17 +179,17 @@ $courses_data = getCourses();
                         <div class="col-lg-6 col-md-6 col-sm-12 col-12">
                             <label class="form-label">Clase</label>
                             <select id="bootcamp" class="form-select course-select">
-                                <?php 
+                                <?php
                                 $allowed_categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32];
                                 foreach ($courses_data as $course):
                                     if (in_array($course['categoryid'], $allowed_categories)):
                                 ?>
-                                    <option value="<?= htmlspecialchars($course['id']) ?>">
-                                        <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
-                                    </option>
-                                <?php 
+                                        <option value="<?= htmlspecialchars($course['id']) ?>">
+                                            <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
+                                        </option>
+                                <?php
                                     endif;
-                                endforeach; 
+                                endforeach;
                                 ?>
                             </select>
                         </div>
@@ -233,7 +256,7 @@ $courses_data = getCourses();
                                 <label class="form-label">Filtrar por estado de asistencia</label>
                                 <select id="filtroAsistencia" class="form-select" disabled>
                                     <option value="todos">Todos</option>
-                                    <option value="presente">Presente</option>  
+                                    <option value="presente">Presente</option>
                                     <option value="tarde">Tarde</option>
                                     <option value="ausente">Ausente</option>
                                 </select>
@@ -243,8 +266,15 @@ $courses_data = getCourses();
                 </div>
             </div>
         </div>
-
-
+        
+        <!-- Añadir después del div que contiene el filtro -->
+        <div class="row mb-3 justify-content-center">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-end">
+                <button id="exportarGrupo" class="btn btn-success" disabled>
+                    <i class="fa-solid fa-file-excel me-1"></i> Exportar Grupo Completo
+                </button>
+            </div>
+        </div>
 
         <!-- Tabla donde se mostrarán los datos -->
         <div class="table-responsive">
@@ -409,6 +439,7 @@ $courses_data = getCourses();
 
     <!-- jQuery para la solicitud AJAX -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             function animateProgressBars() {
@@ -464,7 +495,7 @@ $courses_data = getCourses();
             rows.each(function() {
                 const row = $(this);
                 const radioChecked = row.find(`input[type="radio"][data-estado="${estado}"]:checked`);
-                
+
                 if (radioChecked.length > 0) {
                     row.show();
                 } else {
@@ -477,6 +508,21 @@ $courses_data = getCourses();
         }
 
         $(document).ready(function() {
+            $('#bootcamp').select2({
+                placeholder: "Buscar y seleccionar curso...",
+                allowClear: true,
+                width: '100%', // Mantiene el ancho original del select
+                dropdownAutoWidth: false, // Evita que cambie el ancho automáticamente
+                minimumInputLength: 0, // Permite buscar desde el primer carácter
+                language: {
+                    noResults: function() {
+                        return "No se encontraron cursos";
+                    },
+                    searching: function() {
+                        return "Buscando...";
+                    }
+                }
+            });
 
             // Función para habilitar o deshabilitar la sede según la modalidad
             const toggleSede = () => {
@@ -490,7 +536,77 @@ $courses_data = getCourses();
             // Hacer la función global para que el onchange del select la encuentre
             window.toggleSede = toggleSede;
 
-            // Modificar la función updateTable para incluir el contador
+            // Función para exportar el grupo completo
+            $('#exportarGrupo').click(function() {
+                const bootcamp = $('#bootcamp').val();
+                const courseType = $('#courseType').val();
+                const modalidad = $('#modalidad').val();
+                const sede = $('#sede').val();
+                const class_date = $('#class_date').val();
+                
+                // Validar que todos los campos necesarios estén completos
+                if (!bootcamp || !courseType || !modalidad || !class_date) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar todos los campos requeridos para exportar'
+                    });
+                    return;
+                }
+                
+                // Construir URL de exportación con parámetros
+                const exportUrl = `components/attendance/exportar_grupo.php?bootcamp=${bootcamp}&courseType=${courseType}&modalidad=${modalidad}&sede=${encodeURIComponent(sede)}&class_date=${class_date}`;
+                
+                // Mostrar Swal con loader mientras se genera el archivo
+                Swal.fire({
+                    title: 'Generando archivo Excel',
+                    text: 'Por favor espere mientras se genera el reporte...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                        
+                        // Realizar petición AJAX para obtener el archivo
+                        fetch(exportUrl)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Error en la generación del archivo');
+                                }
+                                return response.blob();
+                            })
+                            .then(blob => {
+                                // Crear URL para el blob
+                                const url = window.URL.createObjectURL(blob);
+                                
+                                // Crear elemento a para descargar
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = `asistencia_grupo_${bootcamp}_${class_date}.xlsx`;
+                                
+                                // Agregar a DOM, hacer clic y eliminar
+                                document.body.appendChild(a);
+                                a.click();
+                                
+                                // Liberar recursos
+                                window.URL.revokeObjectURL(url);
+                                setTimeout(() => {
+                                    document.body.removeChild(a);
+                                    Swal.close(); // Cerrar el Swal cuando la descarga comience
+                                }, 100);
+                            })
+                            .catch(error => {
+                                console.error('Error al descargar:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Ocurrió un error al generar el archivo de Excel'
+                                });
+                            });
+                    }
+                });
+            });
+
+            // Modificar la función updateTable para habilitar el botón de exportación
             const updateTable = () => {
                 const data = {
                     bootcamp: $('#bootcamp').val(),
@@ -515,8 +631,9 @@ $courses_data = getCourses();
                         if (response && response.html) {
                             $('#listaInscritos tbody').html(response.html);
 
-                            // Habilitar el filtro si hay datos
+                            // Habilitar el filtro y botón de exportación si hay datos
                             $('#filtroAsistencia').prop('disabled', false);
+                            $('#exportarGrupo').prop('disabled', false);  // Habilitar botón exportar
 
                             // Actualizar la barra de progreso
                             if (response.progressInfo) {
@@ -536,8 +653,9 @@ $courses_data = getCourses();
                             }
                         } else {
                             $('#listaInscritos tbody').html('<tr><td colspan="10" class="text-center">No se encontraron registros</td></tr>');
-                            // Deshabilitar el filtro si no hay datos
+                            // Deshabilitar el filtro y botón de exportación si no hay datos
                             $('#filtroAsistencia').prop('disabled', true).val('todos');
+                            $('#exportarGrupo').prop('disabled', true);  // Deshabilitar botón exportar
                         }
 
                         actualizarContadorResultados();
@@ -545,8 +663,9 @@ $courses_data = getCourses();
                     error: (xhr, status, error) => {
                         console.error('Error en la solicitud:', error);
                         $('#listaInscritos tbody').html('<tr><td colspan="10" class="text-center">Error al cargar los datos</td></tr>');
-                        // Deshabilitar el filtro en caso de error
+                        // Deshabilitar el filtro y botón de exportación en caso de error
                         $('#filtroAsistencia').prop('disabled', true).val('todos');
+                        $('#exportarGrupo').prop('disabled', true);  // Deshabilitar botón exportar
                     }
                 });
             };
@@ -765,109 +884,9 @@ $courses_data = getCourses();
                 window.open(exportUrl, '_blank');
             });
 
-            // Agregar este código en el archivo donde tienes el manejo de eventos del modal
-            $('.registrar-ausencia').on('click', function(e) {
-                const attendanceStatus = $(this).data('attendance-status');
-                const studentName = $(this).data('student-name');
-
-                if (attendanceStatus === 'presente') {
-                    e.preventDefault(); // Prevenir que se abra el modal
-                    Swal.fire({
-                        title: '¡Atención!',
-                        text: `El estudiante ${studentName} está marcado como PRESENTE. ¿Estás seguro de que deseas registrar una ausencia?`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sí, continuar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Si el usuario confirma, abrir el modal manualmente
-                            $('#ausenciaModal').modal('show');
-                            // Configurar los datos del estudiante en el modal
-                            $('#studentId').val($(this).data('student-id'));
-                            $('#studentName').text(studentName);
-                        }
-                    });
-                }
-            });
-        });
-
-
-        // Manejo del modal de ausencia
-        $('#ausenciaModal').on('show.bs.modal', function(event) {
-            const button = $(event.relatedTarget);
-            const studentId = button.data('student-id');
-            const studentName = button.data('student-name');
-            const classId = $('#bootcamp').val();
-
-            const modal = $(this);
-            modal.find('#studentId').val(studentId);
-            modal.find('#studentId_display').text(studentId);
-            modal.find('#classId').val(classId);
-            modal.find('#studentName').text(studentName);
-
-            // Limpiar el formulario
-            modal.find('form')[0].reset();
-
-            // Habilitar todos los selects al abrir el modal
-            $('#compromiso, #seguimientoCompromiso, #retiro, #motivoRetiro').prop('disabled', false);
-            // Ocultar el historial
-            $('#historialContainer').hide();
-        });
-
-        // Manejo del guardado de ausencia
-        $('#guardarAusencia').click(function() {
-            const formData = {
-                studentId: $('#studentId').val(),
-                classId: $('#classId').val(),
-                contactEstablished: $('#contactEstablished').val(),
-                compromiso: $('#compromiso').val(),
-                seguimientoCompromiso: $('#seguimientoCompromiso').val(),
-                retiro: $('#retiro').val(),
-                motivoRetiro: $('#motivoRetiro').val(),
-                observacion: $('#observacion').val(),
-                classDate: $('#class_date').val()
-            };
-
-            // Validar campos requeridos
-            if (!formData.contactEstablished) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Por favor, indique si se estableció contacto'
-                });
-                return;
-            }
-
-            $.ajax({
-                url: 'components/attendance/guardar_ausencia.php',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: 'Registro guardado correctamente'
-                    }).then(() => {
-                        $('#ausenciaModal').modal('hide');
-                        updateTable();
-                    });
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al guardar el registro'
-                    });
-                }
-            });
+            // Add missing closing braces for document ready and any other incomplete functions
         });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </body>
 
 </html>

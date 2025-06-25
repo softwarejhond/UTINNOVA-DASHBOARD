@@ -12,7 +12,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
 
     </div>
     <div class="offcanvas-body">
-        <div class="container-fluid">
+        <div class="container-fluid" style="padding-bottom: 50px;">
             <fieldset class="checkbox-group">
                 <legend class="checkbox-group-legend">
 
@@ -154,32 +154,6 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                 <?php endif; ?>
 
                 <?php if ($rol === 'Control maestro' || $rol === 'Administrador' || $rol === 'Académico'): ?>
-                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Administrar sedes disponibles">
-                        <a href="headquarters.php"> <label class="checkbox-wrapper">
-                                <span class="checkbox-tile">
-                                    <span class="checkbox-icon">
-                                        <i class="bi bi-building-fill-gear icono"></i>
-                                    </span>
-                                    <span class="checkbox-label">Sedes</span>
-                                </span>
-                            </label>
-                        </a>
-                    </div>
-
-                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Administrar sedes activas para asistencia">
-                        <a href="headquartersAttendance.php"> <label class="checkbox-wrapper">
-                                <span class="checkbox-tile">
-                                    <span class="checkbox-icon">
-                                        <i class="bi bi-building-check icono"></i>
-                                    </span>
-                                    <span class="checkbox-label">Sedes asistencia</span>
-                                </span>
-                            </label>
-                        </a>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($rol === 'Control maestro' || $rol === 'Administrador' || $rol === 'Académico'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Notas por bootcamp campistas">
                         <a href="studentsNotes.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">
@@ -187,20 +161,6 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                         <i class="bi bi-journal-bookmark-fill icono"></i>
                                     </span>
                                     <span class="checkbox-label">Notas</span>
-                                </span>
-                            </label>
-                        </a>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($extraRol === 'Extra Administrador' || $rol === 'Control maestro'): ?>
-                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Campistas en condición de culminar">
-                        <a href="studentsToApprove.php"> <label class="checkbox-wrapper">
-                                <span class="checkbox-tile">
-                                    <span class="checkbox-icon">
-                                        <i class="fa-solid fa-graduation-cap icono"></i>
-                                    </span>
-                                    <span class="checkbox-label">Por aprobar</span>
                                 </span>
                             </label>
                         </a>

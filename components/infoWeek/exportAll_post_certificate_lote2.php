@@ -239,7 +239,7 @@ function exportDataToExcel($conn)
             $puntaje = $nivelesUsuarios[$row['number_id']] ?? '';
             $estadoPrueba = 'No presentó prueba';
             if ($puntaje) {
-                if ($puntaje >= 1 && $puntaje <= 5) {
+                if ($puntaje >= 0 && $puntaje <= 5) {
                     $estadoPrueba = 'Básico';
                 } elseif ($puntaje >= 6 && $puntaje <= 10) {
                     $estadoPrueba = 'Intermedio';
@@ -394,12 +394,12 @@ function exportDataToExcel($conn)
                 'Autoriza_manejo_datos_personales' => ($row['accept_data_policies'] === 'Sí') ? 'SI' : $row['accept_data_policies'],
                 'Disponibilidad_d_Equipo' => !empty($row['technologies']) ? 'SI' : '',
                 'creationdate' => $row['creationDate'] ? date('d/m/Y', strtotime($row['creationDate'])) : '',
-                'Presento' => $puntaje ? 'SI' : 'NO',
+                'Presento' =>  ($puntaje !== null && $puntaje !== '') ? 'SI' : 'NO',
                 'fecha_ini' => $row['fecha_registro'] ? date('d/m/Y', strtotime($row['fecha_registro'])) : '',
                 'tiempo_segundos' => '',
                 'Eje_tematico' => $row['program'],
                 'Eje_final' => $row['program'],
-                'Puntaje eje tematico seleccionado' => $puntaje ? $puntaje : 'Sin presentar',
+                'Puntaje eje tematico seleccionado' => ($puntaje !== null && $puntaje !== '') ? $puntaje : 'Sin presentar',
                 'linea_1_programacion' => '',
                 'linea_2_inteligecia_artificial' => '',
                 'linea_3_analisis_de_datos' => '',

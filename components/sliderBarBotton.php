@@ -10,7 +10,7 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
         <fieldset class="checkbox-group-bottom d-flex flex-wrap justify-content-center align-items-center">
 
             <!-- Botones e íconos organizados horizontalmente -->
-            <?php if ($rol === 'Administrador' || $rol === 'Docente' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+            <?php if ($rol === 'Administrador' || $rol === 'Docente' || $rol === 'Monitor' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
                 <div class="checkbox me-3 text-center" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Tabla de asistencia">
                     <a href="attendance.php">
                         <label class="checkbox-wrapper">
@@ -94,7 +94,7 @@ $rol = $infoUsuario['rol']; // Obtener el rol del usuario
                     </a>
                 </div>
             <?php endif; ?>
-            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Docente' || $rol === 'Control maestro'): ?>
+            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Docente' || $rol === 'Monitor' || $rol === 'Control maestro'): ?>
                 <div class="checkbox me-3 text-center" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Actualizar asistencia individual">
                     <a href="individualAttendance.php">
                         <label class="checkbox-wrapper">

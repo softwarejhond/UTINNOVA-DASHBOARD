@@ -73,7 +73,7 @@ $sql = "SELECT
         LEFT JOIN 
             users u ON ca.assigned_by = u.username  
         WHERE 
-            ur.statusAdmin != 3
+            ur.statusAdmin IN (1, 8)
         ORDER BY 
             ca.assigned_date DESC";
 

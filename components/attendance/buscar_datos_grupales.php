@@ -107,10 +107,11 @@ try {
     // MODIFICACIÓN: Mejorar la consulta SQL para obtener con seguridad los estados de asistencia
     $sql = "SELECT g.*, 
         (SELECT attendance_status FROM attendance_records 
-         WHERE student_id = g.number_id AND class_date = ? LIMIT 1) as attendance_status,
+         WHERE student_id = g.number_id AND class_date = ? AND course_id = ? LIMIT 1) as attendance_status,
         (SELECT COUNT(DISTINCT class_date) 
          FROM attendance_records 
          WHERE student_id = g.number_id 
+         AND course_id = ?
          AND (attendance_status = 'presente' OR attendance_status = 'tarde')) as total_attendance
         FROM groups g 
         WHERE g.$courseIdColumn = ? 
@@ -125,7 +126,7 @@ try {
         exit;
     }
 
-    mysqli_stmt_bind_param($stmt, "siss", $class_date, $bootcamp, $modalidad, $sede);
+    mysqli_stmt_bind_param($stmt, "siisss", $class_date, $bootcamp, $bootcamp, $bootcamp, $modalidad, $sede);
 
     if (!mysqli_stmt_execute($stmt)) {
         echo json_encode(['error' => 'Error en la ejecución: ' . mysqli_stmt_error($stmt)]);
@@ -144,6 +145,30 @@ try {
     $attendanceCount = 0;
     $contador = 1;
     
+    // Verificar primero si hay registros de asistencia para esta fecha y curso
+    $checkAttendanceSQL = "SELECT COUNT(*) as count FROM attendance_records 
+                          WHERE class_date = ? AND course_id = ?";
+    $checkStmt = mysqli_prepare($conn, $checkAttendanceSQL);
+    mysqli_stmt_bind_param($checkStmt, "si", $class_date, $bootcamp);
+    mysqli_stmt_execute($checkStmt);
+    $checkResult = mysqli_stmt_get_result($checkStmt);
+    $attendanceExists = mysqli_fetch_assoc($checkResult)['count'] > 0;
+    
+    // Si no hay registros para esta fecha, mostrar mensaje específico
+    if (!$attendanceExists) {
+        $tableContent = '<tr><td colspan="11" class="text-center">No hay registros de asistencia para la fecha seleccionada</td></tr>';
+        echo json_encode([
+            'html' => $tableContent,
+            'progressInfo' => [
+                'percent' => 0,
+                'avgHours' => 0,
+                'totalHours' => getHorasTotalesCurso($courseType)
+            ]
+        ]);
+        exit;
+    }
+    
+    // Continúa con el procesamiento normal si sí hay registros
     while ($row = mysqli_fetch_assoc($result)) {
         $studentCount++;
         // Normalizar el estado de asistencia (quitar espacios y convertir a minúsculas)

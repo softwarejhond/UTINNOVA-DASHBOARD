@@ -174,7 +174,7 @@ foreach ($data as $row) {
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
-                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 27, 28, 35]);
+                                        $categoryAllowed = in_array($course['categoryid'], [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32]);
                                         if ($categoryAllowed):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
@@ -658,8 +658,43 @@ foreach ($data as $row) {
                     // Si la matrícula fue exitosa
                     if (enrollData.success) {
                         successes++;
+                        let carnetFilePath = null;
                         try {
-                            const emailResponse = await sendEnrollmentEmail(formData);
+                            // Intentar generar/obtener el carnet
+                            // Llamamos a generate_carnet.php sin el parámetro 'download=1' para obtener la ruta del archivo
+                            const carnetResponse = await fetch(`components/listCredentials/generate_carnet.php?generate_carnet=1&number_id=${formData.number_id}&username=${encodeURIComponent(formData.full_name)}`); // Asumimos que el nombre de usuario para el registro del carnet puede ser el nombre completo. Ajustar si es necesario.
+                            if (carnetResponse.ok) {
+                                const carnetData = await carnetResponse.json();
+                                if (carnetData.success && carnetData.file_path) {
+                                    carnetFilePath = carnetData.file_path;
+                                } else {
+                                    console.warn(`Advertencia al generar/obtener carnet para ${formData.number_id}: ${carnetData.message || 'Respuesta no exitosa o sin ruta de archivo.'}`);
+                                    errors.push({
+                                        student: formData.number_id,
+                                        message: `Matrícula exitosa, pero advertencia al generar/obtener carnet: ${carnetData.message || 'Error desconocido en carnet'}`,
+                                        type: 'carnet_warning'
+                                    });
+                                }
+                            } else {
+                                 const errorText = await carnetResponse.text();
+                                 console.error(`Error HTTP al generar/obtener carnet para ${formData.number_id}: ${carnetResponse.status} - ${errorText}`);
+                                 errors.push({
+                                    student: formData.number_id,
+                                    message: `Matrícula exitosa, pero error HTTP (${carnetResponse.status}) al generar/obtener carnet.`,
+                                    type: 'carnet_http_error'
+                                });
+                            }
+                        } catch (carnetError) {
+                            console.error(`Error en la llamada para generar/obtener carnet para ${formData.number_id}:`, carnetError);
+                            errors.push({
+                                student: formData.number_id,
+                                message: `Matrícula exitosa, pero error al procesar generación/obtención de carnet: ${carnetError.message}`,
+                                type: 'carnet_fetch_error'
+                            });
+                        }
+
+                        try {
+                            const emailResponse = await sendEnrollmentEmail(formData, carnetFilePath); // Pasar la ruta del carnet
                             if (emailResponse && emailResponse.success) {
                                 emailSuccesses++;
                             } else {
@@ -922,20 +957,27 @@ foreach ($data as $row) {
         }
 
         // Agregar esta nueva función para enviar el correo
-        async function sendEnrollmentEmail(userData) {
+        async function sendEnrollmentEmail(userData, carnetFilePath = null) {
             try {
+                const emailData = {
+                    email: userData.email,
+                    program: userData.program,
+                    first_name: userData.full_name.split(' ')[0], // Toma el primer nombre
+                    usuario: userData.number_id,
+                    password: userData.password
+                };
+
+                // Agregar la ruta del carnet si está disponible
+                if (carnetFilePath) {
+                    emailData.carnet_file_path = carnetFilePath;
+                }
+
                 const response = await fetch('components/registerMoodle/send_email.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        email: userData.email,
-                        program: userData.program,
-                        first_name: userData.full_name.split(' ')[0], // Toma el primer nombre
-                        usuario: userData.number_id,
-                        password: userData.password
-                    })
+                    body: JSON.stringify(emailData)
                 });
 
                 if (!response.ok) {

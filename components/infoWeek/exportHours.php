@@ -81,18 +81,36 @@ $sheet->setTitle('Reporte de Horas');
 // Establecer encabezados
 $sheet->setCellValue('A1', 'Número de Identificación');
 $sheet->setCellValue('B1', 'Nombre del Estudiante');
-$sheet->setCellValue('C1', 'Programa');
+$sheet->setCellValue('C1', 'Correo Personal');
+$sheet->setCellValue('D1', 'Correo Institucional');
+$sheet->setCellValue('E1', 'Teléfono Principal');
+$sheet->setCellValue('F1', 'Teléfono Secundario');
+$sheet->setCellValue('G1', 'Programa');
 
-// Títulos principales
-$sheet->setCellValue('D1', 'Técnico');
-$sheet->setCellValue('G1', 'Inglés');
-$sheet->setCellValue('J1', 'Habilidades');
-$sheet->setCellValue('M1', 'TOTALES');
-$sheet->setCellValue('P1', 'PORCENTAJES');
+// Títulos específicos por área - Sin fusionar
+$sheet->setCellValue('H1', 'Técnico - Horas Actuales');
+$sheet->setCellValue('I1', 'Técnico - Horas Reales');
+$sheet->setCellValue('J1', 'Técnico - Total Horas');
 
-// Subtítulos - Corregir el bucle
+$sheet->setCellValue('K1', 'Inglés - Horas Actuales');
+$sheet->setCellValue('L1', 'Inglés - Horas Reales');
+$sheet->setCellValue('M1', 'Inglés - Total Horas');
+
+$sheet->setCellValue('N1', 'Habilidades - Horas Actuales');
+$sheet->setCellValue('O1', 'Habilidades - Horas Reales');
+$sheet->setCellValue('P1', 'Habilidades - Total Horas');
+
+$sheet->setCellValue('Q1', 'Total - Horas Actuales');
+$sheet->setCellValue('R1', 'Total - Horas Reales');
+$sheet->setCellValue('S1', 'Total - Horas Programa');
+
+$sheet->setCellValue('T1', 'Porcentaje Actuales');
+$sheet->setCellValue('U1', 'Porcentaje Reales');
+$sheet->setCellValue('V1', 'Porcentaje Faltante');
+
+// Subtítulos - Con desplazamiento
 $subHeaders = ['Horas actuales', 'Horas reales', 'Total de Horas'];
-$columns = ['D', 'G', 'J', 'M'];
+$columns = ['H', 'K', 'N', 'Q'];
 foreach ($columns as $col) {
     $currentCol = $col;
     for ($i = 0; $i < 3; $i++) {
@@ -101,20 +119,22 @@ foreach ($columns as $col) {
     }
 }
 
-// Subtítulos de porcentajes
-$sheet->setCellValue('P2', 'Porcentaje Actuales');
-$sheet->setCellValue('Q2', 'Porcentaje Reales');
-$sheet->setCellValue('R2', 'Porcentaje Faltante');
+// Subtítulos de porcentajes - Desplazados
+$sheet->setCellValue('T2', 'Porcentaje Actuales');
+$sheet->setCellValue('U2', 'Porcentaje Reales');
+$sheet->setCellValue('V2', 'Porcentaje Faltante');
 
-// Mejorar la consulta SQL para evitar error cuando no haya cursos asociados
+// Consulta SQL actualizada para incluir información de usuario
 $sql = "SELECT g.*, 
        b.real_hours AS bootcamp_hours, b.code AS bootcamp_code,
        e.real_hours AS english_hours, e.code AS english_code, 
-       s.real_hours AS skills_hours, s.code AS skills_code
+       s.real_hours AS skills_hours, s.code AS skills_code,
+       u.email AS personal_email, u.first_phone, u.second_phone
 FROM groups g
 LEFT JOIN courses b ON g.id_bootcamp = b.code 
 LEFT JOIN courses e ON g.id_english_code = e.code 
-LEFT JOIN courses s ON g.id_skills = s.code";
+LEFT JOIN courses s ON g.id_skills = s.code
+LEFT JOIN user_register u ON g.number_id = u.number_id";
 
 $result = $conn->query($sql);
 
@@ -123,7 +143,7 @@ if (!$result) {
     die("Error en la consulta: " . $conn->error);
 }
 
-$row = 3; // Comenzar datos en fila 3
+$row = 2; // Comenzar datos en fila 2
 $lastRow = $row; // Para mantener un registro de la última fila
 
 // En el bucle while, verificar que los valores existan antes de usarlos
@@ -131,7 +151,11 @@ while($data = $result->fetch_assoc()) {
     // Datos básicos
     $sheet->setCellValue('A' . $row, $data['number_id'] ?? '');
     $sheet->setCellValue('B' . $row, $data['full_name'] ?? '');
-    $sheet->setCellValue('C' . $row, ($data['id_bootcamp'] ?? '') . ' - ' . ($data['bootcamp_name'] ?? ''));
+    $sheet->setCellValue('C' . $row, $data['personal_email'] ?? '');
+    $sheet->setCellValue('D' . $row, $data['institutional_email'] ?? '');
+    $sheet->setCellValue('E' . $row, str_replace('+57', '', $data['first_phone'] ?? ''));
+    $sheet->setCellValue('F' . $row, str_replace('+57', '', $data['second_phone'] ?? ''));
+    $sheet->setCellValue('G' . $row, ($data['id_bootcamp'] ?? '') . ' - ' . ($data['bootcamp_name'] ?? ''));
     
     // Obtener horas reales de courses con comprobación de valores null
     $horasTecnico = isset($data['bootcamp_hours']) ? intval($data['bootcamp_hours']) : 0;
@@ -148,77 +172,116 @@ while($data = $result->fetch_assoc()) {
     $horasActualesHabilidades = isset($data['skills_code']) && !empty($data['skills_code']) ? 
         calcularHorasAsistencia($conn, $data['number_id'], $data['skills_code']) : 0;
     
-    // Técnico - Actualizar para usar horas calculadas de asistencia
-    $sheet->setCellValue('D' . $row, $horasActualesTecnico);
-    $sheet->setCellValue('E' . $row, $horasTecnico);
-    $sheet->setCellValue('F' . $row, 120);
+    // Técnico
+    $sheet->setCellValue('H' . $row, $horasActualesTecnico);
+    $sheet->setCellValue('I' . $row, $horasTecnico);
+    $sheet->setCellValue('J' . $row, 120);
     
-    // Inglés - Actualizar para usar horas calculadas de asistencia
-    $sheet->setCellValue('G' . $row, $horasActualesIngles);
-    $sheet->setCellValue('H' . $row, $horasIngles);
-    $sheet->setCellValue('I' . $row, 24);
+    // Inglés
+    $sheet->setCellValue('K' . $row, $horasActualesIngles);
+    $sheet->setCellValue('L' . $row, $horasIngles);
+    $sheet->setCellValue('M' . $row, 24);
     
-    // Habilidades - Actualizar para usar horas calculadas de asistencia
-    $sheet->setCellValue('J' . $row, $horasActualesHabilidades);
-    $sheet->setCellValue('K' . $row, $horasHabilidades);
-    $sheet->setCellValue('L' . $row, 15);
+    // Habilidades
+    $sheet->setCellValue('N' . $row, $horasActualesHabilidades);
+    $sheet->setCellValue('O' . $row, $horasHabilidades);
+    $sheet->setCellValue('P' . $row, 15);
     
     // Totales - Asegurar conversión a números
     $totalActual = intval($horasActualesTecnico) + intval($horasActualesIngles) + intval($horasActualesHabilidades);
     $totalReales = intval($horasTecnico) + intval($horasIngles) + intval($horasHabilidades);
-    $sheet->setCellValue('M' . $row, $totalActual);
-    $sheet->setCellValue('N' . $row, $totalReales);
-    $sheet->setCellValue('O' . $row, 159);
+    $sheet->setCellValue('Q' . $row, $totalActual);
+    $sheet->setCellValue('R' . $row, $totalReales);
+    $sheet->setCellValue('S' . $row, 159);
     
-    // Porcentajes - Corregido fórmulas
-    $sheet->setCellValue('P' . $row, '=M' . $row . '/O' . $row); // Porcentaje de horas actuales
-    $sheet->setCellValue('Q' . $row, '=N' . $row . '/O' . $row); // Porcentaje de horas reales
-    $sheet->setCellValue('R' . $row, '=1-(N' . $row . '/O' . $row . ')'); // Porcentaje regresivo
+    // Porcentajes
+    $sheet->setCellValue('T' . $row, '=Q' . $row . '/S' . $row);
+    $sheet->setCellValue('U' . $row, '=R' . $row . '/S' . $row);
+    $sheet->setCellValue('V' . $row, '=1-(R' . $row . '/S' . $row . ')');
     
     $lastRow = $row; // Actualizar la última fila
     $row++;
 }
 
-// Fusionar celdas de encabezados
-$sheet->mergeCells('A1:A2'); // Número de Identificación
-$sheet->mergeCells('B1:B2'); // Nombre del Estudiante
-$sheet->mergeCells('C1:C2'); // Programa
-$sheet->mergeCells('D1:F1'); // Técnico 
-$sheet->mergeCells('G1:I1'); // Inglés
-$sheet->mergeCells('J1:L1'); // Habilidades
-$sheet->mergeCells('M1:O1'); // TOTALES
-$sheet->mergeCells('P1:R1'); // PORCENTAJES
-
-// Estilo para encabezados
-$headerStyle = [
-    'font' => [
-        'bold' => true,
-    ],
-    'alignment' => [
-        'horizontal' => Alignment::HORIZONTAL_CENTER,
-    ],
-    'fill' => [
-        'fillType' => Fill::FILL_SOLID,
-        'startColor' => ['rgb' => 'CCCCCC'],
-    ],
-    'borders' => [
-        'allBorders' => [
-            'borderStyle' => Border::BORDER_THIN,
-        ],
-    ],
+// Estilos por área
+$basicHeaderStyle = [
+    'font' => ['bold' => true],
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
 ];
 
-// Aplicar estilos
-$sheet->getStyle('A1:R2')->applyFromArray($headerStyle);
+// Estilos para datos (sin negrita)
+$basicDataStyle = [
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+];
 
-// Aplicar formato de porcentaje a las columnas P, Q y R
-if ($lastRow >= 3) { // Solo si hay datos
-    $sheet->getStyle('P3:R' . $lastRow)->getNumberFormat()
+$tecnicoHeaderStyle = array_merge($basicHeaderStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFE6E6']], // Rojo claro
+]);
+
+$tecnicoDataStyle = array_merge($basicDataStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF2F2']], // Rojo más claro para datos
+]);
+
+$inglesHeaderStyle = array_merge($basicHeaderStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E6FFE6']], // Verde claro
+]);
+
+$inglesDataStyle = array_merge($basicDataStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2FFF2']], // Verde más claro para datos
+]);
+
+$habilidadesHeaderStyle = array_merge($basicHeaderStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF0E6']], // Naranja claro
+]);
+
+$habilidadesDataStyle = array_merge($basicDataStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF8F2']], // Naranja más claro para datos
+]);
+
+$totalesHeaderStyle = array_merge($basicHeaderStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F0E6FF']], // Púrpura claro
+]);
+
+$totalesDataStyle = array_merge($basicDataStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F8F2FF']], // Púrpura más claro para datos
+]);
+
+$porcentajesHeaderStyle = array_merge($basicHeaderStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFCC']], // Amarillo claro
+]);
+
+$porcentajesDataStyle = array_merge($basicDataStyle, [
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFF2']], // Amarillo más claro para datos
+]);
+
+// Aplicar estilos específicos por área - Headers
+$sheet->getStyle('A1:G1')->applyFromArray($basicHeaderStyle); // Información básica
+$sheet->getStyle('H1:J1')->applyFromArray($tecnicoHeaderStyle);     // Técnico
+$sheet->getStyle('K1:M1')->applyFromArray($inglesHeaderStyle);      // Inglés
+$sheet->getStyle('N1:P1')->applyFromArray($habilidadesHeaderStyle); // Habilidades
+$sheet->getStyle('Q1:S1')->applyFromArray($totalesHeaderStyle);     // Totales
+$sheet->getStyle('T1:V1')->applyFromArray($porcentajesHeaderStyle); // Porcentajes
+
+// Aplicar estilos específicos por área - Datos
+if ($lastRow >= 2) {
+    $sheet->getStyle('A2:G' . $lastRow)->applyFromArray($basicDataStyle); // Información básica
+    $sheet->getStyle('H2:J' . $lastRow)->applyFromArray($tecnicoDataStyle);     // Técnico
+    $sheet->getStyle('K2:M' . $lastRow)->applyFromArray($inglesDataStyle);      // Inglés
+    $sheet->getStyle('N2:P' . $lastRow)->applyFromArray($habilidadesDataStyle); // Habilidades
+    $sheet->getStyle('Q2:S' . $lastRow)->applyFromArray($totalesDataStyle);     // Totales
+    $sheet->getStyle('T2:V' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
+}
+
+// Aplicar formato de porcentaje a las columnas T, U y V
+if ($lastRow >= 2) { // Solo si hay datos
+    $sheet->getStyle('T2:V' . $lastRow)->getNumberFormat()
           ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00); // Formato con 2 decimales
 }
 
 // Autoajustar columnas
-foreach(range('A','R') as $col) {
+foreach(range('A','V') as $col) {
     $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 
