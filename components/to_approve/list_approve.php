@@ -315,7 +315,7 @@ $courses_data = getCourses();
                 <select id="bootcamp" class="form-select course-select">
                     <option value="">Seleccione un curso</option>
                     <?php foreach ($courses_data as $course): ?>
-                        <?php if (in_array($course['categoryid'], [14, 11, 10, 7, 6, 5])): ?>
+                        <?php if (in_array($course['categoryid'], [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 36])): ?>
                             <option value="<?= htmlspecialchars($course['id']) ?>">
                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                             </option>

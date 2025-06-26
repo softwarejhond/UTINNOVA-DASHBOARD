@@ -108,22 +108,6 @@ $sheet->setCellValue('T1', 'Porcentaje Actuales');
 $sheet->setCellValue('U1', 'Porcentaje Reales');
 $sheet->setCellValue('V1', 'Porcentaje Faltante');
 
-// Subtítulos - Con desplazamiento
-$subHeaders = ['Horas actuales', 'Horas reales', 'Total de Horas'];
-$columns = ['H', 'K', 'N', 'Q'];
-foreach ($columns as $col) {
-    $currentCol = $col;
-    for ($i = 0; $i < 3; $i++) {
-        $sheet->setCellValue($currentCol . '2', $subHeaders[$i]);
-        $currentCol = chr(ord($currentCol) + 1);
-    }
-}
-
-// Subtítulos de porcentajes - Desplazados
-$sheet->setCellValue('T2', 'Porcentaje Actuales');
-$sheet->setCellValue('U2', 'Porcentaje Reales');
-$sheet->setCellValue('V2', 'Porcentaje Faltante');
-
 // Consulta SQL actualizada para incluir información de usuario
 $sql = "SELECT g.*, 
        b.real_hours AS bootcamp_hours, b.code AS bootcamp_code,
@@ -274,10 +258,10 @@ if ($lastRow >= 2) {
     $sheet->getStyle('T2:V' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
 }
 
-// Aplicar formato de porcentaje a las columnas T, U y V
-if ($lastRow >= 2) { // Solo si hay datos
+// Asegurar que los porcentajes tengan el formato correcto
+if ($lastRow >= 2) {
     $sheet->getStyle('T2:V' . $lastRow)->getNumberFormat()
-          ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00); // Formato con 2 decimales
+          ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
 }
 
 // Autoajustar columnas
@@ -330,6 +314,14 @@ $totalStyle = [
             'borderStyle' => Border::BORDER_MEDIUM,
         ],
     ],
+];
+
+// Antes de aplicar los estilos en la segunda hoja, añadir la definición de headerStyle
+$headerStyle = [
+    'font' => ['bold' => true],
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']]
 ];
 
 // Aplicar estilos
