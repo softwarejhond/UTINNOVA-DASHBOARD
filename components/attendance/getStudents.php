@@ -1,0 +1,330 @@
+<?php
+error_reporting(E_ALL); // Cambiamos a mostrar todos los errores durante depuración
+ini_set('display_errors', 0); // No mostrar en pantalla pero sí registrarlos
+header('Content-Type: application/json'); // Establecer el header JSON
+
+require_once __DIR__ . '/../../controller/conexion.php'; // Usar $conn como en buscar_datos_grupales.php
+
+// Verificar la conexión a la base de datos
+if (!$conn) {
+    echo json_encode(['success' => false, 'message' => 'Error de conexión a la base de datos']);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+    exit;
+}
+
+$courseCode = $_POST['courseCode'] ?? '';
+
+if (empty($courseCode)) {
+    echo json_encode(['success' => false, 'message' => 'Código de curso faltante']);
+    exit;
+}
+
+// Función para convertir el estado de admisión
+function getStatusText($statusAdmin) {
+    $statusMap = [
+        '0' => 'Pendiente',
+        '1' => 'Beneficiario',
+        '2' => 'Rechazado',
+        '3' => 'Matriculado',
+        '4' => 'Sin contacto',
+        '5' => 'En proceso',
+        '6' => 'Culminó proceso',
+        '7' => 'Inactivo',
+        '8' => 'Beneficiario contrapartida',
+        '10' => 'Formado'
+    ];
+    
+    return $statusMap[(string)$statusAdmin] ?? 'Estado desconocido';
+}
+
+try {
+    // Variable para almacenar información de depuración
+    $debug = [
+        'courseCode' => $courseCode,
+        'queriesRun' => 0,
+        'errors' => []
+    ];
+
+    // Obtener estudiantes para cada tipo de curso
+    $students = [
+        'tecnico' => [],
+        'ingles_nivelado' => [],
+        'english_code' => [],
+        'habilidades' => []
+    ];
+
+    // Obtener fechas de clases para cada tipo de curso
+    $classes = [
+        'tecnico' => [],
+        'ingles_nivelado' => [],
+        'english_code' => [],
+        'habilidades' => []
+    ];
+
+    // Función para obtener fechas de clases de un curso
+    function getClassDates($conn, $courseCode) {
+        $sql = "SELECT DISTINCT class_date 
+                FROM attendance_records 
+                WHERE course_id = ? 
+                ORDER BY class_date ASC";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return [];
+        }
+        
+        mysqli_stmt_bind_param($stmt, "i", $courseCode);
+        
+        if (!mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return [];
+        }
+        
+        $result = mysqli_stmt_get_result($stmt);
+        $dates = [];
+        
+        while ($row = mysqli_fetch_assoc($result)) {
+            $dates[] = ['class_date' => $row['class_date']];
+        }
+        
+        mysqli_stmt_close($stmt);
+        return $dates;
+    }
+
+    // Buscar estudiantes por código usando LIKE en los nombres de los cursos
+    // 1. Buscar para bootcamp (tecnico)
+    $sql = "SELECT 
+                g.number_id,
+                g.full_name,
+                g.email,
+                g.institutional_email,
+                g.bootcamp_name as group_name,
+                g.id_bootcamp as course_code,
+                ur.first_phone as celular,
+                ur.schedules as horario,
+                ur.statusAdmin as estado_admision
+            FROM groups g
+            LEFT JOIN user_register ur ON g.number_id = ur.number_id
+            WHERE g.bootcamp_name LIKE ?";
+    
+    $debug['queriesRun']++;
+    $searchPattern = '%' . $courseCode . '%';
+    
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        $debug['errors'][] = 'Error preparación consulta bootcamp: ' . mysqli_error($conn);
+        throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        $debug['errors'][] = 'Error ejecución consulta bootcamp: ' . mysqli_stmt_error($stmt);
+        throw new Exception('Error al ejecutar consulta: ' . mysqli_stmt_error($stmt));
+    }
+    
+    $result = mysqli_stmt_get_result($stmt);
+    if (!$result) {
+        $debug['errors'][] = 'Error en resultados bootcamp: ' . mysqli_error($conn);
+        throw new Exception('Error al obtener resultados: ' . mysqli_error($conn));
+    }
+    
+    $students['tecnico'] = [];
+    $courseCodeTecnico = null;
+    while ($row = mysqli_fetch_assoc($result)) {
+        // Convertir el estado de admisión a texto
+        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $students['tecnico'][] = $row;
+        if (!$courseCodeTecnico && $row['course_code']) {
+            $courseCodeTecnico = $row['course_code'];
+        }
+    }
+    // Obtener fechas de clases para técnico
+    if ($courseCodeTecnico) {
+        $classes['tecnico'] = getClassDates($conn, $courseCodeTecnico);
+    }
+    
+    $debug['studentCounts']['tecnico'] = count($students['tecnico']);
+    mysqli_stmt_close($stmt);
+
+    // 2. Buscar para inglés nivelado
+    $sql = "SELECT 
+                g.number_id,
+                g.full_name,
+                g.email,
+                g.institutional_email,
+                g.leveling_english_name as group_name,
+                g.id_leveling_english as course_code,
+                ur.first_phone as celular,
+                ur.schedules as horario,
+                ur.statusAdmin as estado_admision
+            FROM groups g
+            LEFT JOIN user_register ur ON g.number_id = ur.number_id
+            WHERE g.leveling_english_name LIKE ?";
+    
+    $debug['queriesRun']++;
+    
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        $debug['errors'][] = 'Error preparación consulta inglés: ' . mysqli_error($conn);
+        throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        $debug['errors'][] = 'Error ejecución consulta inglés: ' . mysqli_stmt_error($stmt);
+        throw new Exception('Error al ejecutar consulta: ' . mysqli_stmt_error($stmt));
+    }
+    
+    $result = mysqli_stmt_get_result($stmt);
+    if (!$result) {
+        $debug['errors'][] = 'Error en resultados inglés: ' . mysqli_error($conn);
+        throw new Exception('Error al obtener resultados: ' . mysqli_error($conn));
+    }
+    
+    $students['ingles_nivelado'] = [];
+    $courseCodeIngles = null;
+    while ($row = mysqli_fetch_assoc($result)) {
+        // Convertir el estado de admisión a texto
+        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $students['ingles_nivelado'][] = $row;
+        if (!$courseCodeIngles && $row['course_code']) {
+            $courseCodeIngles = $row['course_code'];
+        }
+    }
+    // Obtener fechas de clases para inglés nivelado
+    if ($courseCodeIngles) {
+        $classes['ingles_nivelado'] = getClassDates($conn, $courseCodeIngles);
+    }
+    
+    $debug['studentCounts']['ingles_nivelado'] = count($students['ingles_nivelado']);
+    mysqli_stmt_close($stmt);
+
+    // 3. Buscar para english_code
+    $sql = "SELECT 
+                g.number_id,
+                g.full_name,
+                g.email,
+                g.institutional_email,
+                g.english_code_name as group_name,
+                g.id_english_code as course_code,
+                ur.first_phone as celular,
+                ur.schedules as horario,
+                ur.statusAdmin as estado_admision
+            FROM groups g
+            LEFT JOIN user_register ur ON g.number_id = ur.number_id
+            WHERE g.english_code_name LIKE ?";
+    
+    $debug['queriesRun']++;
+    
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        $debug['errors'][] = 'Error preparación consulta english_code: ' . mysqli_error($conn);
+        throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        $debug['errors'][] = 'Error ejecución consulta english_code: ' . mysqli_stmt_error($stmt);
+        throw new Exception('Error al ejecutar consulta: ' . mysqli_stmt_error($stmt));
+    }
+    
+    $result = mysqli_stmt_get_result($stmt);
+    if (!$result) {
+        $debug['errors'][] = 'Error en resultados english_code: ' . mysqli_error($conn);
+        throw new Exception('Error al obtener resultados: ' . mysqli_error($conn));
+    }
+    
+    $students['english_code'] = [];
+    $courseCodeEnglishCode = null;
+    while ($row = mysqli_fetch_assoc($result)) {
+        // Convertir el estado de admisión a texto
+        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $students['english_code'][] = $row;
+        if (!$courseCodeEnglishCode && $row['course_code']) {
+            $courseCodeEnglishCode = $row['course_code'];
+        }
+    }
+    // Obtener fechas de clases para english code
+    if ($courseCodeEnglishCode) {
+        $classes['english_code'] = getClassDates($conn, $courseCodeEnglishCode);
+    }
+    
+    $debug['studentCounts']['english_code'] = count($students['english_code']);
+    mysqli_stmt_close($stmt);
+
+    // 4. Buscar para habilidades
+    $sql = "SELECT 
+                g.number_id,
+                g.full_name,
+                g.email,
+                g.institutional_email,
+                g.skills_name as group_name,
+                g.id_skills as course_code,
+                ur.first_phone as celular,
+                ur.schedules as horario,
+                ur.statusAdmin as estado_admision
+            FROM groups g
+            LEFT JOIN user_register ur ON g.number_id = ur.number_id
+            WHERE g.skills_name LIKE ?";
+    
+    $debug['queriesRun']++;
+    
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        $debug['errors'][] = 'Error preparación consulta habilidades: ' . mysqli_error($conn);
+        throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
+    }
+    
+    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        $debug['errors'][] = 'Error ejecución consulta habilidades: ' . mysqli_stmt_error($stmt);
+        throw new Exception('Error al ejecutar consulta: ' . mysqli_stmt_error($stmt));
+    }
+    
+    $result = mysqli_stmt_get_result($stmt);
+    if (!$result) {
+        $debug['errors'][] = 'Error en resultados habilidades: ' . mysqli_error($conn);
+        throw new Exception('Error al obtener resultados: ' . mysqli_error($conn));
+    }
+    
+    $students['habilidades'] = [];
+    $courseCodeHabilidades = null;
+    while ($row = mysqli_fetch_assoc($result)) {
+        // Convertir el estado de admisión a texto
+        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $students['habilidades'][] = $row;
+        if (!$courseCodeHabilidades && $row['course_code']) {
+            $courseCodeHabilidades = $row['course_code'];
+        }
+    }
+    // Obtener fechas de clases para habilidades
+    if ($courseCodeHabilidades) {
+        $classes['habilidades'] = getClassDates($conn, $courseCodeHabilidades);
+    }
+    
+    $debug['studentCounts']['habilidades'] = count($students['habilidades']);
+    mysqli_stmt_close($stmt);
+
+    echo json_encode([
+        'success' => true, 
+        'data' => $students,
+        'classes' => $classes,
+        'debug' => $debug
+    ]);
+
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false, 
+        'message' => $e->getMessage(),
+        'debug' => $debug ?? []
+    ]);
+}
+?>
