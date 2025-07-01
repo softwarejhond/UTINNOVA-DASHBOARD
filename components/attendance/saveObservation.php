@@ -1,5 +1,11 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 header('Content-Type: application/json');
+ob_start(); // Iniciar buffer de salida
+
 require_once __DIR__ . '/../../controller/conexion.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -19,13 +25,18 @@ if (empty($studentId) || empty($courseId) || empty($classDate) || empty($observa
 }
 
 try {
-    // Usar INSERT ... ON DUPLICATE KEY UPDATE para insertar o actualizar
+    // Verificar conexión
+    if (!$conn) {
+        throw new Exception("Error de conexión a la base de datos");
+    }
+    
+    // Usar INSERT ... ON DUPLICATE KEY UPDATE (más eficiente)
     $sql = "INSERT INTO class_observations (student_id, course_id, class_date, observation_type, observation_text) 
             VALUES (?, ?, ?, ?, ?) 
             ON DUPLICATE KEY UPDATE 
-            observation_type = VALUES(observation_type), 
-            observation_text = VALUES(observation_text),
-            updated_at = CURRENT_TIMESTAMP";
+                observation_type = VALUES(observation_type), 
+                observation_text = VALUES(observation_text),
+                updated_at = CURRENT_TIMESTAMP";
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
@@ -40,15 +51,19 @@ try {
     
     $stmt->close();
     
+    ob_clean(); // Limpiar cualquier salida no deseada
     echo json_encode([
         'success' => true,
         'message' => 'Observación guardada correctamente'
     ]);
     
 } catch (Exception $e) {
+    ob_clean(); // Limpiar cualquier salida no deseada
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
     ]);
 }
+
+ob_end_flush(); // Enviar el buffer de salida
 ?>

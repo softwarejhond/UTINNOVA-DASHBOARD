@@ -1,5 +1,5 @@
 <?php
-// Incluir conexión y obtener datos de Moodle
+// Incluir conexión y obtener dados de Moodle
 require_once __DIR__ . '/../../controller/conexion.php';
 
 // Función para obtener cursos desde Moodle
@@ -247,11 +247,15 @@ $courses_data = getCourses();
                     </div>
                 </div>
 
-                <!-- <div class="row">
-                    <div class="col-12">
-                        <button id="loadStudents" class="btn btn-primary">Cargar Estudiantes</button>
+                <!-- Botón de exportación -->
+                <div class="row mt-3">
+                    <div class="col-12 text-center">
+                        <button id="exportBtn" class="btn btn-success" disabled>
+                            <i class="fas fa-file-excel me-2"></i>
+                            Exportar a Excel
+                        </button>
                     </div>
-                </div> -->
+                </div>
             </div>
         </div>
     </div>
@@ -410,6 +414,11 @@ $courses_data = getCourses();
             const selectedCourse = $(this).val();
             const selectedText = $(this).find('option:selected').text();
 
+            // Deshabilitar botón de exportación
+            $('#exportBtn').prop('disabled', true);
+            currentCourseData = null;
+            currentCourseCode = null;
+
             if (!selectedCourse) {
                 $('#courseCodeDisplay').val('No seleccionado');
                 return;
@@ -439,6 +448,10 @@ $courses_data = getCourses();
         });
     });
 
+    // Variable global para almacenar los datos cargados
+    let currentCourseData = null;
+    let currentCourseCode = null;
+
     // Función para cargar los datos de estudiantes
     function loadStudentsData(courseId, courseCode) {
         // Mostrar carga con SweetAlert2
@@ -466,6 +479,10 @@ $courses_data = getCourses();
                 console.log("Respuesta completa:", response);
 
                 if (response.success) {
+                    // Guardar datos para exportación
+                    currentCourseData = response;
+                    currentCourseCode = courseCode;
+
                     // Mostrar información de depuración en la consola
                     if (response.debug) {
                         console.log("Información de depuración:", response.debug);
@@ -490,6 +507,13 @@ $courses_data = getCourses();
 
                     // Mostrar el contenedor de estudiantes
                     $('#studentsContainer').show();
+
+                    // Habilitar botón de exportación si hay datos
+                    if (totalStudents > 0) {
+                        $('#exportBtn').prop('disabled', false);
+                    } else {
+                        $('#exportBtn').prop('disabled', true);
+                    }
 
                     // Inicializar DataTables DESPUÉS de poblar las tablas
                     setTimeout(() => {
@@ -538,7 +562,80 @@ $courses_data = getCourses();
         });
     }
 
-    // Función para inicializar DataTables solo con búsqueda
+    // Función para manejar la exportación
+    $('#exportBtn').on('click', function() {
+        if (!currentCourseData || !currentCourseCode) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No hay datos para exportar'
+            });
+            return;
+        }
+
+        // Mostrar indicador de carga
+        Swal.fire({
+            title: 'Generando archivo Excel',
+            text: 'Por favor espere...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Hacer petición AJAX para exportar
+        $.ajax({
+            url: 'components/attendance/exportAttendance.php',
+            method: 'POST',
+            data: {
+                courseCode: currentCourseCode,
+                data: JSON.stringify(currentCourseData.data),
+                classes: JSON.stringify(currentCourseData.classes)
+            },
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(data, status, xhr) {
+                // Crear enlace de descarga
+                const blob = new Blob([data], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Seguimiento_Asistencia_${currentCourseCode}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                // Cerrar loading
+                Swal.close();
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Exportación exitosa',
+                    text: 'El archivo se ha descargado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de exportación',
+                    text: 'No se pudo generar el archivo Excel'
+                });
+                console.error("Error exportando:", error);
+            }
+        });
+    });
+
+    // Función para inicializar DataTables solo with búsqueda
     function initializeDataTables() {
         // Primero recordamos qué pestaña estaba activa
         const activeTabId = $('.nav-link.active').attr('id');
@@ -719,26 +816,108 @@ $courses_data = getCourses();
             });
     }
 
-    // Función para guardar la gestión de asistencia
+    // Función mejorada para guardar observación
+    function saveObservation(modalId) {
+        const form = $(`#form-${modalId}`);
+        const formData = form.serialize();
+        const saveButton = $(`#${modalId}`).find('button[onclick*="saveObservation"]');
+
+        // Mostrar indicador de carga en el botón
+        const originalText = saveButton.html();
+        saveButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+
+        $.ajax({
+            url: 'components/attendance/saveObservation.php',
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            timeout: 10000, // 10 segundos timeout
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: 'Observación guardada correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // Cambiar el aspecto del botón tras guardar con éxito
+                    const btnObservation = $(`[data-bs-target="#${modalId}"]`);
+                    btnObservation.removeClass('btn-outline-primary');
+                    btnObservation.addClass('bg-cyan-dark');
+
+                    $(`#${modalId}`).modal('hide');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al guardar la observación: ' + response.message
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error guardando observación:", {
+                    xhr,
+                    status,
+                    error
+                });
+                let errorMessage = 'No se pudo conectar con el servidor';
+
+                if (status === 'timeout') {
+                    errorMessage = 'La operación tardó demasiado tiempo';
+                } else if (xhr.responseText) {
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        errorMessage = errorResponse.message || errorMessage;
+                    } catch (e) {
+                        console.error("Error parsing response:", xhr.responseText);
+                    }
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: errorMessage
+                });
+            },
+            complete: function() {
+                // Restaurar el botón
+                saveButton.prop('disabled', false).html(originalText);
+            }
+        });
+    }
+
+    // Función mejorada para guardar gestión de asistencia
     function saveAttendanceManagement(modalId) {
         const form = $(`#management-form-${modalId}`);
         const formData = form.serialize();
+        const saveButton = $(`#${modalId}`).find('button[onclick*="saveAttendanceManagement"]');
+
+        // Mostrar indicador de carga
+        const originalText = saveButton.html();
+        saveButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
 
         $.ajax({
             url: 'components/attendance/saveAttendanceManagement.php',
             method: 'POST',
             data: formData,
             dataType: 'json',
+            timeout: 15000, // 15 segundos timeout
             success: function(response) {
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Guardado exitoso',
-                        text: 'La información de gestión ha sido guardada correctamente'
+                        text: 'La información de gestión ha sido guardada correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
                     });
 
-                    // Cerrar el modal
-                    $(`#${modalId}`).modal('hide');
+                    // Cerrar el modal después de un pequeño delay
+                    setTimeout(() => {
+                        $(`#${modalId}`).modal('hide');
+                    }, 2000);
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -748,12 +927,33 @@ $courses_data = getCourses();
                 }
             },
             error: function(xhr, status, error) {
-                console.error("Error guardando gestión:", error);
+                console.error("Error guardando gestión:", {
+                    xhr,
+                    status,
+                    error
+                });
+                let errorMessage = 'No se pudo conectar con el servidor';
+
+                if (status === 'timeout') {
+                    errorMessage = 'La operación tardó demasiado tiempo';
+                } else if (xhr.responseText) {
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        errorMessage = errorResponse.message || errorMessage;
+                    } catch (e) {
+                        console.error("Error parsing response:", xhr.responseText);
+                    }
+                }
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Error de conexión',
-                    text: 'No se pudo conectar con el servidor'
+                    text: errorMessage
                 });
+            },
+            complete: function() {
+                // Restaurar el botón
+                saveButton.prop('disabled', false).html(originalText);
             }
         });
     }
@@ -794,7 +994,7 @@ $courses_data = getCourses();
                 headerRow.append(`<th>Clase ${index + 1}</th>`);
             });
 
-            // NUEVA COLUMNA: Información de asistencia
+            // Columna de información de asistencia
             headerRow.append('<th>Información de asistencia</th>');
 
             thead.append(headerRow);
@@ -804,7 +1004,7 @@ $courses_data = getCourses();
 
             // Llenar tabla
             if (students.length === 0) {
-                const colspan = 9 + classData.length; // Actualizado para incluir la nueva columna
+                const colspan = 9 + classData.length;
                 tbody.append(`<tr><td colspan="${colspan}" class="text-center">No hay estudiantes registrados</td></tr>`);
             } else {
                 students.forEach(student => {
@@ -821,32 +1021,37 @@ $courses_data = getCourses();
                     row.append(`<td>${student.group_name || 'N/A'}</td>`);
                     row.append(`<td><span class="badge ${getStatusBadge(student.estado_admision)}">${statusText}</span></td>`);
 
-                    // Agregar celdas para cada clase
+                    // Agregar celdas para cada clase usando el modal genérico
                     classData.forEach((classInfo, index) => {
                         const classNumber = index + 1;
-                        const modalId = `modal-${type}-${student.number_id}-${classNumber}`;
+                        const classDate = classInfo.class_date; // Obtener la fecha de la clase
 
                         // Verificar si esta clase ya tiene observación
                         const hasObservation = classInfo.has_observation || false;
                         const buttonClass = hasObservation ? 'bg-cyan-dark' : 'bg-indigo-dark text-white';
 
                         row.append(`<td>
-                            <button class="btn btn-sm ${buttonClass}" 
+                            <button class="btn btn-sm ${buttonClass} observation-btn" 
                                     data-bs-toggle="modal" 
-                                    data-bs-target="#${modalId}"
-                                    onclick="loadObservation('${student.number_id}', '${student.course_code}', '${classInfo.class_date}', '${modalId}')">
+                                    data-bs-target="#genericObservationModal"
+                                    data-student-id="${student.number_id}"
+                                    data-student-name="${student.full_name}"
+                                    data-course-id="${student.course_code}"
+                                    data-class-date="${classDate}"
+                                    data-class-number="${classNumber}">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>`);
                     });
 
-                    // NUEVA CELDA: Información de asistencia
-                    const attendanceModalId = `attendance-modal-${type}-${student.number_id}`;
+                    // Celda de información de asistencia usando el modal genérico
                     row.append(`<td>
-                        <button class="btn btn-sm btn-info" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#${attendanceModalId}"
-                                onclick="loadAttendanceInfo('${student.number_id}', '${student.course_code}', '${attendanceModalId}')">
+                        <button class="btn btn-sm bg-teal-dark text-white attendance-info-btn" 
+                                data-bs-toggle="modal"
+                                data-bs-target="#genericAttendanceModal"
+                                data-student-id="${student.number_id}"
+                                data-student-name="${student.full_name}"
+                                data-course-id="${student.course_code}">
                             <i class="fas fa-info-circle"></i> Ver
                         </button>
                     </td>`);
@@ -858,89 +1063,327 @@ $courses_data = getCourses();
             console.log(`Tabla ${tableId}: ${students.length} estudiantes cargados con ${classData.length} clases`);
         });
 
-        // Crear modales dinámicamente
-        createObservationModals(data, classes);
-
-        // Crear modales de información de asistencia
-        createAttendanceInfoModals(data, classes);
+        // Crear solo los modales genéricos
+        createGenericModals();
 
         console.log("Total de estudiantes cargados:", totalStudents);
     }
 
-    // Función para crear modales de observaciones
-    function createObservationModals(data, classes) {
-        const courseTypes = ['tecnico', 'ingles_nivelado', 'english_code', 'habilidades'];
-
+    // Función para crear solo los modales genéricos
+    function createGenericModals() {
         // Limpiar modales existentes
-        $('.observation-modal').remove();
+        $('.observation-modal, .attendance-info-modal').remove();
 
-        courseTypes.forEach(type => {
-            const students = data[type] || [];
-            const classData = classes[type] || [];
+        // Modal genérico para observaciones
+        const observationModal = `
+        <div class="modal fade observation-modal" id="genericObservationModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="observationModalTitle">Observación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="genericObservationForm">
+                            <div class="mb-3">
+                                <label class="form-label" id="observationStudentLabel"><strong>Estudiante:</strong></label>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" id="observationClassLabel"><strong>Fecha de Clase:</strong></label>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Observación</label>
+                                <select class="form-select" name="observation_type" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="excelente">Excelente desempeño</option>
+                                    <option value="bueno">Buen desempeño</option>
+                                    <option value="regular">Desempeño regular</option>
+                                    <option value="malo">Bajo desempeño</option>
+                                    <option value="ausente">Estudiante ausente</option>
+                                    <option value="tarde">Llegada tardía</option>
+                                    <option value="participacion">Alta participación</option>
+                                    <option value="dificultades">Dificultades de aprendizaje</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Observaciones</label>
+                                <textarea class="form-control" name="observation_text" rows="4" 
+                                        placeholder="Escriba sus observaciones aquí..."></textarea>
+                            </div>
+                            <input type="hidden" name="student_id">
+                            <input type="hidden" name="course_id">
+                            <input type="hidden" name="class_date">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="saveObservationBtn">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
 
-            students.forEach(student => {
-                classData.forEach((classInfo, index) => {
-                    const classNumber = index + 1;
-                    const modalId = `modal-${type}-${student.number_id}-${classNumber}`;
-
-                    const modal = `
-                    <div class="modal fade observation-modal" id="${modalId}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Observación - Clase ${classNumber}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        // Modal genérico para información de asistencia
+        const attendanceModal = `
+       <div class="modal fade attendance-info-modal" id="genericAttendanceModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-indigo-dark text-white">
+                        <h5 class="modal-title" id="attendanceModalTitle">
+                            <i class="fas fa-user-clock me-2"></i> 
+                            Información de Asistencia
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                        <!-- Spinner de carga -->
+                        <div id="attendanceLoading" class="text-center p-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando información de asistencia...</p>
+                        </div>
+                        
+                        <!-- Contenido del modal -->
+                        <div id="attendanceContent" style="display: none;">
+                            <!-- Estadísticas de asistencia -->
+                            <div class="card mb-4 border-0 shadow-sm">
+                                <div class="card-header bg-gradient bg-indigo-dark text-white">
+                                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Estadísticas de Asistencia</h6>
                                 </div>
-                                <div class="modal-body">
-                                    <form id="form-${modalId}">
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Estudiante:</strong> ${student.full_name}</label>
+                                <div class="card-body bg-light">
+                                    <div class="row g-3 w-100">
+                                        <div class="col-md-4">
+                                            <div class="text-center p-3 bg-white rounded border-start border-5 border-primary">
+                                                <h6 class="text-muted mb-1">Total de Clases</h6>
+                                                <div class="fs-2 fw-bold text-primary" id="totalClasses">0</div>
+                                            </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label"><strong>Fecha de Clase:</strong> ${classInfo.class_date}</label>
+                                        <div class="col-md-4">
+                                            <div class="text-center p-3 bg-white rounded border-start border-5 border-success">
+                                                <h6 class="text-muted mb-1">% Asistencia</h6>
+                                                <div class="fs-2 fw-bold text-success" id="attendancePercentage">0%</div>
+                                            </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Tipo de Observación</label>
-                                            <select class="form-select" name="observation_type" required>
-                                                <option value="">Seleccionar...</option>
-                                                <option value="excelente">Excelente desempeño</option>
-                                                <option value="bueno">Buen desempeño</option>
-                                                <option value="regular">Desempeño regular</option>
-                                                <option value="malo">Bajo desempeño</option>
-                                                <option value="ausente">Estudiante ausente</option>
-                                                <option value="tarde">Llegada tardía</option>
-                                                <option value="participacion">Alta participación</option>
-                                                <option value="dificultades">Dificultades de aprendizaje</option>
-                                                <option value="otro">Otro</option>
-                                            </select>
+                                        <div class="col-md-4">
+                                            <div class="text-center p-3 bg-white rounded border-start border-5 border-danger">
+                                                <h6 class="text-muted mb-1">% Inasistencia</h6>
+                                                <div class="fs-2 fw-bold text-danger" id="absencePercentage">0%</div>
+                                            </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Observaciones</label>
-                                            <textarea class="form-control" name="observation_text" rows="4" 
-                                                    placeholder="Escriba sus observaciones aquí..."></textarea>
-                                        </div>
-                                        <input type="hidden" name="student_id" value="${student.number_id}">
-                                        <input type="hidden" name="course_id" value="${student.course_code}">
-                                        <input type="hidden" name="class_date" value="${classInfo.class_date}">
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                    <button type="button" class="btn btn-primary" onclick="saveObservation('${modalId}')">Guardar</button>
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <!-- Formulario de gestión -->
+                            <form id="genericAttendanceForm">
+                                <input type="hidden" name="student_id">
+                                <input type="hidden" name="course_id">
+                                
+                                <!-- Gestión de Subsanación -->
+                                <div class="card mb-4 border-0 shadow-sm">
+                                    <div class="card-header bg-gradient bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-tasks me-2"></i> Gestión de Subsanación</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-lg-6">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-question-circle me-1"></i>
+                                                    ¿Requiere subsanación/gestión adicional?
+                                                </label>
+                                                <select class="form-select form-select-lg" name="requires_intervention">
+                                                    <option value="">Seleccione una opción</option>
+                                                    <option value="Si">Sí</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-user me-1"></i>
+                                                    Responsable
+                                                </label>
+                                                <input type="text" class="form-control form-control-lg" name="responsible_username" readonly>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-comment-dots me-1"></i>
+                                                    Observación Subsanación
+                                                </label>
+                                                <textarea class="form-control" name="intervention_observation" rows="3" 
+                                                         placeholder="Describe las acciones de subsanación realizadas o planificadas..."></textarea>
+                                            </div>
+                                            <div class="col-lg-6 mx-auto">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    ¿Resuelta?
+                                                </label>
+                                                <select class="form-select form-select-lg" name="is_resolved">
+                                                    <option value="">Seleccione una opción</option>
+                                                    <option value="Si">Sí</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Estrategia Adicional -->
+                                <div class="card mb-4 border-0 shadow-sm">
+                                    <div class="card-header bg-gradient bg-teal-dark text-white">
+                                        <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i> Estrategia Adicional</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3 w-100">
+                                            <div class="col-lg-6">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-cog me-1"></i>
+                                                    ¿Requiere estrategia adicional?
+                                                </label>
+                                                <select class="form-select form-select-lg" name="requires_additional_strategy">
+                                                    <option value="">Seleccione una opción</option>
+                                                    <option value="Si">Sí</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-chart-line me-1"></i>
+                                                    ¿Cumple estrategia?
+                                                </label>
+                                                <select class="form-select form-select-lg" name="strategy_fulfilled">
+                                                    <option value="">Seleccione una opción</option>
+                                                    <option value="Si">Sí</option>
+                                                    <option value="No">No</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-sticky-note me-1"></i>
+                                                    Observación Estrategia
+                                                </label>
+                                                <textarea class="form-control" name="strategy_observation" rows="3"
+                                                         placeholder="Describe la estrategia implementada y su efectividad..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Información de retiro -->
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-gradient bg-secondary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-sign-out-alt me-2"></i> Información de Retiro</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3 w-100">
+                                            <div class="col-lg-8">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Motivo de retiro
+                                                </label>
+                                                <select class="form-select form-select-lg" name="withdrawal_reason">
+                                                    <option value="">No aplica / Estudiante activo</option>
+                                                    <option value="Motivos laborales">Motivos laborales</option>
+                                                    <option value="Problemas personales">Problemas personales</option>
+                                                    <option value="Cambio de programa">Cambio de programa</option>
+                                                    <option value="Problemas de salud">Problemas de salud</option>
+                                                    <option value="Dificultades académicas">Dificultades académicas</option>
+                                                    <option value="Problemas económicos">Problemas económicos</option>
+                                                    <option value="Otro">Otro</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-calendar-alt me-1"></i>
+                                                    Fecha de retiro
+                                                </label>
+                                                <input type="date" class="form-control form-control-lg" name="withdrawal_date">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    `;
+                    <div class="modal-footer bg-light border-top">
+                        <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cerrar
+                        </button>
+                        <button type="button" class="btn bg-indigo-dark text-white btn-lg" id="saveAttendanceBtn">
+                            <i class="fas fa-save me-2"></i> Guardar Información
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
 
-                    $('body').append(modal);
-                });
-            });
+        // Agregar modales al DOM
+        $('body').append(observationModal);
+        $('body').append(attendanceModal);
+
+        // Configurar event listeners para los modales genéricos
+        setupModalEventListeners();
+    }
+
+    // Función para configurar los event listeners de los modales
+    function setupModalEventListeners() {
+        // Event listener para botones de observación
+        $(document).off('click', '.observation-btn').on('click', '.observation-btn', function(e) {
+            e.preventDefault();
+
+            const studentId = $(this).data('student-id');
+            const studentName = $(this).data('student-name');
+            const courseId = $(this).data('course-id');
+            const classDate = $(this).data('class-date');
+            const classNumber = $(this).data('class-number');
+
+            // Configurar el modal con los datos
+            $('#observationModalTitle').text(`Observación - Clase ${classNumber}`);
+            $('#observationStudentLabel').html(`<strong>Estudiante:</strong> ${studentName}`);
+            $('#observationClassLabel').html(`<strong>Fecha de Clase:</strong> ${classDate}`);
+
+            // Limpiar formulario y establecer datos
+            const form = $('#genericObservationForm');
+            form[0].reset();
+            form.find('[name="student_id"]').val(studentId);
+            form.find('[name="course_id"]').val(courseId);
+            form.find('[name="class_date"]').val(classDate);
+
+            // Guardar referencia del botón actual para actualizar su estado después
+            $('#genericObservationModal').data('current-button', this);
+
+            // Cargar observación existente
+            loadObservationGeneric(studentId, courseId, classDate);
+
+            // Mostrar modal
+            $('#genericObservationModal').modal('show');
+        });
+
+        // Event listener para botones de información de asistencia
+        $(document).off('click', '.attendance-info-btn').on('click', '.attendance-info-btn', function(e) {
+            e.preventDefault();
+            const studentId = $(this).data('student-id');
+            const studentName = $(this).data('student-name');
+            const courseId = $(this).data('course-id');
+            loadAttendanceInfoGeneric(studentId, courseId, studentName);
+        });
+
+        // Event listener para guardar observación
+        $('#saveObservationBtn').off('click').on('click', function() {
+            saveObservationGeneric();
+        });
+
+        // Event listener para guardar información de asistencia
+        $('#saveAttendanceBtn').off('click').on('click', function() {
+            saveAttendanceManagementGeneric();
         });
     }
 
-    // Función para cargar observación existente
-    function loadObservation(studentId, courseId, classDate, modalId) {
+    // Función para cargar observación existente en modal genérico
+    function loadObservationGeneric(studentId, courseId, classDate) {
         $.ajax({
             url: 'components/attendance/getObservation.php',
             method: 'POST',
@@ -952,14 +1395,9 @@ $courses_data = getCourses();
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
-                    const form = $(`#form-${modalId}`);
+                    const form = $('#genericObservationForm');
                     form.find('[name="observation_type"]').val(response.data.observation_type);
                     form.find('[name="observation_text"]').val(response.data.observation_text);
-
-                    // Cambiar el aspecto del botón cuando existe observación
-                    const btnObservation = $(`[data-bs-target="#${modalId}"]`);
-                    btnObservation.removeClass('btn-outline-primary');
-                    btnObservation.addClass('bg-cyan-dark');
                 }
             },
             error: function(xhr, status, error) {
@@ -968,30 +1406,39 @@ $courses_data = getCourses();
         });
     }
 
-    // Función para guardar observación
-    function saveObservation(modalId) {
-        const form = $(`#form-${modalId}`);
+    // Función para guardar observación desde modal genérico
+    function saveObservationGeneric() {
+        const form = $('#genericObservationForm');
         const formData = form.serialize();
+        const saveButton = $('#saveObservationBtn');
+        const currentButton = $('#genericObservationModal').data('current-button');
+
+        // Mostrar indicador de carga en el botón
+        const originalText = saveButton.html();
+        saveButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
 
         $.ajax({
             url: 'components/attendance/saveObservation.php',
             method: 'POST',
             data: formData,
             dataType: 'json',
+            timeout: 10000,
             success: function(response) {
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Éxito',
-                        text: 'Observación guardada correctamente'
+                        text: 'Observación guardada correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
                     });
 
                     // Cambiar el aspecto del botón tras guardar con éxito
-                    const btnObservation = $(`[data-bs-target="#${modalId}"]`);
-                    btnObservation.removeClass('btn-outline-primary');
-                    btnObservation.addClass('bg-cyan-dark');
+                    if (currentButton) {
+                        $(currentButton).removeClass('btn-outline-primary').addClass('bg-cyan-dark');
+                    }
 
-                    $(`#${modalId}`).modal('hide');
+                    $('#genericObservationModal').modal('hide');
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -1001,15 +1448,201 @@ $courses_data = getCourses();
                 }
             },
             error: function(xhr, status, error) {
+                console.error("Error guardando observación:", {
+                    xhr,
+                    status,
+                    error
+                });
+                let errorMessage = 'No se pudo conectar con el servidor';
+
+                if (status === 'timeout') {
+                    errorMessage = 'La operación tardó demasiado tiempo';
+                } else if (xhr.responseText) {
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        errorMessage = errorResponse.message || errorMessage;
+                    } catch (e) {
+                        console.error("Error parsing response:", xhr.responseText);
+                    }
+                }
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Error de conexión',
-                    text: 'No se pudo conectar con el servidor'
+                    text: errorMessage
                 });
-                console.error("Error guardando observación:", error);
+            },
+            complete: function() {
+                // Restaurar el botón
+                saveButton.prop('disabled', false).html(originalText);
             }
         });
     }
+
+    // Función para cargar información de asistencia en modal genérico
+    function loadAttendanceInfoGeneric(studentId, courseId, studentName) {
+        const modal = $('#genericAttendanceModal');
+
+        // Configurar título y datos básicos
+        modal.find('#attendanceModalTitle').html(`<i class="fas fa-user-clock me-2"></i> Asistencia: ${studentName}`);
+        const form = modal.find('#genericAttendanceForm');
+        form[0].reset();
+        form.find('[name="student_id"]').val(studentId);
+        form.find('[name="course_id"]').val(courseId);
+
+        // Mostrar spinner y ocultar contenido
+        modal.find('#attendanceLoading').show();
+        modal.find('#attendanceContent').hide();
+
+        // Obtener username de la sesión
+        const username = '<?php echo isset($_SESSION["username"]) ? $_SESSION["username"] : "usuario"; ?>';
+
+        // Peticiones AJAX
+        Promise.all([
+            // Cargar estadísticas
+            $.ajax({
+                url: 'components/attendance/getAttendanceStats.php',
+                method: 'POST',
+                data: {
+                    student_id: studentId,
+                    course_id: courseId
+                },
+                dataType: 'json'
+            }),
+            // Cargar gestión existente
+            $.ajax({
+                url: 'components/attendance/getAttendanceManagement.php',
+                method: 'POST',
+                data: {
+                    student_id: studentId,
+                    course_id: courseId
+                },
+                dataType: 'json'
+            })
+        ]).then(([statsResponse, managementResponse]) => {
+            // Procesar estadísticas
+            if (statsResponse && statsResponse.success) {
+                const stats = statsResponse.data;
+                modal.find('#totalClasses').text(stats.totalClasses || 0);
+                modal.find('#attendancePercentage').text(`${stats.attendancePercentage || 0}%`);
+                modal.find('#absencePercentage').text(`${stats.absencePercentage || 0}%`);
+
+                const attendanceElement = modal.find('#attendancePercentage');
+                attendanceElement.removeClass('text-success text-warning text-danger');
+                if (stats.attendancePercentage < 70) {
+                    attendanceElement.addClass('text-danger');
+                } else if (stats.attendancePercentage < 85) {
+                    attendanceElement.addClass('text-warning');
+                } else {
+                    attendanceElement.addClass('text-success');
+                }
+            }
+
+            // Procesar gestión
+            form.find('[name="responsible_username"]').val(username); // Por defecto el usuario actual
+            if (managementResponse && managementResponse.success && managementResponse.data) {
+                const data = managementResponse.data;
+                form.find('[name="requires_intervention"]').val(data.requires_intervention || '');
+                form.find('[name="intervention_observation"]').val(data.intervention_observation || '');
+                form.find('[name="is_resolved"]').val(data.is_resolved || '');
+                form.find('[name="requires_additional_strategy"]').val(data.requires_additional_strategy || '');
+                form.find('[name="strategy_observation"]').val(data.strategy_observation || '');
+                form.find('[name="strategy_fulfilled"]').val(data.strategy_fulfilled || '');
+                form.find('[name="withdrawal_reason"]').val(data.withdrawal_reason || '');
+                form.find('[name="withdrawal_date"]').val(data.withdrawal_date ? data.withdrawal_date.split(' ')[0] : '');
+                if (data.responsible_username) {
+                    form.find('[name="responsible_username"]').val(data.responsible_username);
+                }
+            }
+
+            // Mostrar contenido
+            modal.find('#attendanceLoading').hide();
+            modal.find('#attendanceContent').show();
+
+        }).catch(error => {
+            console.error("Error cargando información de asistencia:", error);
+            Swal.fire('Error', 'No se pudo cargar la información de asistencia.', 'error');
+            modal.find('#attendanceLoading').hide();
+        });
+    }
+
+    // Función para guardar gestión de asistencia desde modal genérico
+    function saveAttendanceManagementGeneric() {
+        const form = $('#genericAttendanceForm');
+        const formData = form.serialize();
+        const saveButton = $('#saveAttendanceBtn');
+
+        // Mostrar indicador de carga
+        const originalText = saveButton.html();
+        saveButton.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+
+        $.ajax({
+            url: 'components/attendance/saveAttendanceManagement.php',
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            timeout: 15000,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Guardado exitoso',
+                        text: 'La información de gestión ha sido guardada correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // Cerrar el modal después de un pequeño delay
+                    setTimeout(() => {
+                        $('#genericAttendanceModal').modal('hide');
+                    }, 2000);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al guardar: ' + (response.message || 'Error desconocido')
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error guardando gestión:", {
+                    xhr,
+                    status,
+                    error
+                });
+                let errorMessage = 'No se pudo conectar con el servidor';
+
+                if (status === 'timeout') {
+                    errorMessage = 'La operación tardó demasiado tiempo';
+                } else if (xhr.responseText) {
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        errorMessage = errorResponse.message || errorMessage;
+                    } catch (e) {
+                        console.error("Error parsing response:", xhr.responseText);
+                    }
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: errorMessage
+                });
+            },
+            complete: function() {
+                // Restaurar el botón
+                saveButton.prop('disabled', false).html(originalText);
+            }
+        });
+    }
+
+    // Eliminar las funciones antiguas que ya no se necesitan
+    // - createObservationModals()
+    // - createAttendanceInfoModals() 
+    // - loadObservation()
+    // - saveObservation()
+    // - loadAttendanceInfo()
+    // - saveAttendanceManagement()
 
     // Función actualizada para el mapeo correcto de estados
     function getStatusText(status) {
@@ -1056,195 +1689,5 @@ $courses_data = getCourses();
             default:
                 return 'bg-light text-dark'; // Estado desconocido
         }
-    }
-
-    // Función para crear modales de información de asistencia
-    function createAttendanceInfoModals(data, classes) {
-        const courseTypes = ['tecnico', 'ingles_nivelado', 'english_code', 'habilidades'];
-
-        // Limpiar modales existentes
-        $('.attendance-info-modal').remove();
-
-        courseTypes.forEach(type => {
-            const students = data[type] || [];
-
-            students.forEach(student => {
-                const modalId = `attendance-modal-${type}-${student.number_id}`;
-
-                const modal = `
-                <div class="modal fade attendance-info-modal" id="${modalId}" tabindex="-1">
-                    <div class="modal-dialog modal-xl">
-                        <div class="modal-content">
-                            <div class="modal-header bg-info text-white">
-                                <h5 class="modal-title">
-                                    <i class="fas fa-user-clock me-2"></i> 
-                                    Información de Asistencia: ${student.full_name}
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Spinner de carga -->
-                            <div id="loading-${modalId}" class="text-center p-4">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Cargando...</span>
-                                </div>
-                                <p class="mt-2">Cargando información de asistencia...</p>
-                            </div>
-                            
-                            <!-- Contenido del modal -->
-                            <div id="content-${modalId}" style="display: none;">
-                                <!-- Estadísticas de asistencia -->
-                                <div class="card mb-4">
-                                    <div class="card-header bg-light">
-                                        <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Estadísticas de Asistencia</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4 text-center">
-                                                <div class="attendance-stat">
-                                                    <h6>Total de Clases</h6>
-                                                    <div class="fs-2 fw-bold" id="total-classes-${modalId}">0</div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 text-center">
-                                                <div class="attendance-stat text-success">
-                                                    <h6>% Asistencia</h6>
-                                                    <div class="fs-2 fw-bold" id="attendance-percentage-${modalId}">0%</div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 text-center">
-                                                <div class="attendance-stat text-danger">
-                                                    <h6>% Inasistencia</h6>
-                                                    <div class="fs-2 fw-bold" id="absence-percentage-${modalId}">0%</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Formulario de gestión -->
-                                <form id="management-form-${modalId}">
-                                    <input type="hidden" name="student_id" value="${student.number_id}">
-                                    <input type="hidden" name="course_id" value="${student.course_code}">
-                                    
-                                    <div class="card mb-4">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0"><i class="fas fa-tasks me-2"></i> Gestión de Subsanación</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row mb-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">¿Requiere subsanación/gestión adicional?</label>
-                                                    <select class="form-select" name="requires_intervention">
-                                                        <option value="">Seleccione</option>
-                                                        <option value="Si">Sí</option>
-                                                        <option value="No">No</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Responsable</label>
-                                                    <input type="text" class="form-control" name="responsible_username" value="" readonly>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row mb-3">
-                                                <div class="col-12">
-                                                    <label class="form-label">Observación Subsanación</label>
-                                                    <textarea class="form-control" name="intervention_observation" rows="2"></textarea>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">¿Resuelta?</label>
-                                                    <select class="form-select" name="is_resolved">
-                                                        <option value="">Seleccione</option>
-                                                        <option value="Si">Sí</option>
-                                                        <option value="No">No</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="card mb-4">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i> Estrategia Adicional</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row mb-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">¿Requiere estrategia adicional?</label>
-                                                    <select class="form-select" name="requires_additional_strategy">
-                                                        <option value="">Seleccione</option>
-                                                        <option value="Si">Sí</option>
-                                                        <option value="No">No</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">¿Cumple estrategia?</label>
-                                                    <select class="form-select" name="strategy_fulfilled">
-                                                        <option value="">Seleccione</option>
-                                                        <option value="Si">Sí</option>
-                                                        <option value="No">No</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-12">
-                                                    <label class="form-label">Observación Estrategia</label>
-                                                    <textarea class="form-control" name="strategy_observation" rows="2"></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <hr class="my-4">
-                                    
-                                    <!-- Información de retiro -->
-                                    <div class="card">
-                                        <div class="card-header bg-light">
-                                            <h6 class="mb-0"><i class="fas fa-sign-out-alt me-2"></i> Información de Retiro</h6>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Motivo de retiro</label>
-                                                    <select class="form-select" name="withdrawal_reason">
-                                                        <option value="">No aplica</option>
-                                                        <option value="Motivos laborales">Motivos laborales</option>
-                                                        <option value="Problemas personales">Problemas personales</option>
-                                                        <option value="Cambio de programa">Cambio de programa</option>
-                                                        <option value="Problemas de salud">Problemas de salud</option>
-                                                        <option value="Dificultades académicas">Dificultades académicas</option>
-                                                        <option value="Problemas económicos">Problemas económicos</option>
-                                                        <option value="Otro">Otro</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Fecha de retiro</label>
-                                                    <input type="date" class="form-control" name="withdrawal_date">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-primary" onclick="saveAttendanceManagement('${modalId}')">
-                                <i class="fas fa-save me-2"></i> Guardar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            `;
-
-                $('body').append(modal);
-            });
-        });
     }
 </script>

@@ -1,9 +1,11 @@
 <?php
-// Deshabilitar la salida de errores para evitar contaminar el JSON
-error_reporting(0);
+error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 header('Content-Type: application/json');
+ob_start(); // Iniciar buffer de salida para evitar salidas no deseadas
+
 require_once __DIR__ . '/../../controller/conexion.php';
 
 // Verificar que se recibieron los parámetros necesarios
@@ -31,102 +33,58 @@ try {
         throw new Exception("Error de conexión a la base de datos");
     }
     
-    // Verificar si ya existe un registro para este estudiante y curso
-    $sqlCheck = "SELECT id FROM student_attendance_management 
-                 WHERE student_id = ? AND course_id = ?";
+    // Usar UPSERT (INSERT ... ON DUPLICATE KEY UPDATE) para mayor eficiencia
+    $sql = "INSERT INTO student_attendance_management (
+                student_id, course_id, requires_intervention, 
+                responsible_username, intervention_observation, is_resolved,
+                requires_additional_strategy, strategy_observation, strategy_fulfilled,
+                withdrawal_reason, withdrawal_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                requires_intervention = VALUES(requires_intervention),
+                responsible_username = VALUES(responsible_username),
+                intervention_observation = VALUES(intervention_observation),
+                is_resolved = VALUES(is_resolved),
+                requires_additional_strategy = VALUES(requires_additional_strategy),
+                strategy_observation = VALUES(strategy_observation),
+                strategy_fulfilled = VALUES(strategy_fulfilled),
+                withdrawal_reason = VALUES(withdrawal_reason),
+                withdrawal_date = VALUES(withdrawal_date),
+                updated_at = CURRENT_TIMESTAMP";
     
-    $stmtCheck = $conn->prepare($sqlCheck);
-    if (!$stmtCheck) {
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
         throw new Exception("Error en la preparación de la consulta: " . $conn->error);
     }
     
-    $stmtCheck->bind_param('si', $studentId, $courseId);
-    
-    if (!$stmtCheck->execute()) {
-        throw new Exception("Error al ejecutar la consulta: " . $stmtCheck->error);
-    }
-    
-    $resultCheck = $stmtCheck->get_result();
-    
-    // Verificar que la tabla existe
-    if ($resultCheck === false) {
-        throw new Exception("Error al consultar la tabla. Es posible que la tabla 'student_attendance_management' no exista.");
-    }
-    
-    if ($resultCheck->num_rows > 0) {
-        // Actualizar registro existente
-        $row = $resultCheck->fetch_assoc();
-        $id = $row['id'];
-        
-        $sqlUpdate = "UPDATE student_attendance_management SET 
-                      requires_intervention = ?,
-                      responsible_username = ?,
-                      intervention_observation = ?,
-                      is_resolved = ?,
-                      requires_additional_strategy = ?,
-                      strategy_observation = ?,
-                      strategy_fulfilled = ?,
-                      withdrawal_reason = ?,
-                      withdrawal_date = ?
-                      WHERE id = ?";
-        
-        $stmt = $conn->prepare($sqlUpdate);
-        if (!$stmt) {
-            throw new Exception("Error en la preparación de la actualización: " . $conn->error);
-        }
-        
-        $stmt->bind_param('sssssssssi', 
-            $requiresIntervention,
-            $responsibleUsername,
-            $interventionObservation,
-            $isResolved,
-            $requiresAdditionalStrategy,
-            $strategyObservation,
-            $strategyFulfilled,
-            $withdrawalReason,
-            $withdrawalDate,
-            $id
-        );
-        
-    } else {
-        // Crear nuevo registro
-        $sqlInsert = "INSERT INTO student_attendance_management (
-                      student_id, course_id, requires_intervention, 
-                      responsible_username, intervention_observation, is_resolved,
-                      requires_additional_strategy, strategy_observation, strategy_fulfilled,
-                      withdrawal_reason, withdrawal_date) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $conn->prepare($sqlInsert);
-        if (!$stmt) {
-            throw new Exception("Error en la preparación de la inserción: " . $conn->error);
-        }
-        
-        $stmt->bind_param('sisssssssss', // Añadido un 's' más para withdrawal_date
-            $studentId,
-            $courseId,
-            $requiresIntervention,
-            $responsibleUsername,
-            $interventionObservation,
-            $isResolved,
-            $requiresAdditionalStrategy,
-            $strategyObservation,
-            $strategyFulfilled,
-            $withdrawalReason,
-            $withdrawalDate
-        );
-    }
+    $stmt->bind_param('sisssssssss',
+        $studentId,
+        $courseId,
+        $requiresIntervention,
+        $responsibleUsername,
+        $interventionObservation,
+        $isResolved,
+        $requiresAdditionalStrategy,
+        $strategyObservation,
+        $strategyFulfilled,
+        $withdrawalReason,
+        $withdrawalDate
+    );
     
     if ($stmt->execute()) {
+        ob_clean(); // Limpiar cualquier salida no deseada
         echo json_encode(['success' => true]);
     } else {
         throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
     }
     
 } catch (Exception $e) {
+    ob_clean(); // Limpiar cualquier salida no deseada
     echo json_encode([
         'success' => false,
         'message' => 'Error al guardar datos de gestión: ' . $e->getMessage()
     ]);
 }
+
+ob_end_flush(); // Enviar el buffer de salida
 ?>

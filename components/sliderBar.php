@@ -167,6 +167,20 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                     </div>
                 <?php endif; ?>
 
+                <?php if ($rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Historial de cambios en campistas">
+                        <a href="change_history.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-calendar-check icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Historial</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
                 <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
                     <a href="https://agenciaeaglesoftware.com/" target="_blank">
                         <label class="checkbox-wrapper">
