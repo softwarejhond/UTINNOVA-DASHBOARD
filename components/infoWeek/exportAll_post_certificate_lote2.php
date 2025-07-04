@@ -323,7 +323,7 @@ function exportDataToExcel($conn)
             $data[] = [
                 'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
                 'id' => $row['id'],
-                'Tipo_documento' => $row['typeID'] === 'C.C' ? 'CC' : $row['typeID'],
+                'Tipo_documento' => $row['typeID'],
                 'Número_documento' => $row['number_id'],
                 'Nombre1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])),
                 'Nombre2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])),
@@ -344,7 +344,7 @@ function exportDataToExcel($conn)
                     : ($departamentosNombreMap[substr($municipiosMap[strtoupper(normalizeString($row['departamento'])) . '|' .
                         strtoupper(normalizeString($row['municipio']))] ?? $row['municipality'], 0, 2)] ?? strtoupper($row['departamento'])),
 
-                'Region' => 'Región 7 Lote 1',
+                'Region' => 'Región 8 Lote 2',
 
                 'Codigo_municipio' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
                     strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
@@ -421,7 +421,7 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => 'UTTT-R7L1',
+                'Origen' => 'UTI-R8L2',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => $tieneProfesor,
                 'Programa de interés' => $estaEnGroups ? $row['program'] : '',

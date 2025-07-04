@@ -65,10 +65,12 @@ try {
         return $observations;
     }
     
-    // Función para obtener información de gestión de asistencia
+    // Función para obtener información de gestión de asistencia con nombre del responsable
     function getAttendanceManagement($conn, $studentId, $courseId) {
-        $sql = "SELECT * FROM student_attendance_management 
-                WHERE student_id = ? AND course_id = ?";
+        $sql = "SELECT sam.*, u.nombre as responsible_name 
+                FROM student_attendance_management sam
+                LEFT JOIN users u ON sam.responsible_username = u.username
+                WHERE sam.student_id = ? AND sam.course_id = ?";
         
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
@@ -82,6 +84,73 @@ try {
         $stmt->close();
         
         return $management;
+    }
+
+    // Función para obtener estadísticas de asistencia
+    function getAttendanceStats($conn, $studentId, $courseId) {
+        // Obtener total de clases
+        $sqlTotalClasses = "SELECT COUNT(DISTINCT class_date) AS total_classes
+                           FROM attendance_records
+                           WHERE course_id = ? AND class_date <= CURRENT_DATE()";
+        
+        $stmtClasses = $conn->prepare($sqlTotalClasses);
+        $stmtClasses->bind_param('i', $courseId);
+        $stmtClasses->execute();
+        $resultClasses = $stmtClasses->get_result();
+        $rowClasses = $resultClasses->fetch_assoc();
+        $totalClasses = $rowClasses['total_classes'];
+        $stmtClasses->close();
+        
+        // Obtener asistencias (presente o tarde)
+        $sqlAttendance = "SELECT COUNT(*) AS total_attendance
+                          FROM attendance_records
+                          WHERE student_id = ? 
+                          AND course_id = ?
+                          AND class_date <= CURRENT_DATE() 
+                          AND (attendance_status = 'presente' OR attendance_status = 'tarde')";
+        
+        $stmtAttendance = $conn->prepare($sqlAttendance);
+        $stmtAttendance->bind_param('si', $studentId, $courseId);
+        $stmtAttendance->execute();
+        $resultAttendance = $stmtAttendance->get_result();
+        $rowAttendance = $resultAttendance->fetch_assoc();
+        $totalAttendance = $rowAttendance['total_attendance'];
+        $stmtAttendance->close();
+        
+        // Obtener ausencias (solo cuando el status es 'ausente')
+        $sqlAbsences = "SELECT COUNT(*) AS total_absences
+                        FROM attendance_records
+                        WHERE student_id = ? 
+                        AND course_id = ?
+                        AND class_date <= CURRENT_DATE() 
+                        AND attendance_status = 'ausente'";
+        
+        $stmtAbsences = $conn->prepare($sqlAbsences);
+        $stmtAbsences->bind_param('si', $studentId, $courseId);
+        $stmtAbsences->execute();
+        $resultAbsences = $stmtAbsences->get_result();
+        $rowAbsences = $resultAbsences->fetch_assoc();
+        $totalAbsences = $rowAbsences['total_absences'];
+        $stmtAbsences->close();
+        
+        // Calcular porcentajes
+        $totalRecordsForStudent = $totalAttendance + $totalAbsences;
+        
+        if ($totalRecordsForStudent > 0) {
+            $attendancePercentage = round(($totalAttendance / $totalRecordsForStudent) * 100, 1);
+            $absencePercentage = round(($totalAbsences / $totalRecordsForStudent) * 100, 1);
+        } else {
+            $attendancePercentage = 0;
+            $absencePercentage = 0;
+        }
+        
+        return [
+            'totalClasses' => $totalClasses,
+            'totalAttendance' => $totalAttendance,
+            'totalAbsences' => $totalAbsences,
+            'attendancePercentage' => $attendancePercentage,
+            'absencePercentage' => $absencePercentage
+        ];
     }
 
     $courseTypes = [
@@ -112,18 +181,28 @@ try {
             continue;
         }
 
-        // Crear encabezados
+        // Crear encabezados básicos
         $headers = [
             'Documento', 'Nombre', 'Celular', 'Correo Institucional', 
             'Correo Personal', 'Horario', 'Grupo', 'Estado Admisión'
         ];
         
-        // Agregar columnas para cada clase
+        // Agregar columnas para cada clase (tipo y observación separadas)
         $classDates = [];
         foreach ($classData as $index => $classInfo) {
-            $headers[] = 'Clase ' . ($index + 1) . ' (' . $classInfo['class_date'] . ')';
-            $classDates[] = $classInfo['class_date'];
+            $classNumber = $index + 1;
+            $classDate = $classInfo['class_date'];
+            $headers[] = "Clase {$classNumber} - Tipo Observación ({$classDate})";
+            $headers[] = "Clase {$classNumber} - Observación ({$classDate})";
+            $classDates[] = $classDate;
         }
+        
+        // Agregar columnas de estadísticas de asistencia
+        $headers = array_merge($headers, [
+            'Total Asistencias',
+            '% Asistencia',
+            '% Inasistencias'
+        ]);
         
         // Agregar columnas de gestión
         $headers = array_merge($headers, [
@@ -146,6 +225,22 @@ try {
             $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . '1')->getFill()
                 ->setFillType(Fill::FILL_SOLID)
                 ->getStartColor()->setRGB('E2E8F0');
+            
+            // Aplicar colores diferentes según el tipo de columna
+            if (strpos($header, 'Asistencia') !== false || strpos($header, '%') !== false) {
+                // Color verde claro para estadísticas de asistencia
+                $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . '1')->getFill()
+                    ->getStartColor()->setRGB('D1FAE5');
+            } elseif (strpos($header, 'Clase') !== false) {
+                // Color azul claro para columnas de clases
+                $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . '1')->getFill()
+                    ->getStartColor()->setRGB('DBEAFE');
+            } elseif (strpos($header, 'Requiere') !== false || strpos($header, 'Observación') !== false || strpos($header, 'Estrategia') !== false || strpos($header, 'Retiro') !== false || strpos($header, 'Responsable') !== false) {
+                // Color amarillo claro para gestión
+                $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col) . '1')->getFill()
+                    ->getStartColor()->setRGB('FEF3C7');
+            }
+            
             $col++;
         }
 
@@ -167,23 +262,30 @@ try {
             // Obtener observaciones para este estudiante
             $observations = getStudentObservations($conn, $student['number_id'], $student['course_code'], $classDates);
             
-            // Datos de observaciones por clase
+            // Datos de observaciones por clase (separadas en dos columnas)
             foreach ($classDates as $classDate) {
-                $obsText = 'Sin observación';
                 if (isset($observations[$classDate])) {
                     $obs = $observations[$classDate];
-                    $obsText = $obs['type'];
-                    if (!empty($obs['text'])) {
-                        $obsText .= ': ' . $obs['text'];
-                    }
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $obs['type'] ?? '');
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $obs['text'] ?? '');
+                } else {
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, '');
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, '');
                 }
-                $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $obsText);
             }
+            
+            // Obtener estadísticas de asistencia
+            $stats = getAttendanceStats($conn, $student['number_id'], $student['course_code']);
+            
+            // Datos de estadísticas de asistencia
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $stats['totalAttendance']);
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $stats['attendancePercentage'] . '%');
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $stats['absencePercentage'] . '%');
             
             // Obtener información de gestión
             $management = getAttendanceManagement($conn, $student['number_id'], $student['course_code']);
             
-            // Datos de gestión de asistencia
+            // Datos de gestión de asistencia (ahora usando el nombre del responsable en lugar del username)
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['requires_intervention'] ?? '');
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['intervention_observation'] ?? '');
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['is_resolved'] ?? '');
@@ -192,7 +294,8 @@ try {
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['strategy_fulfilled'] ?? '');
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['withdrawal_reason'] ?? '');
             $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['withdrawal_date'] ?? '');
-            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['responsible_username'] ?? '');
+            // Usar el nombre del responsable en lugar del username
+            $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $management['responsible_name'] ?? '');
             
             $row++;
         }
@@ -207,6 +310,17 @@ try {
         $highestCol = $sheet->getHighestColumn();
         $sheet->getStyle('A1:' . $highestCol . $highestRow)->getBorders()->getAllBorders()
             ->setBorderStyle(Border::BORDER_THIN);
+
+        // Aplicar alineación central a los encabezados
+        $sheet->getStyle('A1:' . $highestCol . '1')->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+
+        // Aplicar wrap text a las columnas de observaciones
+        foreach (range('A', $highestCol) as $colLetter) {
+            $sheet->getStyle($colLetter . '1:' . $colLetter . $highestRow)->getAlignment()
+                ->setWrapText(true);
+        }
 
         $sheetIndex++;
     }

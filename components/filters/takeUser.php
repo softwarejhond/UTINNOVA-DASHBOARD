@@ -57,6 +57,8 @@ function rolUsuario($rol)
             return "Control maestro";
         case 13:
             return "Interventoría";
+        case 14:
+            return "Permanencia";
         default:
             return "Rol desconocido";
     }

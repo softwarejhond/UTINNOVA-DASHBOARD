@@ -213,6 +213,30 @@ $courses_data = getCourses();
         border-color: transparent;
         color: #30336b;
     }
+
+    /* Estilos para botones de asistencia */
+    .bg-orange-dark {
+        background-color: #ff8c00 !important;
+        color: white !important;
+        border-color: #ff8c00 !important;
+    }
+
+    .bg-teal-dark {
+        background-color: #008080 !important;
+        color: white !important;
+        border-color: #008080 !important;
+    }
+
+    /* Hover effects para botones de observación */
+    .observation-btn:hover {
+        transform: scale(1.05);
+        transition: transform 0.2s ease;
+    }
+
+    /* Tooltip personalizado para botones */
+    .observation-btn {
+        position: relative;
+    }
 </style>
 
 <div class="container-fluid mt-4">
@@ -1021,24 +1045,36 @@ $courses_data = getCourses();
                     row.append(`<td>${student.group_name || 'N/A'}</td>`);
                     row.append(`<td><span class="badge ${getStatusBadge(student.estado_admision)}">${statusText}</span></td>`);
 
-                    // Agregar celdas para cada clase usando el modal genérico
+                    // Agregar celdas para cada clase con color según estado de asistencia
                     classData.forEach((classInfo, index) => {
                         const classNumber = index + 1;
-                        const classDate = classInfo.class_date; // Obtener la fecha de la clase
+                        const classDate = classInfo.class_date;
+                        
+                        // Obtener estado de asistencia para este estudiante en esta clase
+                        const attendanceStatus = classInfo.attendance_by_student && classInfo.attendance_by_student[student.number_id] 
+                            ? classInfo.attendance_by_student[student.number_id] 
+                            : null;
+
+                        // Determinar clase CSS según el estado de asistencia
+                        const buttonClass = getAttendanceButtonClass(attendanceStatus);
+                        const attendanceText = getAttendanceStatusText(attendanceStatus);
 
                         // Verificar si esta clase ya tiene observación
                         const hasObservation = classInfo.has_observation || false;
-                        const buttonClass = hasObservation ? 'bg-cyan-dark' : 'bg-indigo-dark text-white';
+                        const finalButtonClass = hasObservation ? 'bg-cyan-dark' : buttonClass;
 
                         row.append(`<td>
-                            <button class="btn btn-sm ${buttonClass} observation-btn" 
+                            <button class="btn btn-sm ${finalButtonClass} observation-btn" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#genericObservationModal"
                                     data-student-id="${student.number_id}"
                                     data-student-name="${student.full_name}"
                                     data-course-id="${student.course_code}"
                                     data-class-date="${classDate}"
-                                    data-class-number="${classNumber}">
+                                    data-class-number="${classNumber}"
+                                    data-attendance-status="${attendanceStatus || ''}"
+                                    data-attendance-text="${attendanceText}"
+                                    title="${attendanceText}">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>`);
@@ -1069,6 +1105,34 @@ $courses_data = getCourses();
         console.log("Total de estudiantes cargados:", totalStudents);
     }
 
+    // Función para obtener la clase CSS del botón según el estado de asistencia
+    function getAttendanceButtonClass(attendanceStatus) {
+        switch(attendanceStatus) {
+            case 'presente':
+                return 'bg-teal-dark text-white';
+            case 'tarde':
+                return 'bg-orange-dark text-white';
+            case 'ausente':
+                return 'bg-danger text-white';
+            default:
+                return 'bg-secondary text-white'; // Sin registro
+        }
+    }
+
+    // Función para obtener el texto del estado de asistencia
+    function getAttendanceStatusText(attendanceStatus) {
+        switch(attendanceStatus) {
+            case 'presente':
+                return 'Presente';
+            case 'tarde':
+                return 'Llegada tardía';
+            case 'ausente':
+                return 'Ausente';
+            default:
+                return 'Sin registro';
+        }
+    }
+
     // Función para crear solo los modales genéricos
     function createGenericModals() {
         // Limpiar modales existentes
@@ -1095,15 +1159,19 @@ $courses_data = getCourses();
                                 <label class="form-label">Tipo de Observación</label>
                                 <select class="form-select" name="observation_type" required>
                                     <option value="">Seleccionar...</option>
-                                    <option value="excelente">Excelente desempeño</option>
-                                    <option value="bueno">Buen desempeño</option>
-                                    <option value="regular">Desempeño regular</option>
-                                    <option value="malo">Bajo desempeño</option>
-                                    <option value="ausente">Estudiante ausente</option>
-                                    <option value="tarde">Llegada tardía</option>
-                                    <option value="participacion">Alta participación</option>
-                                    <option value="dificultades">Dificultades de aprendizaje</option>
-                                    <option value="otro">Otro</option>
+                                    <option value="no responde">No responde</option>
+                                    <option value="condicion de salud">Condición de salud</option>
+                                    <option value="dificultades economicas">Dificultades económicas</option>
+                                    <option value="dificultades familiares">Dificultades familiares</option>
+                                    <option value="dificultades de conexion a internet">Dificultades de conexión a internet</option>
+                                    <option value="dificultades tecnicas con equipo">Dificultades técnicas con equipo</option>
+                                    <option value="incompatibilidad con los horarios">Incompatibilidad con los horarios</option>
+                                    <option value="insercion academica">Inserción académica</option>
+                                    <option value="insercion laboral">Inserción laboral</option>
+                                    <option value="inconformidad con el proceso">Inconformidad con el proceso</option>
+                                    <option value="motivos personales">Motivos personales</option>
+                                    <option value="viaje">Viaje</option>
+                                    <option value="otras causas">Otras causas</option>
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -1151,14 +1219,14 @@ $courses_data = getCourses();
                             <!-- Estadísticas de asistencia -->
                             <div class="card mb-4 border-0 shadow-sm">
                                 <div class="card-header bg-gradient bg-indigo-dark text-white">
-                                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Estadísticas de Asistencia</h6>
+                                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i> Estadísticas de Asistencia (Según clases a la fecha)</h6>
                                 </div>
                                 <div class="card-body bg-light">
                                     <div class="row g-3 w-100">
                                         <div class="col-md-4">
-                                            <div class="text-center p-3 bg-white rounded border-start border-5 border-primary">
-                                                <h6 class="text-muted mb-1">Total de Clases</h6>
-                                                <div class="fs-2 fw-bold text-primary" id="totalClasses">0</div>
+                                            <div class="text-center p-3 bg-white rounded border-start border-5 border-danger">
+                                                <h6 class="text-muted mb-1">Inasistencias/Total</h6>
+                                                <div class="fs-2 fw-bold text-danger" id="absencesDisplay">0/0</div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -1285,13 +1353,11 @@ $courses_data = getCourses();
                                                 </label>
                                                 <select class="form-select form-select-lg" name="withdrawal_reason">
                                                     <option value="">No aplica / Estudiante activo</option>
-                                                    <option value="Motivos laborales">Motivos laborales</option>
-                                                    <option value="Problemas personales">Problemas personales</option>
-                                                    <option value="Cambio de programa">Cambio de programa</option>
-                                                    <option value="Problemas de salud">Problemas de salud</option>
-                                                    <option value="Dificultades académicas">Dificultades académicas</option>
-                                                    <option value="Problemas económicos">Problemas económicos</option>
-                                                    <option value="Otro">Otro</option>
+                                                    <option value="Económico">Económico</option>
+                                                    <option value="Sociológico">Sociológico</option>
+                                                    <option value="Psicológico">Psicológico</option>
+                                                    <option value="Institucional">Institucional</option>
+                                                    <option value="Académico">Académico</option>
                                                 </select>
                                             </div>
                                             <div class="col-lg-4">
@@ -1339,11 +1405,24 @@ $courses_data = getCourses();
             const courseId = $(this).data('course-id');
             const classDate = $(this).data('class-date');
             const classNumber = $(this).data('class-number');
+            const attendanceStatus = $(this).data('attendance-status');
+            const attendanceText = $(this).data('attendance-text');
 
             // Configurar el modal con los datos
             $('#observationModalTitle').text(`Observación - Clase ${classNumber}`);
             $('#observationStudentLabel').html(`<strong>Estudiante:</strong> ${studentName}`);
             $('#observationClassLabel').html(`<strong>Fecha de Clase:</strong> ${classDate}`);
+            
+            // Agregar información del estado de asistencia
+            const attendanceColor = getAttendanceStatusColor(attendanceStatus);
+            $('#observationClassLabel').after(`
+                <div class="mb-3" id="attendanceStatusLabel">
+                    <label class="form-label">
+                        <strong>Estado de Asistencia:</strong> 
+                        <span class="badge ${attendanceColor}">${attendanceText}</span>
+                    </label>
+                </div>
+            `);
 
             // Limpiar formulario y establecer datos
             const form = $('#genericObservationForm');
@@ -1360,6 +1439,11 @@ $courses_data = getCourses();
 
             // Mostrar modal
             $('#genericObservationModal').modal('show');
+        });
+
+        // Limpiar el label de estado de asistencia cuando se cierre el modal
+        $('#genericObservationModal').on('hidden.bs.modal', function() {
+            $('#attendanceStatusLabel').remove();
         });
 
         // Event listener para botones de información de asistencia
@@ -1380,6 +1464,20 @@ $courses_data = getCourses();
         $('#saveAttendanceBtn').off('click').on('click', function() {
             saveAttendanceManagementGeneric();
         });
+    }
+
+    // Función para obtener el color del badge según el estado de asistencia
+    function getAttendanceStatusColor(attendanceStatus) {
+        switch(attendanceStatus) {
+            case 'presente':
+                return 'bg-success';
+            case 'tarde':
+                return 'bg-warning text-dark';
+            case 'ausente':
+                return 'bg-danger';
+            default:
+                return 'bg-secondary';
+        }
     }
 
     // Función para cargar observación existente en modal genérico
@@ -1523,7 +1621,7 @@ $courses_data = getCourses();
             // Procesar estadísticas
             if (statsResponse && statsResponse.success) {
                 const stats = statsResponse.data;
-                modal.find('#totalClasses').text(stats.totalClasses || 0);
+                modal.find('#absencesDisplay').text(stats.absencesDisplay || '0/0');
                 modal.find('#attendancePercentage').text(`${stats.attendancePercentage || 0}%`);
                 modal.find('#absencePercentage').text(`${stats.absencePercentage || 0}%`);
 

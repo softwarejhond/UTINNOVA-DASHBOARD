@@ -111,6 +111,8 @@ if (isset($_POST['crearUsuario'])) {
                                     <option value="10">Empleabilidad</option>
                                     <option value="11">Superacademico</option>
                                     <option value="12">Controlmaestro</option>
+                                    <option value="13">Interventoria</option>
+                                    <option value="14">Permanencia</option>
                                 </select>
                             </div>
                             <div class="mb-3">

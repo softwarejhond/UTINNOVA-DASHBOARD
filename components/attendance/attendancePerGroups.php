@@ -718,19 +718,52 @@ $courses_data = getCourses();
                 const attendanceStatus = button.data('attendance-status');
                 const studentName = button.data('student-name');
                 const studentId = button.data('student-id');
+                const classId = $('#bootcamp').val();
+                const classDate = $('#class_date').val();
 
-                const showModal = () => {
-                    $('#ausenciaModal').modal('show');
+                const showModalWithData = (data = null) => {
+                    // Llenar datos básicos del modal
                     $('#studentId').val(studentId);
                     $('#studentName').text(studentName);
                     $('#studentId_display').text(studentId);
-                    $('#classId').val($('#bootcamp').val());
+                    $('#classId').val(classId);
+
+                    // Si hay datos existentes, rellenar el formulario
+                    if (data) {
+                        $('#contactEstablished').val(data.contact_established).trigger('change');
+                        $('#compromiso').val(data.compromiso);
+                        $('#seguimientoCompromiso').val(data.seguimiento_compromiso);
+                        $('#retiro').val(data.retiro);
+                        $('#motivoRetiro').val(data.motivo_retiro);
+                        $('#observacion').val(data.observacion);
+                    }
+                    
+                    $('#ausenciaModal').modal('show');
+                };
+
+                const fetchAndShowModal = () => {
+                    $.ajax({
+                        url: 'components/attendance/get_absence_log.php',
+                        type: 'POST',
+                        data: { studentId, classId, classDate },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                showModalWithData(response.data);
+                            } else {
+                                Swal.fire('Error', 'No se pudo cargar la información previa.', 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Problema de conexión al buscar información previa.', 'error');
+                        }
+                    });
                 };
 
                 if (attendanceStatus === 'presente') {
                     Swal.fire({
                         title: '¡Atención!',
-                        text: `El estudiante ${studentName} está marcado como PRESENTE. ¿Estás seguro de que deseas registrar información?`,
+                        text: `El estudiante ${studentName} está marcado como PRESENTE. ¿Deseas continuar?`,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#3085d6',
@@ -739,11 +772,11 @@ $courses_data = getCourses();
                         cancelButtonText: 'Cancelar'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            showModal();
+                            fetchAndShowModal();
                         }
                     });
                 } else {
-                    showModal();
+                    fetchAndShowModal();
                 }
             });
 
@@ -884,7 +917,110 @@ $courses_data = getCourses();
                 window.open(exportUrl, '_blank');
             });
 
-            // Add missing closing braces for document ready and any other incomplete functions
+            // Agregar después del evento click del botón exportarHistorial
+            $('#guardarAusencia').click(function() {
+                const form = $('#ausenciaForm');
+                
+                // Validar campos requeridos
+                const contactEstablished = $('#contactEstablished').val();
+                if (!contactEstablished) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debe seleccionar si se estableció contacto'
+                    });
+                    return;
+                }
+
+                // Recopilar datos del formulario
+                const formData = {
+                    studentId: $('#studentId').val(),
+                    classId: $('#classId').val(),
+                    contactEstablished: contactEstablished,
+                    compromiso: $('#compromiso').val(),
+                    seguimientoCompromiso: $('#seguimientoCompromiso').val(),
+                    retiro: $('#retiro').val(),
+                    motivoRetiro: $('#motivoRetiro').val(),
+                    observacion: $('#observacion').val(),
+                    classDate: $('#class_date').val()
+                };
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Guardando registro',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Enviar datos via AJAX
+                $.ajax({
+                    url: 'components/attendance/guardar_ausencia.php',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    success: function(response) {
+                        Swal.close();
+                        
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Éxito',
+                                text: 'El registro de ausencia se ha guardado correctamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                // Cerrar modal y limpiar formulario
+                                $('#ausenciaModal').modal('hide');
+                                $('#ausenciaForm')[0].reset();
+                                $('#historialContainer').hide();
+                                
+                                // Actualizar la tabla para reflejar los cambios
+                                updateTable();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error al guardar',
+                                text: response.error || 'Ocurrió un error al guardar el registro'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.close();
+                        
+                        let errorMessage = 'Error al conectar con el servidor';
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            errorMessage = response.error || errorMessage;
+                        } catch (e) {
+                            errorMessage = error;
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: errorMessage
+                        });
+                        
+                        console.error('Error en la solicitud:', {
+                            status: status,
+                            error: error,
+                            response: xhr.responseText
+                        });
+                    }
+                });
+            });
+
+            // Limpiar formulario cuando se cierre el modal
+            $('#ausenciaModal').on('hidden.bs.modal', function() {
+                $('#ausenciaForm')[0].reset();
+                $('#historialContainer').hide();
+                // Habilitar todos los selects que podrían estar deshabilitados
+                $('#compromiso, #seguimientoCompromiso, #retiro, #motivoRetiro').prop('disabled', false);
+            });
         });
     </script>
 </body>

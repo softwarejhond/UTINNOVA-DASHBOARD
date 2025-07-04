@@ -345,7 +345,7 @@ function exportDataToExcel($conn)
                     : ($departamentosNombreMap[substr($municipiosMap[strtoupper(normalizeString($row['departamento'])) . '|' .
                         strtoupper(normalizeString($row['municipio']))] ?? $row['municipality'], 0, 2)] ?? strtoupper($row['departamento'])),
 
-                'Region' => 'Región 7 Lote 1',
+                'Region' => 'Región 8 Lote 1',
 
                 'Codigo_municipio' => (strtoupper(normalizeString($row['municipio'])) === 'BOGOTA D.C.' ||
                     strtoupper(normalizeString($row['municipio'])) === 'BOGOTA, D.C.' ||
@@ -422,7 +422,7 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => 'UTTT-R7L1',
+                'Origen' => 'UTI-R8L1',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => $tieneProfesor,
                 'Programa de interés' => $estaEnGroups ? $row['program'] : '',

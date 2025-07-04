@@ -268,7 +268,7 @@ function exportDataToExcel($conn)
             $data[] = [
                 'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
                 'id' => $row['id'],
-                'Tipo_documento' => $row['typeID'] === 'CC' ? 'C.C' : $row['typeID'],
+                'Tipo_documento' => $row['typeID'],
                 'Número_documento' => $row['number_id'],
                 'Nombre1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])),
                 'Nombre2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])),
@@ -280,8 +280,7 @@ function exportDataToExcel($conn)
                 'Codigo_epartamento' => $row['department'],
                 'Departamento' => strtoupper($row['departamento']),
 
-                'Region' => 'Región 8',
-                'Lote' => 'Lote ' . $row['lote'],
+                'Region' => 'Región 8 Lote 2',
 
                 'Codigo_municipio' => $row['municipality'],
                 'Municipio' => mb_strtoupper($row['municipio']),
@@ -343,7 +342,7 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => '',
+                'Origen' => 'UTI-R8L1',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => $tieneProfesor,
                 'Programa de interés' => $estaEnGroups ? $row['program'] : '',

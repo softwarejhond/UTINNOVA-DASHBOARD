@@ -720,6 +720,8 @@ function obtenerSedes($conn)
                                 echo '<button class="btn bg-magenta-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="APLAZADO"><i class="bi bi-hourglass-split"></i></button>';
                             } elseif ($row['statusAdmin'] == '10') {
                                 echo '<button class="btn bg-cyan-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="FORMADO"><i class="bi bi-mortarboard-fill"></i></button>';
+                            } elseif ($row['statusAdmin'] == '11') {
+                                echo '<button class="btn bg-red-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="NO VÁLIDO"><i class="bi bi-exclamation-triangle-fill"></i></button>';
                             }
                             ?>
                         </td>
@@ -1187,6 +1189,9 @@ function obtenerSedes($conn)
                                             <option value="5">En proceso</option>
                                             <option value="6">Certificado</option>
                                             <option value="7">Inactivo</option>
+                                            <option value="9">Aplazado</option>
+                                            <option value="10">Formado</option>
+                                            <option value="11">No valido</option>
                                         </select>
                                     </div>
                                     <br>

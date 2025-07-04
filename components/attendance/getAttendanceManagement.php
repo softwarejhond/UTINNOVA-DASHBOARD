@@ -12,10 +12,11 @@ $studentId = $_POST['student_id'];
 $courseId = $_POST['course_id'];
 
 try {
-    // Consulta para obtener la información de gestión de un estudiante
-    $sql = "SELECT * FROM student_attendance_management 
-            WHERE student_id = ? AND course_id = ? 
-            ORDER BY updated_at DESC LIMIT 1";
+    // Consulta con JOIN para obtener el nombre del responsable
+    $sql = "SELECT sam.*, u.nombre as responsible_name 
+            FROM student_attendance_management sam
+            LEFT JOIN users u ON sam.responsible_username = u.username
+            WHERE sam.student_id = ? AND sam.course_id = ?";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('si', $studentId, $courseId);
@@ -24,15 +25,24 @@ try {
     
     if ($result->num_rows > 0) {
         $data = $result->fetch_assoc();
-        echo json_encode(['success' => true, 'data' => $data]);
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $data
+        ]);
     } else {
-        echo json_encode(['success' => true, 'data' => null]);
+        echo json_encode([
+            'success' => true,
+            'data' => null
+        ]);
     }
+    
+    $stmt->close();
     
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'message' => 'Error al obtener datos de gestión: ' . $e->getMessage()
+        'message' => 'Error al obtener información de gestión: ' . $e->getMessage()
     ]);
 }
 ?>

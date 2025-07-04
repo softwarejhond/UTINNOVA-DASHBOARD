@@ -5,7 +5,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
 ?>
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasRightLabel"><i class="bi bi-boxes"></i> SIVP Opciones</h5>
+        <h5 class="offcanvas-title" id="offcanvasRightLabel"><i class="bi bi-boxes"></i> SIGP Opciones</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -110,7 +110,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
                     </div>
                 <?php endif; ?>
 
-                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Monitor' || $rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Monitor' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Generar carnets para estudiantes">
                         <a href="credentials.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">
@@ -138,6 +138,20 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
                     </div>
                 <?php endif; ?>
 
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Rangos de Fecha de los Bootcamps y cohortes">
+                        <a href="bootcamp_period.php"> <label class="checkbox-wrapper">
+                                <span class="checkbox-tile">
+                                    <span class="checkbox-icon">
+                                        <i class="bi bi-calendar-range icono"></i>
+                                    </span>
+                                    <span class="checkbox-label">Periodos</span>
+                                </span>
+                            </label>
+                        </a>
+                    </div>
+                <?php endif; ?>
+
                 <?php if ($extraRol === 'Extra Administrador' || $rol === 'Control maestro'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Campistas en condición de culminar">
                         <a href="studentsToApprove.php"> <label class="checkbox-wrapper">
@@ -152,7 +166,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
                     </div>
                 <?php endif; ?>
 
-                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Registro de seguimiento de asistencias por grupos">
                         <a href="attendance_tracking.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">

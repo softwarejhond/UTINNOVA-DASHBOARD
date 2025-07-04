@@ -45,9 +45,11 @@ switch ($courseType) {
 
 // Consulta para obtener los datos del grupo con el estado de asistencia para la fecha seleccionada
 $sql = "SELECT g.*, 
+        ur.first_phone,
         (SELECT attendance_status FROM attendance_records 
         WHERE student_id = g.number_id AND class_date = ? AND course_id = ? LIMIT 1) as attendance_status
         FROM groups g 
+        LEFT JOIN user_register ur ON g.number_id = ur.number_id
         WHERE g.$courseIdColumn = ? 
         AND g.mode = ? 
         AND g.headquarters = ?
@@ -75,12 +77,12 @@ if ($courseRow = mysqli_fetch_assoc($courseResult)) {
 
 // Configurar título del documento
 $sheet->setCellValue('A1', "Reporte de Asistencia: $courseName");
-$sheet->mergeCells('A1:H1');
+$sheet->mergeCells('A1:I1');
 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $sheet->setCellValue('A2', "Fecha: $class_date | Modalidad: $modalidad | Sede: $sede");
-$sheet->mergeCells('A2:H2');
+$sheet->mergeCells('A2:I2');
 $sheet->getStyle('A2')->getFont()->setBold(true);
 $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
@@ -89,13 +91,14 @@ $sheet->setCellValue('A4', '#');
 $sheet->setCellValue('B4', 'Tipo ID');
 $sheet->setCellValue('C4', 'Número ID');
 $sheet->setCellValue('D4', 'Nombre Completo');
-$sheet->setCellValue('E4', 'Correo Institucional');
-$sheet->setCellValue('F4', 'Estado Asistencia');
-$sheet->setCellValue('G4', 'Registrado');
-$sheet->setCellValue('H4', 'Observaciones');
+$sheet->setCellValue('E4', 'Teléfono');
+$sheet->setCellValue('F4', 'Correo Institucional');
+$sheet->setCellValue('G4', 'Estado Asistencia');
+$sheet->setCellValue('H4', 'Registrado');
+$sheet->setCellValue('I4', 'Observaciones');
 
 // Dar formato a los encabezados
-$headerRange = 'A4:H4';
+$headerRange = 'A4:I4';
 $sheet->getStyle($headerRange)->getFont()->setBold(true);
 $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID);
 $sheet->getStyle($headerRange)->getFill()->getStartColor()->setRGB('D9D9D9');
@@ -131,24 +134,25 @@ while ($data = mysqli_fetch_assoc($result)) {
     $sheet->setCellValue('B' . $row, $data['type_id']);
     $sheet->setCellValue('C' . $row, $data['number_id']);
     $sheet->setCellValue('D' . $row, $data['full_name']);
-    $sheet->setCellValue('E' . $row, $data['institutional_email']);
-    $sheet->setCellValue('F' . $row, $statusText);
-    $sheet->setCellValue('G' . $row, $registered);
+    $sheet->setCellValue('E' . $row, $data['first_phone'] ?? 'No registrado');
+    $sheet->setCellValue('F' . $row, $data['institutional_email']);
+    $sheet->setCellValue('G' . $row, $statusText);
+    $sheet->setCellValue('H' . $row, $registered);
     
     // Colorear filas según estado de asistencia
     if (!empty($attendanceStatus)) {
         if (strtolower($attendanceStatus) === 'ausente') {
-            $sheet->getStyle("A{$row}:H{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
-            $sheet->getStyle("A{$row}:H{$row}")->getFill()->getStartColor()->setRGB('FFCCCC'); // Rojo claro
+            $sheet->getStyle("A{$row}:I{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
+            $sheet->getStyle("A{$row}:I{$row}")->getFill()->getStartColor()->setRGB('FFCCCC'); // Rojo claro
         } elseif (strtolower($attendanceStatus) === 'tarde') {
-            $sheet->getStyle("A{$row}:H{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
-            $sheet->getStyle("A{$row}:H{$row}")->getFill()->getStartColor()->setRGB('FFFFCC'); // Amarillo claro
+            $sheet->getStyle("A{$row}:I{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
+            $sheet->getStyle("A{$row}:I{$row}")->getFill()->getStartColor()->setRGB('FFFFCC'); // Amarillo claro
         }
     } else {
         // Sin registro de asistencia
-        $sheet->getStyle("A{$row}:H{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
-        $sheet->getStyle("A{$row}:H{$row}")->getFill()->getStartColor()->setRGB('E6E6E6'); // Gris claro
-        $sheet->setCellValue('H' . $row, 'Sin registro de asistencia');
+        $sheet->getStyle("A{$row}:I{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
+        $sheet->getStyle("A{$row}:I{$row}")->getFill()->getStartColor()->setRGB('E6E6E6'); // Gris claro
+        $sheet->setCellValue('I' . $row, 'Sin registro de asistencia');
     }
 
     $row++;
@@ -156,7 +160,7 @@ while ($data = mysqli_fetch_assoc($result)) {
 }
 
 // Ajustar ancho de columnas
-foreach (range('A', 'H') as $col) {
+foreach (range('A', 'I') as $col) {
     $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 

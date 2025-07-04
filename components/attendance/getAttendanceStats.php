@@ -41,10 +41,28 @@ try {
     
     $totalAttendance = $rowAttendance['total_attendance'];
     
-    // Calcular porcentajes
-    if ($totalClasses > 0) {
-        $attendancePercentage = round(($totalAttendance / $totalClasses) * 100, 1);
-        $absencePercentage = round(100 - $attendancePercentage, 1);
+    // 3. Obtener el número de inasistencias (solo cuando el status es 'ausente')
+    $sqlAbsences = "SELECT COUNT(*) AS total_absences
+                    FROM attendance_records
+                    WHERE student_id = ? 
+                    AND course_id = ?
+                    AND class_date <= CURRENT_DATE() 
+                    AND attendance_status = 'ausente'";
+    
+    $stmtAbsences = $conn->prepare($sqlAbsences);
+    $stmtAbsences->bind_param('si', $studentId, $courseId);
+    $stmtAbsences->execute();
+    $resultAbsences = $stmtAbsences->get_result();
+    $rowAbsences = $resultAbsences->fetch_assoc();
+    
+    $totalAbsences = $rowAbsences['total_absences'];
+    
+    // Calcular porcentajes basados en el total de registros (no en total de clases)
+    $totalRecordsForStudent = $totalAttendance + $totalAbsences;
+    
+    if ($totalRecordsForStudent > 0) {
+        $attendancePercentage = round(($totalAttendance / $totalRecordsForStudent) * 100, 1);
+        $absencePercentage = round(($totalAbsences / $totalRecordsForStudent) * 100, 1);
     } else {
         $attendancePercentage = 0;
         $absencePercentage = 0;
@@ -56,8 +74,11 @@ try {
         'data' => [
             'totalClasses' => $totalClasses,
             'totalAttendance' => $totalAttendance,
+            'totalAbsences' => $totalAbsences,
+            'totalRecordsForStudent' => $totalRecordsForStudent,
             'attendancePercentage' => $attendancePercentage,
-            'absencePercentage' => $absencePercentage
+            'absencePercentage' => $absencePercentage,
+            'absencesDisplay' => $totalAbsences . '/' . $totalClasses
         ]
     ];
     

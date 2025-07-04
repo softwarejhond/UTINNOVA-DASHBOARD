@@ -30,7 +30,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </label>
                     </div>
                 <?php endif; ?>
-                <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Contacto de registros">
                         <a href="registrarionsContact.php">
                             <label class="checkbox-wrapper" data-bs-target="#exampleModalNuevoReporte" data-bs-toggle="modal">
@@ -70,7 +70,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </a>
                     </div>
                 <?php endif; ?>
-                <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro' ): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Actualizar identificación">
                         <a href="updateDocument.php">
                             <label class="checkbox-wrapper">
@@ -84,7 +84,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </a>
                     </div>
                 <?php endif; ?>
-                <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Consulta individual">
                         <a href="individualSearch.php">
                             <label class="checkbox-wrapper">

@@ -1,9 +1,9 @@
 <?php
-error_reporting(E_ALL); // Cambiamos a mostrar todos los errores durante depuración
-ini_set('display_errors', 0); // No mostrar en pantalla pero sí registrarlos
-header('Content-Type: application/json'); // Establecer el header JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+header('Content-Type: application/json');
 
-require_once __DIR__ . '/../../controller/conexion.php'; // Usar $conn como en buscar_datos_grupales.php
+require_once __DIR__ . '/../../controller/conexion.php';
 
 // Verificar la conexión a la base de datos
 if (!$conn) {
@@ -65,8 +65,8 @@ try {
         'habilidades' => []
     ];
 
-    // Función para obtener fechas de clases de un curso
-    function getClassDates($conn, $courseCode) {
+    // Función para obtener fechas de clases y registros de asistencia
+    function getClassDatesWithAttendance($conn, $courseCode) {
         $sql = "SELECT DISTINCT class_date 
                 FROM attendance_records 
                 WHERE course_id = ? 
@@ -93,6 +93,32 @@ try {
         
         mysqli_stmt_close($stmt);
         return $dates;
+    }
+
+    // Función para obtener estado de asistencia por estudiante y fecha
+    function getAttendanceStatus($conn, $studentId, $courseCode, $classDate) {
+        $sql = "SELECT attendance_status 
+                FROM attendance_records 
+                WHERE student_id = ? AND course_id = ? AND class_date = ?
+                LIMIT 1";
+        
+        $stmt = mysqli_prepare($conn, $sql);
+        if (!$stmt) {
+            return null;
+        }
+        
+        mysqli_stmt_bind_param($stmt, "sis", $studentId, $courseCode, $classDate);
+        
+        if (!mysqli_stmt_execute($stmt)) {
+            mysqli_stmt_close($stmt);
+            return null;
+        }
+        
+        $result = mysqli_stmt_get_result($stmt);
+        $row = mysqli_fetch_assoc($result);
+        
+        mysqli_stmt_close($stmt);
+        return $row ? $row['attendance_status'] : null;
     }
 
     // Buscar estudiantes por código usando LIKE en los nombres de los cursos
@@ -136,7 +162,6 @@ try {
     $students['tecnico'] = [];
     $courseCodeTecnico = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        // Convertir el estado de admisión a texto
         $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
         $students['tecnico'][] = $row;
         if (!$courseCodeTecnico && $row['course_code']) {
@@ -145,7 +170,15 @@ try {
     }
     // Obtener fechas de clases para técnico
     if ($courseCodeTecnico) {
-        $classes['tecnico'] = getClassDates($conn, $courseCodeTecnico);
+        $classDates = getClassDatesWithAttendance($conn, $courseCodeTecnico);
+        // Agregar información de asistencia para cada estudiante y clase
+        foreach ($classDates as $index => $classInfo) {
+            foreach ($students['tecnico'] as $studentIndex => $student) {
+                $attendanceStatus = getAttendanceStatus($conn, $student['number_id'], $courseCodeTecnico, $classInfo['class_date']);
+                $classDates[$index]['attendance_by_student'][$student['number_id']] = $attendanceStatus;
+            }
+        }
+        $classes['tecnico'] = $classDates;
     }
     
     $debug['studentCounts']['tecnico'] = count($students['tecnico']);
@@ -190,7 +223,6 @@ try {
     $students['ingles_nivelado'] = [];
     $courseCodeIngles = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        // Convertir el estado de admisión a texto
         $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
         $students['ingles_nivelado'][] = $row;
         if (!$courseCodeIngles && $row['course_code']) {
@@ -199,7 +231,14 @@ try {
     }
     // Obtener fechas de clases para inglés nivelado
     if ($courseCodeIngles) {
-        $classes['ingles_nivelado'] = getClassDates($conn, $courseCodeIngles);
+        $classDates = getClassDatesWithAttendance($conn, $courseCodeIngles);
+        foreach ($classDates as $index => $classInfo) {
+            foreach ($students['ingles_nivelado'] as $studentIndex => $student) {
+                $attendanceStatus = getAttendanceStatus($conn, $student['number_id'], $courseCodeIngles, $classInfo['class_date']);
+                $classDates[$index]['attendance_by_student'][$student['number_id']] = $attendanceStatus;
+            }
+        }
+        $classes['ingles_nivelado'] = $classDates;
     }
     
     $debug['studentCounts']['ingles_nivelado'] = count($students['ingles_nivelado']);
@@ -244,7 +283,6 @@ try {
     $students['english_code'] = [];
     $courseCodeEnglishCode = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        // Convertir el estado de admisión a texto
         $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
         $students['english_code'][] = $row;
         if (!$courseCodeEnglishCode && $row['course_code']) {
@@ -253,7 +291,14 @@ try {
     }
     // Obtener fechas de clases para english code
     if ($courseCodeEnglishCode) {
-        $classes['english_code'] = getClassDates($conn, $courseCodeEnglishCode);
+        $classDates = getClassDatesWithAttendance($conn, $courseCodeEnglishCode);
+        foreach ($classDates as $index => $classInfo) {
+            foreach ($students['english_code'] as $studentIndex => $student) {
+                $attendanceStatus = getAttendanceStatus($conn, $student['number_id'], $courseCodeEnglishCode, $classInfo['class_date']);
+                $classDates[$index]['attendance_by_student'][$student['number_id']] = $attendanceStatus;
+            }
+        }
+        $classes['english_code'] = $classDates;
     }
     
     $debug['studentCounts']['english_code'] = count($students['english_code']);
@@ -298,7 +343,6 @@ try {
     $students['habilidades'] = [];
     $courseCodeHabilidades = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        // Convertir el estado de admisión a texto
         $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
         $students['habilidades'][] = $row;
         if (!$courseCodeHabilidades && $row['course_code']) {
@@ -307,7 +351,14 @@ try {
     }
     // Obtener fechas de clases para habilidades
     if ($courseCodeHabilidades) {
-        $classes['habilidades'] = getClassDates($conn, $courseCodeHabilidades);
+        $classDates = getClassDatesWithAttendance($conn, $courseCodeHabilidades);
+        foreach ($classDates as $index => $classInfo) {
+            foreach ($students['habilidades'] as $studentIndex => $student) {
+                $attendanceStatus = getAttendanceStatus($conn, $student['number_id'], $courseCodeHabilidades, $classInfo['class_date']);
+                $classDates[$index]['attendance_by_student'][$student['number_id']] = $attendanceStatus;
+            }
+        }
+        $classes['habilidades'] = $classDates;
     }
     
     $debug['studentCounts']['habilidades'] = count($students['habilidades']);
