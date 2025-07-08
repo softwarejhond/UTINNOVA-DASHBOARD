@@ -24,7 +24,8 @@
             const opcionesRegistrosVsGrupos = {
                 tooltip: {
                     trigger: 'item',
-                    formatter: '{b}: {c} registros ({d}%)' // Muestra: Nombre, Cantidad y Porcentaje
+                    formatter: '{b}: {c} registros ({d}%)', // Muestra: Nombre, Cantidad y Porcentaje
+                    appendToBody: true
                 },
                 series: [{
                     type: 'pie',

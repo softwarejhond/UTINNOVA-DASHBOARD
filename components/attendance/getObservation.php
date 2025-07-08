@@ -17,9 +17,11 @@ if (empty($studentId) || empty($courseId) || empty($classDate)) {
 }
 
 try {
-    $sql = "SELECT observation_type, observation_text 
-            FROM class_observations 
-            WHERE student_id = ? AND course_id = ? AND class_date = ?";
+    $sql = "SELECT co.observation_type, co.observation_text, co.created_by, 
+            u.nombre as created_by_name 
+            FROM class_observations co 
+            LEFT JOIN users u ON co.created_by = u.username
+            WHERE co.student_id = ? AND co.course_id = ? AND co.class_date = ?";
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {

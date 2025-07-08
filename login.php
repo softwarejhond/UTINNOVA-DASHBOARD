@@ -68,8 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Validar credenciales
     if (empty($username_err) && empty($password_err)) {
-        // Preparar una declaración SQL
-        $sql = "SELECT id, username, password, nombre, rol, foto, extra_rol FROM users WHERE username = ?";
+        // Preparar una declaración SQL - INCLUIR VERIFICACIÓN DE ORDEN Y CAMPOS ADICIONALES
+        $sql = "SELECT id, username, password, nombre, rol, foto, extra_rol, orden, email, genero, telefono, direccion, edad FROM users WHERE username = ? AND orden = 1";
 
         if ($stmt = mysqli_prepare($conn, $sql)) {
             // Vincular variables a la declaración preparada como parámetros
@@ -81,10 +81,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Almacenar resultado
                 mysqli_stmt_store_result($stmt);
 
-                // Verificar si el nombre de usuario existe, si sí, verificar la contraseña
+                // Verificar si el nombre de usuario existe y está habilitado
                 if (mysqli_stmt_num_rows($stmt) === 1) {
                     // Vincular variables de resultado
-                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto, $extra_rol);
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $nombre, $rol, $foto, $extra_rol, $orden, $email, $genero, $telefono, $direccion, $edad);
                     if (mysqli_stmt_fetch($stmt)) {
                         if (password_verify($password, $hashed_password)) {
                             // La contraseña es correcta, iniciar una nueva sesión
@@ -95,7 +95,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $_SESSION['rol'] = $rol; // Asignar un rol real basado en tu base de datos
                             $_SESSION['username'] = htmlspecialchars($username); // Asignar nombre de usuario
                             $_SESSION['foto'] = htmlspecialchars($foto); // Ruta de la foto del usuario
-                            $_SESSION['extra_rol'] = $extra_rol; // Agregar el nuevo campo extra_rol
+                            $_SESSION['extra_rol'] = $extra_rol; // Campo extra_rol
+                            $_SESSION['orden'] = $orden; // Estado del usuario
+
+                            // Verificar si hay campos vacíos
+                            $campos_incompletos = false;
+                            $campos_faltantes = array();
+                            
+                            if (empty($email)) {
+                                $campos_incompletos = true;
+                                $campos_faltantes[] = "Email";
+                            }
+                            if (empty($genero)) {
+                                $campos_incompletos = true;
+                                $campos_faltantes[] = "Género";
+                            }
+                            if (empty($telefono)) {
+                                $campos_incompletos = true;
+                                $campos_faltantes[] = "Teléfono";
+                            }
+                            if (empty($direccion)) {
+                                $campos_incompletos = true;
+                                $campos_faltantes[] = "Dirección";
+                            }
+                            if (empty($edad) || $edad == 0) {
+                                $campos_incompletos = true;
+                                $campos_faltantes[] = "Edad";
+                            }
+                            
+                            // Guardar la información de campos incompletos en la sesión
+                            $_SESSION['campos_incompletos'] = $campos_incompletos;
+                            $_SESSION['campos_faltantes'] = $campos_faltantes;
 
                             // Redirigir al usuario a la página principal
                             header("location: main.php");
@@ -105,7 +135,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 } else {
-                    $username_err = "Usuario no existe.";
+                    // Verificar si el usuario existe pero está deshabilitado
+                    $sql_check = "SELECT orden FROM users WHERE username = ?";
+                    if ($stmt_check = mysqli_prepare($conn, $sql_check)) {
+                        mysqli_stmt_bind_param($stmt_check, "s", $username);
+                        if (mysqli_stmt_execute($stmt_check)) {
+                            mysqli_stmt_store_result($stmt_check);
+                            if (mysqli_stmt_num_rows($stmt_check) === 1) {
+                                mysqli_stmt_bind_result($stmt_check, $user_orden);
+                                mysqli_stmt_fetch($stmt_check);
+                                if ($user_orden == 0) {
+                                    $username_err = "Usuario deshabilitado. Contacte al administrador.";
+                                } else {
+                                    $username_err = "Usuario no existe.";
+                                }
+                            } else {
+                                $username_err = "Usuario no existe.";
+                            }
+                        }
+                        mysqli_stmt_close($stmt_check);
+                    } else {
+                        $username_err = "Usuario no existe.";
+                    }
                 }
             } else {
                 echo "Algo salió mal, por favor vuelve a intentarlo.";
@@ -157,7 +208,7 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
     <div class="login-container">
         <div class="login-sidebar">
             <div class="login-logo">
-            <img src="./img/uttInova.png" alt="Logo UTT" class="img-fluid">
+            <img src="./img/uttInnova.png" alt="Logo UTT" class="img-fluid">
             </div>
             
             <p class="login-text text-white">Inicia sesión con tus credenciales para acceder al sistema</p>

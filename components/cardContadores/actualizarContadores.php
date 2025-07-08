@@ -5,6 +5,20 @@ require '.././../controller/conexion.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
+    $fecha = isset($_GET['date']) ? $_GET['date'] : null;
+
+    // Consulta para obtener registros hasta la fecha seleccionada
+    if ($fecha) {
+        $sql_registros_por_fecha = "SELECT COUNT(*) AS total_registrados FROM user_register WHERE DATE(creationDate) <= ?";
+        $stmt = $conn->prepare($sql_registros_por_fecha);
+        $stmt->bind_param("s", $fecha);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $total_registrados_por_fecha = $result->fetch_assoc()['total_registrados'];
+    } else {
+        $total_registrados_por_fecha = 0;
+    }
+
     // Obtener total de usuarios registrados
     $sql_total_registrados = "SELECT COUNT(*) AS total_registrados FROM user_register";
     $result_total_registrados = mysqli_query($conn, $sql_total_registrados);
@@ -15,15 +29,15 @@ try {
     $result_total = mysqli_query($conn, $sql_total);
     $total_usuarios = mysqli_fetch_assoc($result_total)['total'];
 
-    // Obtener total de usuarios en Lote 1 (reemplaza la consulta de Cundinamarca)
-    $sql_lote1 = "SELECT COUNT(*) AS total_lote1 FROM user_register WHERE  lote = 1";
-    $result_lote1 = mysqli_query($conn, $sql_lote1);
-    $total_lote1 = mysqli_fetch_assoc($result_lote1)['total_lote1'];
+    // Obtener total de usuarios en Boyacá
+    $sql_boyaca = "SELECT COUNT(*) AS total_boyaca FROM user_register WHERE status = '1' AND statusAdmin = '1' AND department = 15";
+    $result_boyaca = mysqli_query($conn, $sql_boyaca);
+    $total_boyaca = mysqli_fetch_assoc($result_boyaca)['total_boyaca'];
 
-    // Obtener total de usuarios en Lote 2 (reemplaza la consulta de Boyacá)
-    $sql_lote2 = "SELECT COUNT(*) AS total_lote2 FROM user_register WHERE lote = 2";
-    $result_lote2 = mysqli_query($conn, $sql_lote2);
-    $total_lote2 = mysqli_fetch_assoc($result_lote2)['total_lote2'];
+    // Obtener total de usuarios en Cundinamarca
+    $sql_cundinamarca = "SELECT COUNT(*) AS total_cundinamarca FROM user_register WHERE status = '1' AND statusAdmin = '1' AND department = 25";
+    $result_cundinamarca = mysqli_query($conn, $sql_cundinamarca);
+    $total_cundinamarca = mysqli_fetch_assoc($result_cundinamarca)['total_cundinamarca'];
 
     // Obtener total de usuarios sin verificar
     $sql_sin_verificar = "SELECT COUNT(*) AS total_sinVerificar FROM user_register WHERE status = '1' AND (statusAdmin = '0' OR statusAdmin NOT IN ('1', '3'))";
@@ -107,11 +121,25 @@ try {
     $total_matriculados = mysqli_fetch_assoc($result_matriculados)['total_matriculados'];
     $porc_matriculados = ($total_registrados > 0) ? round(($total_matriculados / $total_registrados) * 100, 2) : 0;
 
-    // Calcular porcentajes para lotes (reemplazan los porcentajes de departamentos)
-    $porc_lote1 = ($total_usuarios > 0) ? round(($total_lote1 / $total_registrados) * 100, 2) : 0;
-    $porc_lote2 = ($total_usuarios > 0) ? round(($total_lote2 / $total_registrados) * 100, 2) : 0;
+    // Obtener total de usuarios formados
+    $sql_formados = "SELECT COUNT(*) AS total_formados FROM user_register WHERE statusAdmin = 10";
+    $result_formados = mysqli_query($conn, $sql_formados);
+    $total_formados = mysqli_fetch_assoc($result_formados)['total_formados'];
+    $porc_formados = ($total_registrados > 0) ? round(($total_formados / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios certificados
+    $sql_certificados = "SELECT COUNT(*) AS total_certificados FROM user_register WHERE statusAdmin = 6";
+    $result_certificados = mysqli_query($conn, $sql_certificados);
+    $total_certificados = mysqli_fetch_assoc($result_certificados)['total_certificados'];
+    $porc_certificados = ($total_registrados > 0) ? round(($total_certificados / $total_registrados) * 100, 2) : 0;
+
+    // Calcular porcentajes
+    $porc_boyaca = ($total_usuarios > 0) ? round(($total_boyaca / $total_registrados) * 100, 2) : 0;
+    $porc_cundinamarca = ($total_usuarios > 0) ? round(($total_cundinamarca / $total_registrados) * 100, 2) : 0;
     $porc_sinVerificar = ($total_usuarios > 0) ? round(($total_sinVerificar / $total_registrados) * 100, 2) : 0;
     $porc_GobernacionBoyaca = ($total_usuarios > 0) ? round(($total_GobernacionBoyaca / $total_registrados) * 100, 2) : 0;
+   // Calcular el porcentaje de usuarios verificados
+   $porc_usuarios = ($total_registrados > 0) ? round(($total_usuarios / $total_registrados) * 100, 2) : 0;
 
 
     // Obtener lista de instituciones y sus totales
@@ -128,18 +156,47 @@ try {
             'total' => $row['total']
         ];
     }
+  // Obtener total de géneros
+  $queryGeneros = "SELECT gender, COUNT(*) as cantidadGender FROM user_register GROUP BY gender";
+  $resultadoGeneros = $conn->query($queryGeneros);
+
+  // Procesar los resultados de géneros
+  $generos = [];
+  while ($row = $resultadoGeneros->fetch_assoc()) {
+      $generos[] = [
+          'gener' => $row['gender'], // Cambiado a 'gender'
+          'cantidad' => $row['cantidadGender'] // Cambiado a 'cantidadGender'
+      ];
+  }
+    
+    // Obtener total de usuarios aceptados en Lote 1
+    $sql_lote1 = "SELECT COUNT(*) AS total_lote1 FROM user_register WHERE status = '1' AND statusAdmin IN ('1', '8') AND lote = 1";
+    $result_lote1 = mysqli_query($conn, $sql_lote1);
+    $total_lote1 = mysqli_fetch_assoc($result_lote1)['total_lote1'];
+    $porc_lote1 = ($total_registrados > 0) ? round(($total_lote1 / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios aceptados en Lote 2
+    $sql_lote2 = "SELECT COUNT(*) AS total_lote2 FROM user_register WHERE status = '1' AND statusAdmin IN ('1', '8') AND lote = 2";
+    $result_lote2 = mysqli_query($conn, $sql_lote2);
+    $total_lote2 = mysqli_fetch_assoc($result_lote2)['total_lote2'];
+    $porc_lote2 = ($total_registrados > 0) ? round(($total_lote2 / $total_registrados) * 100, 2) : 0;
 
     // Devolver los datos en formato JSON
     header('Content-Type: application/json');
     echo json_encode([
         "total_registrados" => $total_registrados,
         "total_usuarios" => $total_usuarios,
+        "porc_usuarios" => $porc_usuarios,
         "total_matriculados" => $total_matriculados,
         "porc_matriculados" => $porc_matriculados,
-        "total_lote1" => $total_lote1,
-        "porc_lote1" => $porc_lote1,
-        "total_lote2" => $total_lote2,
-        "porc_lote2" => $porc_lote2,
+        "total_formados" => $total_formados,
+        "porc_formados" => $porc_formados,
+        "total_certificados" => $total_certificados,
+        "porc_certificados" => $porc_certificados,
+        "total_boyaca" => $total_boyaca,
+        "porc_boyaca" => $porc_boyaca,
+        "total_cundinamarca" => $total_cundinamarca,
+        "porc_cundinamarca" => $porc_cundinamarca,
         "total_sinVerificar" => $total_sinVerificar,
         "porc_sinVerificar" => $porc_sinVerificar,
         "total_GobernacionBoyaca" => $total_GobernacionBoyaca,
@@ -156,7 +213,14 @@ try {
         "total_redes_sociales" => $total_redes_sociales,
         "total_rechazados" => $total_rechazados,
         "porc_rechazados" => $porc_rechazados,
-        "instituciones" => $instituciones
+        "instituciones" => $instituciones,
+        "total_registrados_por_fecha" => $total_registrados_por_fecha,
+        //generos
+        "generos" => $generos,
+        "total_lote1" => $total_lote1,
+        "porc_lote1" => $porc_lote1,
+        "total_lote2" => $total_lote2,
+        "porc_lote2" => $porc_lote2
     ]);
 } catch (Exception $e) {
     // Manejo de errores

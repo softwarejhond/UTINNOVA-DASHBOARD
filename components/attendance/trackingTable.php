@@ -1049,11 +1049,11 @@ $courses_data = getCourses();
                     classData.forEach((classInfo, index) => {
                         const classNumber = index + 1;
                         const classDate = classInfo.class_date;
-                        
+
                         // Obtener estado de asistencia para este estudiante en esta clase
-                        const attendanceStatus = classInfo.attendance_by_student && classInfo.attendance_by_student[student.number_id] 
-                            ? classInfo.attendance_by_student[student.number_id] 
-                            : null;
+                        const attendanceStatus = classInfo.attendance_by_student && classInfo.attendance_by_student[student.number_id] ?
+                            classInfo.attendance_by_student[student.number_id] :
+                            null;
 
                         // Determinar clase CSS según el estado de asistencia
                         const buttonClass = getAttendanceButtonClass(attendanceStatus);
@@ -1107,7 +1107,7 @@ $courses_data = getCourses();
 
     // Función para obtener la clase CSS del botón según el estado de asistencia
     function getAttendanceButtonClass(attendanceStatus) {
-        switch(attendanceStatus) {
+        switch (attendanceStatus) {
             case 'presente':
                 return 'bg-teal-dark text-white';
             case 'tarde':
@@ -1121,7 +1121,7 @@ $courses_data = getCourses();
 
     // Función para obtener el texto del estado de asistencia
     function getAttendanceStatusText(attendanceStatus) {
-        switch(attendanceStatus) {
+        switch (attendanceStatus) {
             case 'presente':
                 return 'Presente';
             case 'tarde':
@@ -1148,6 +1148,14 @@ $courses_data = getCourses();
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Añadir este bloque para mostrar quién creó la observación -->
+                        <div class="mb-3" id="observationCreatedByContainer" style="display: none;">
+                            <label class="form-label text-muted">
+                                <i class="fas fa-user me-1"></i> Creado por: 
+                                <span id="observationCreatedBy" class="fw-bold"></span>
+                            </label>
+                        </div>
+                        <!-- Resto del contenido del modal -->
                         <form id="genericObservationForm">
                             <div class="mb-3">
                                 <label class="form-label" id="observationStudentLabel"><strong>Estudiante:</strong></label>
@@ -1203,7 +1211,12 @@ $courses_data = getCourses();
                             <i class="fas fa-user-clock me-2"></i> 
                             Información de Asistencia
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div>
+                            <button type="button" class="btn btn-info btn-sm me-2" id="showHistoryBtn">
+                                <i class="fas fa-history me-1"></i> Ver historial de gestiones
+                            </button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
                     </div>
                     <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                         <!-- Spinner de carga -->
@@ -1412,7 +1425,7 @@ $courses_data = getCourses();
             $('#observationModalTitle').text(`Observación - Clase ${classNumber}`);
             $('#observationStudentLabel').html(`<strong>Estudiante:</strong> ${studentName}`);
             $('#observationClassLabel').html(`<strong>Fecha de Clase:</strong> ${classDate}`);
-            
+
             // Agregar información del estado de asistencia
             const attendanceColor = getAttendanceStatusColor(attendanceStatus);
             $('#observationClassLabel').after(`
@@ -1464,11 +1477,126 @@ $courses_data = getCourses();
         $('#saveAttendanceBtn').off('click').on('click', function() {
             saveAttendanceManagementGeneric();
         });
+
+        // Event listener para el botón de historial
+        $(document).off('click', '#showHistoryBtn').on('click', '#showHistoryBtn', function(e) {
+            e.preventDefault();
+            
+            const modal = $('#genericAttendanceModal');
+            const studentId = modal.find('input[name="student_id"]').val();
+            const courseId = modal.find('input[name="course_id"]').val();
+            const studentName = modal.find('#attendanceModalTitle').text().replace('Información de Asistencia', '').trim();
+            
+            // CERRAR el modal anterior antes de mostrar el historial
+            $('#genericAttendanceModal').modal('hide');
+            
+            // Esperar a que se cierre completamente el modal anterior
+            $('#genericAttendanceModal').on('hidden.bs.modal', function() {
+                // Remover el event listener para evitar acumulación
+                $(this).off('hidden.bs.modal');
+                
+                // Actualizar el título del modal de historial
+                $('#historyModalLabel').html(`<i class="fas fa-history me-2"></i> Historial de Gestiones - ${studentName}`);
+                
+                // Almacenar los datos del estudiante en el modal para exportación
+                $('#historyModal').data('student-info', {
+                    id: studentId,
+                    name: studentName,
+                    course_id: courseId
+                });
+                
+                // Mostrar el modal de historial
+                $('#historyModal').modal('show');
+                
+                // Mostrar carga y ocultar contenido
+                $('#historyLoading').show();
+                $('#historyContent').hide();
+                
+                loadHistoryData(studentId, courseId);
+            });
+        });
+
+        // Event listener para el botón de exportar historial
+        $(document).off('click', '#exportHistoryBtn').on('click', '#exportHistoryBtn', function() {
+            const historyData = $('#historyModal').data('history-data');
+            const studentInfo = $('#historyModal').data('student-info');
+            
+            if (!historyData || !studentInfo) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No hay datos para exportar'
+                });
+                return;
+            }
+            
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Generando archivo Excel',
+                text: 'Por favor espere...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Hacer petición AJAX para exportar
+            $.ajax({
+                url: 'components/attendance/exportHistoryToExcel.php',
+                method: 'POST',
+                data: {
+                    student_id: studentInfo.id,
+                    student_name: studentInfo.name,
+                    course_id: studentInfo.course_id,
+                    history_data: JSON.stringify(historyData)
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(data, status, xhr) {
+                    // Crear enlace de descarga
+                    const blob = new Blob([data], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Historial_Gestiones_${studentInfo.id}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    // Cerrar loading
+                    Swal.close();
+                    
+                    // Mostrar mensaje de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Exportación exitosa',
+                        text: 'El archivo se ha descargado correctamente',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr, status, error) {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de exportación',
+                        text: 'No se pudo generar el archivo Excel'
+                    });
+                    console.error("Error exportando:", error);
+                }
+            });
+        });
     }
 
     // Función para obtener el color del badge según el estado de asistencia
     function getAttendanceStatusColor(attendanceStatus) {
-        switch(attendanceStatus) {
+        switch (attendanceStatus) {
             case 'presente':
                 return 'bg-success';
             case 'tarde':
@@ -1496,10 +1624,22 @@ $courses_data = getCourses();
                     const form = $('#genericObservationForm');
                     form.find('[name="observation_type"]').val(response.data.observation_type);
                     form.find('[name="observation_text"]').val(response.data.observation_text);
+
+                    // Mostrar información del creador si existe
+                    if (response.data.created_by_name) {
+                        $('#observationCreatedBy').text(response.data.created_by_name);
+                        $('#observationCreatedByContainer').show();
+                    } else {
+                        $('#observationCreatedByContainer').hide();
+                    }
+                } else {
+                    // Si no hay datos, ocultar la información del creador
+                    $('#observationCreatedByContainer').hide();
                 }
             },
             error: function(xhr, status, error) {
                 console.error("Error cargando observación:", error);
+                $('#observationCreatedByContainer').hide();
             }
         });
     }
@@ -1788,4 +1928,156 @@ $courses_data = getCourses();
                 return 'bg-light text-dark'; // Estado desconocido
         }
     }
+
+    // Función para cargar los datos del historial (refactorizada)
+    function loadHistoryData(studentId, courseId) {
+        $.ajax({
+            url: 'components/attendance/getAttendanceManagementHistory.php',
+            method: 'POST',
+            data: {
+                student_id: studentId,
+                course_id: courseId
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Almacenar los datos para exportación
+                    $('#historyModal').data('history-data', response.data);
+
+                    // Limpiar tabla
+                    const tbody = $('#historyTable tbody');
+                    tbody.empty();
+
+                    // Verificar si hay datos
+                    if (response.data && response.data.length > 0) {
+                        // Llenar la tabla con los datos
+                        response.data.forEach(function(item) {
+                            const row = $('<tr></tr>');
+
+                            // Formatear fecha
+                            row.append(`<td>${item.formatted_date}</td>`);
+
+                            // Responsable
+                            row.append(`<td>${item.responsible_name || item.responsible_username || 'N/A'}</td>`);
+
+                            // Requiere subsanación
+                            row.append(`<td>${item.requires_intervention || 'N/A'}</td>`);
+
+                            // Observación subsanación
+                            const interventionObs = item.intervention_observation ?
+                                `<span class="text-truncate d-inline-block" style="max-width: 200px;" 
+                                          title="${item.intervention_observation}">${item.intervention_observation}</span>` :
+                                'N/A';
+                            row.append(`<td>${interventionObs}</td>`);
+
+                            // Resuelta
+                            row.append(`<td>${item.is_resolved || 'N/A'}</td>`);
+
+                            // Requiere estrategia
+                            row.append(`<td>${item.requires_additional_strategy || 'N/A'}</td>`);
+
+                            // Observación estrategia
+                            const strategyObs = item.strategy_observation ?
+                                `<span class="text-truncate d-inline-block" style="max-width: 200px;" 
+                                          title="${item.strategy_observation}">${item.strategy_observation}</span>` :
+                                'N/A';
+                            row.append(`<td>${strategyObs}</td>`);
+
+                            // Estrategia cumplida
+                            row.append(`<td>${item.strategy_fulfilled || 'N/A'}</td>`);
+
+                            // Motivo de retiro
+                            row.append(`<td>${item.withdrawal_reason || 'N/A'}</td>`);
+
+                            // Fecha de retiro
+                            const withdrawalDate = item.withdrawal_date ?
+                                new Date(item.withdrawal_date).toLocaleDateString() : 'N/A';
+                            row.append(`<td>${withdrawalDate}</td>`);
+
+                            tbody.append(row);
+                        });
+                    } else {
+                        tbody.append(`<tr><td colspan="10" class="text-center">No hay registros de gestión para este estudiante</td></tr>`);
+                        $('#exportHistoryBtn').prop('disabled', true);
+                    }
+
+                    // Mostrar contenido y ocultar carga
+                    $('#historyLoading').hide();
+                    $('#historyContent').show();
+
+                } else {
+                    // Mostrar mensaje de error
+                    $('#historyTable tbody').html(`<tr><td colspan="10" class="text-center text-danger">
+                            Error al cargar historial: ${response.message || 'Error desconocido'}
+                        </td></tr>`);
+
+                    $('#historyLoading').hide();
+                    $('#historyContent').show();
+                    $('#exportHistoryBtn').prop('disabled', true);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error cargando historial:", error);
+
+                // Mostrar mensaje de error
+                $('#historyTable tbody').html(`<tr><td colspan="10" class="text-center text-danger">
+                        Error de conexión al cargar el historial
+                    </td></tr>`);
+
+                $('#historyLoading').hide();
+                $('#historyContent').show();
+                $('#exportHistoryBtn').prop('disabled', true);
+            }
+        });
+    }
+
+    $('body').append(`
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="historyModalLabel">
+                        <i class="fas fa-history me-2"></i> Historial de Gestiones
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="historyLoading" class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando historial...</p>
+                    </div>
+                    <div id="historyContent" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="historyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Responsable</th>
+                                        <th>Requiere subsanación</th>
+                                        <th>Observación subsanación</th>
+                                        <th>Resuelta</th>
+                                        <th>Requiere estrategia</th>
+                                        <th>Observación estrategia</th>
+                                        <th>Estrategia cumplida</th>
+                                        <th>Motivo de retiro</th>
+                                        <th>Fecha de retiro</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="exportHistoryBtn">
+                        <i class="fas fa-file-excel me-2"></i> Exportar Historial
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    `);
 </script>

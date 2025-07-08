@@ -342,7 +342,7 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => 'UTI-R8L1',
+                'Origen' => 'UTI-R8L2',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => $tieneProfesor,
                 'Programa de interés' => $estaEnGroups ? $row['program'] : '',

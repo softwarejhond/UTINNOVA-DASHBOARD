@@ -16,6 +16,21 @@ include("components/filters/takeUser.php");
 $infoUsuario = obtenerInformacionUsuario(); // Obtén la información del usuario
 $rol = $infoUsuario['rol'];
 
+// Verificar campos incompletos
+$mostrar_alerta = false;
+$mensaje_campos = "";
+
+if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] === true) {
+    $mostrar_alerta = true;
+    $campos_faltantes = $_SESSION['campos_faltantes'];
+    $mensaje_campos = "Por favor complete los siguientes campos en su perfil: ";
+    $mensaje_campos .= implode(", ", $campos_faltantes);
+    
+    // Limpiar las variables de sesión para no mostrar la alerta en futuras cargas
+    unset($_SESSION['campos_incompletos']);
+    unset($_SESSION['campos_faltantes']);
+}
+
 ?>
 
 
@@ -101,6 +116,24 @@ $rol = $infoUsuario['rol'];
                 },
                 pagingType: "simple"
             });
+            
+            // Mostrar alerta si hay campos incompletos
+            <?php if ($mostrar_alerta): ?>
+            Swal.fire({
+                title: 'Perfil incompleto',
+                html: '<div style="text-align: center;"><p><strong><?php echo $mensaje_campos; ?></strong></p></div>',
+                icon: 'warning',
+                allowOutsideClick: false,
+                customClass: {
+                    popup: 'swal-wide'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirigir a la página de perfil - ajusta la ruta según tu estructura
+                    window.location.href = 'profile.php'; // Cambia esta ruta por la correcta
+                }
+            });
+            <?php endif; ?>
         });
     </script>
     <script>
@@ -115,12 +148,18 @@ $rol = $infoUsuario['rol'];
                 alert('Total de Estudiantes: ' + data.total_estudiantes);
             })
             .catch(error => console.error('Error al obtener los datos:', error));
-    }
+        }
 
     // Llamar a la función al cargar la página
     window.onload = mostrarTotalEnAlerta;
     */
-</script>
+    </script>
+
+    <style>
+    .swal-wide {
+        width: 600px !important;
+    }
+    </style>
 
 </body>
 

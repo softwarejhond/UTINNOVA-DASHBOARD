@@ -5,291 +5,662 @@
 <div class="text-center">
     <small id="countdown-timer" class="text-muted">Actualización en tiempo real</small>
 </div>
-<!-- HTML de las tarjetas -->
-<div class="row">
-    <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-        <div class="row">
-            <!-- Tarjeta Total Usuarios Registrados -->
-            <div class="col-sm-12 col-lg-6 col-md- mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-teal-dark text-white shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="bi bi-people-fill fa-3x text-white"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Total usuarios registrados</h5>
-                            <h2>
-                                <div class="spinner-grow text-light" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <span id="usuers_registrados"></span>
-                                <br>
-                                <h6 id="countdown-timer" class="text-white">Registros</h6>
-                            </h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Tarjeta Usuarios por Verificar -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-magenta-light text-white shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="fas fa-user-clock fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Usuarios por verificar</h5>
-                            <h2>
-                                <span id="total_sinVerificar"></span> |
-                                <span id="porc_sinVerificar"></span>
-                            </h2>
-                            <a href="registrarionsContact.php" class="btn btn-light btn-sm">Ver detalles</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Tarjeta Total de Usuarios -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-amber-light text-dark shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="fas fa-users fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Total de Usuarios aceptados</h5>
-                            <h2><span id="total_usuarios"></span></h2>
-                            <a href="verifiedUsers.php" class="btn btn-light btn-sm">Ver detalles</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-         <!-- Tarjeta Usuarios Lote 1 -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-indigo-light shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="fas fa-layer-group fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Inscritos para lote 1</h5>
-                            <h2>
-                                <span id="total_lote1"></span> |
-                                <span id="porc_lote1"></span>
-                            </h2>
-                            <a href="#" class="btn btn-light btn-sm">Ver detalles</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tarjeta Usuarios Lote 2 -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-teal-light shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="fas fa-layer-group fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Inscritos para lote 2</h5>
-                            <h2>
-                                <span id="total_lote2"></span> |
-                                <span id="porc_lote2"></span>
-                            </h2>
-                            <a href="#" class="btn btn-light btn-sm">Ver detalles</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-     <!-- Tarjeta Usuarios rechazados -->
-     <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-info-light text-dark shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="bi bi-person-x-fill fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Usuarios rechazados</h5>
-                            <h2><span id="total_rechazados"></span> | <span id="porc_rechazados"></span>%</h2>
-                            <a href="#" class="btn btn-light btn-sm">Ver detalles en contrucción <i class="bi bi-hammer"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    
-            <!-- Tarjeta establecio contacto de los verificados -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-brown-light shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="bi bi-telephone-inbound fa-3x text-white"></i>
-                        </div>
-                        <div class="text-container text-white">
-                            <h5 class="card-title">Se estableció contacto a verificados</h5>
-                            <h2>
-                                Sí: <span id="total_contacto_si_admin"></span> |
-                                <span id="porc_contacto_si_admin"></span><br>
-                                No: <span id="total_contacto_no_admin"></span> |
-                                <span id="porc_contacto_no_admin"></span>
-                            </h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Tarjeta Total de matriculados -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-indigo-dark text-white shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="fa-brands fa-the-red-yeti fa-4x text-white"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Total de campistas matriculados</h5>
-                            <h2><span id="total_matriculados"></span> | <span id="porc_matriculados"></span>%</h2>
-                            <hr class="m-1 mb-2">
-                            <h6 id="current-time" class="text-white"><i class="bi bi-hourglass-split"></i> </h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Tarjeta Usuarios que conocieron el programa por Radio -->
+<style>
+    .text-muted {
+        color: #7987a1 !important;
+    }
 
-        </div>
-    </div>
-    <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-        <div class="row">
-            <!-- Tarjeta establecio contacto de los verificados -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-teal-light shadow">
-                    <div class="card-body d-flex align-items-center">
+    .text-primary {
+        color: #58b082 !important;
+    }
 
-                        <div class="text-container text-black">
-                            <h5 class="card-title"> <i class="bi bi-calendar3-event fa-2x text-black"></i>   Registros por lote</h5>
-                            <?php include("components/graphics/registerLotes.php");  ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-warning-light shadow">
-                    <div class="card-body d-flex align-items-center">
+    .text-secondary {
+        color: #19456b !important;
+    }
 
-                        <div class="text-container text-black">
-                            <h5 class="card-title"> <i class="fa-solid fa-code-compare fa-2x text-black"></i> Registros VS  matriculados</h5>
-                            <?php include("components/graphics/registerVsEnrolled.php");  ?>
-                           
-                        </div>
-                    </div>
-                </div>
+    .text-success {
+        color: rgb(56 203 137) !important;
+    }
 
-            </div>
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-purple-light text-dark shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="bi bi-broadcast fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Impacto por Radio</h5>
-                            <h2><span id="total_radio"></span></h2>
-                            <hr class="m-1 mb-2">
-                            <canvas id="voice-waveform" width="300" height="20"></canvas>
-                            <script>
-                                const canvas = document.getElementById('voice-waveform');
-                                const ctx = canvas.getContext('2d');
-                                let waveOffset = 0;
+    .text-warning {
+        color: #ffc107 !important;
+    }
 
-                                function drawWaveform() {
-                                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                    ctx.beginPath();
-                                    ctx.moveTo(0, canvas.height / 2);
+    .text-danger {
+        color: #fa5c7c !important;
+    }
 
-                                    for (let x = 0; x < canvas.width; x++) {
-                                        const y = canvas.height / 2 + Math.sin((x + waveOffset) * 0.1) * 5;
-                                        ctx.lineTo(x, y);
-                                    }
+    .text-info {
+        color: #02d7ff !important;
+    }
 
-                                    ctx.strokeStyle = '#6f42c1'; // Color de la onda
-                                    ctx.lineWidth = 2;
-                                    ctx.stroke();
+    .bg-primary,
+    .badge-primary {
+        background-color: #58b082 !important;
+    }
 
-                                    waveOffset += 1;
-                                    requestAnimationFrame(drawWaveform);
-                                }
+    .bg-success,
+    .label-success {
+        background-color: #38cb89 !important;
+    }
 
-                                drawWaveform();
-                            </script>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tarjeta Usuarios que conocieron el programa por Redes Sociales -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-pink-light text-dark shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="bi bi-share-fill fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Impacto por redes sociales</h5>
-                            <h2><span id="total_redes_sociales"></span></h2>
-                            <hr class="m-1 mb-2">
-                            <i class="bi bi-facebook fa-1x text-gray-dark me-2"></i>
-                            <i class="bi bi-instagram fa-1x text-gray-dark me-2"></i>
-                            <i class="bi bi-whatsapp fa-1x text-gray-dark"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Tarjeta establecio contacto -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-lime-light shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="bi bi-telephone-inbound fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Se estableció contacto</h5>
-                            <h2>
-                                Sí: <span id="total_contacto_si"></span> |
-                                <span id="porc_contacto_si"></span><br>
-                                No: <span id="total_contacto_no"></span> |
-                                <span id="porc_contacto_no"></span>
-                            </h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    .bg-info {
+        background-color: rgb(2 215 255) !important;
+    }
 
-            <!-- Tarjeta Usuarios que se inscribieron por institucion -->
-            <div class="col-sm-12 col-lg-6 col-md-6 mb-3 mb-sm-0 mb-md-1">
-                <div class="card bg-cyan-light text-dark shadow">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="icon-container me-3">
-                            <i class="fas fa-building fa-3x text-gray-dark"></i>
-                        </div>
-                        <div class="text-container">
-                            <h5 class="card-title">Usuarios por evento</h5>
-                            <select id="institucionSelect" class="form-select mb-2">
-                                <option value="">Seleccione la localidad del evento</option>
-                            </select>
-                            <h2>
-                                <span id="total_institucion">0</span> 
-                                <small>usuarios</small>
-                            </h2>
-                            <div id="nombre_institucion" class="text-muted small"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-                
-        </div>
-    </div>
+    .bg-warning,
+    .badge-warning {
+        background-color: #ffc107 !important;
+    }
+
+    .bg-danger,
+    .badge-danger {
+        background-color: #fa5c7c !important;
+    }
+
+    .bg-info,
+    .badge-danger {
+        background-color: #02d7ff !important;
+    }
+
+    .bg-indigo {
+        background: #5066e0 !important;
+    }
+
+    .bg-purple {
+        background: #8a4dd2 !important;
+    }
+
+    .bg-secondary {
+        background: #19456b !important;
+    }
+
+    .text-sm {
+        font-size: 0.875rem;
+    }
+
+    .text-xs {
+        font-size: 0.75rem;
+    }
+
+    .text-xl {
+        font-size: 1.25rem;
+    }
+
+    .text-lg {
+        font-size: 1.125rem;
+    }
+
+    .text-base {
+        font-size: 1rem;
+    }
+
+    .text-2xl {
+        font-size: 1.875rem;
+    }
+
+    .font-medium {
+        font-weight: 500;
+    }
+
+    .font-semibold {
+        font-weight: 600;
+    }
+
+    .opacity-50 {
+        opacity: 0.6;
+    }
+
+    .opacity-25 {
+        opacity: 0.25;
+    }
+
+    .opacity-75 {
+        opacity: 0.75;
+    }
+
+    .tabs-container .nav-tabs>li.active {
+        border-bottom: 4px solid #58b07e;
+        border-left: 0;
+    }
+
+    .rounded-sm {
+        border-radius: 0.125rem;
+    }
+
+    .rounded-md {
+        border-radius: 0.375rem;
+    }
+
+    .rounded-lg {
+        border-radius: 0.5rem;
+    }
+
+    .rounded {
+        border-radius: 0.25rem;
+    }
+
+    .rounded-xl {
+        border-radius: 0.75rem;
+    }
+
+    .rounded-2xl {
+        border-radius: 1rem;
+    }
+
+    .rounded-3xl {
+        border-radius: 1.5rem;
+    }
+
+    .rounded-full {
+        border-radius: 50%;
+    }
+
+    .rounded-t-sm {
+        border-top-left-radius: 0.125rem;
+        border-top-right-radius: 0.125rem;
+    }
+
+    .rounded-t-md {
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+    }
+
+    .rounded-t-lg {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+
+    .rounded-t-xl {
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+    }
+
+    .rounded-b-sm {
+        border-bottom-left-radius: 0.125rem;
+        border-bottom-right-radius: 0.125rem;
+    }
+
+    .rounded-b-md {
+        border-bottom-left-radius: 0.375rem;
+        border-bottom-right-radius: 0.375rem;
+    }
+
+    .rounded-b-lg {
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+    }
+
+    .rounded-b-xl {
+        border-bottom-left-radius: 0.75rem;
+        border-bottom-right-radius: 0.75rem;
+    }
+
+    .media-icon {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border-radius: 100%;
+        background: rgb(255 255 255 / 28%);
+    }
+
+    .media-icon i {
+        font-size: 0.875rem;
+        line-height: 0.9;
+    }
+
+    .border {
+        border: 1px solid #edeef7 !important;
+    }
+
+    .border-right {
+        border-right: 1px solid #edeef7 !important;
+    }
+
+    .border-left {
+        border-left: 1px solid #edeef7 !important;
+    }
+
+    .border-top {
+        border-top: 1px solid #edeef7 !important;
+    }
+
+    .border-bottom {
+        border-bottom: 1px solid #edeef7 !important;
+    }
+
+    .pulse {
+        border-radius: 50%;
+        box-shadow: 0 0 0 0 rgb(255 193 7);
+        height: 22px;
+        width: 22px;
+        padding: 2px;
+        transform: scale(1);
+        animation: pulse 2s infinite;
+        color: #fff;
+        text-align: center;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 177, 66, 0.7);
+        }
+
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 10px rgba(255, 177, 66, 0);
+        }
+
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 177, 66, 0);
+        }
+    }
+
+    .pulse i {
+        color: rgb(255 193 7);
+    }
+
+    .avatar {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.85);
+        background: #38cb89;
+    }
+
+    .avatar-xs,
+    .media-icon-xs {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+
+    .avatar-sm,
+    .media-icon-sm {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .avatar-lg,
+    .media-icon-lg {
+        width: 64px;
+        height: 64px;
+        font-size: 28px;
+    }
+
+    .avatar-xl,
+    .media-icon-xl {
+        width: 72px;
+        height: 72px;
+        font-size: 36px;
+    }
+
+    .avatar-2xl,
+    .media-icon-2xl {
+        width: 82px;
+        height: 82px;
+        font-size: 42px;
+    }
+
+    .h-5 {
+        height: 5px !important;
+    }
+
+    .card-hover:hover {
+        transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+        transition-duration: 0.3s;
+        outline: none;
+        text-decoration: none;
+        box-shadow: 0 5px 15px 5px rgb(236 239 245 / 80%);
+        color: #58b07e;
+    }
+
+    .rotate-46 {
+        transform: rotate(-46deg);
+    }
+
+    .-rotate-46 {
+        transform: rotate(-46deg);
+    }
+
+    .bg-success-transparent {
+        background: rgba(56, 203, 137, 0.2);
+    }
+
+    .bg-danger-transparent {
+        background: rgba(250, 92, 124, 0.2);
+    }
+
+    .bg-info-transparent {
+        background: rgba(2, 215, 255, 0.2);
+    }
+
+    .bg-warning-transparent {
+        background: rgba(255, 193, 7, 0.2);
+    }
+
+    .btn-outline-success {
+        color: #38cb89;
+        border-color: #38cb89;
+    }
+
+    .btn-success {
+        color: #fff;
+        background-color: #38cb89;
+        border-color: #38cb89;
+    }
+
+    .btn-outline-primary {
+        color: #58b07e;
+        background-color: transparent;
+        background-image: none;
+        border-color: #58b07e;
+    }
+
+    .btn-outline-primary:hover {
+        color: #fff;
+        background-color: #58b07e;
+        border-color: #58b07e;
+    }
+
+    .btn-outline-danger {
+        color: #fa5c7c !important;
+        border-color: #fa5c7c;
+    }
+
+    .btn-outline-danger:hover {
+        color: #fff !important;
+        background-color: #fa5c7c;
+        border-color: #fa5c7c;
+    }
+
+    .file-upload input[type="file"] {
+        display: none;
+    }
+
+    .b-solid {
+        border: solid 1px #eff0f6;
+    }
+
+    .b-solid-2 {
+        border: solid 2px #eff0f6;
+    }
+
+    .b-solid-3 {
+        border: solid 3px #eff0f6;
+    }
+
+    .b-solid-4 {
+        border: solid 4px #eff0f6;
+    }
+
+    .b-solid-5 {
+        border: solid 5px #eff0f6;
+    }
+
+    .b-dashed {
+        border: dashed 1px #eff0f6;
+    }
+
+    .b-dashed-2 {
+        border: dashed 2px #eff0f6;
+    }
+
+    .b-dashed-3 {
+        border: dashed 3px #eff0f6;
+    }
+
+    .b-dashed-4 {
+        border: dashed 4px #eff0f6;
+    }
+
+    .b-dashed-5 {
+        border: dashed 5px #eff0f6;
+    }
+
+    .card {
+        background-color: #fff;
+        position: relative;
+        margin-bottom: 1.5rem;
+        border: 0;
+        box-shadow: 0 10px 15px 5px rgba(0, 0, 0, 0.02);
+        border-radius: 1.25rem;
+        overflow: hidden;
+    }
+
+    .overflow-visible {
+        overflow: visible;
+    }
+
+    .relative {
+        position: relative;
+    }
+
+    .absolute {
+        position: absolute;
+    }
+
+    .truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .blink {
+        animation: blink 1s linear infinite;
+        -webkit-animation: blink 1s linear infinite;
+        color: #fff;
+        font-size: 18px;
+    }
+
+    @keyframes blink {
+        0% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @media (min-width: 576px) {
+        .sm--mx-1 {
+            margin-left: -0.25rem !important;
+            margin-right: -0.25rem !important;
+        }
+
+        .sm--mx-2 {
+            margin-left: -0.5rem !important;
+            margin-right: -0.5rem !important;
+        }
+
+        .sm--mx-3 {
+            margin-left: -0.75rem !important;
+            margin-right: -0.75rem !important;
+        }
+
+        .sm--mx-4 {
+            margin-left: -1rem !important;
+            margin-right: -1rem !important;
+        }
+
+        .sm--mx-5 {
+            margin-left: -1.25rem !important;
+            margin-right: -1.25rem !important;
+        }
+    }
+
+    .w-10 {
+        width: 10px;
+    }
+
+    .h-10 {
+        height: 10px;
+    }
+
+    .z-10 {
+        z-index: 10;
+    }
+
+    .bottom-0 {
+        bottom: 0;
+    }
+
+    .right-0 {
+        right: 0px;
+    }
+
+    .corner {
+        position: absolute;
+        display: inline-block;
+        width: 0;
+        height: 0;
+        line-height: 0;
+        border-bottom: 1.2em solid transparent;
+        border-right: 1.2em solid transparent;
+        border-style: dashed;
+        border-width: 1.2em;
+        right: 0;
+        bottom: 0px;
+    }
+
+    .corner-success {
+        border-color: transparent #38cb89 #38cb89 transparent;
+    }
+
+    .corner-warning {
+        border-color: transparent #ffc107 #ffc107 transparent;
+    }
+
+    .corner-danger {
+        border-color: transparent #fa5c7c #fa5c7c transparent;
+    }
+
+    .corner-info {
+        border-color: transparent #02d7ff #02d7ff transparent;
+    }
+
+    /*overhide css*/
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .card-body {
+        padding: 1.625rem;
+    }
+
+    .card-header {
+        background: transparent;
+        border-bottom: 0;
+    }
+
+    .container {
+        max-width: 1250px;
+    }
+
+    .btn-link {
+        color: #091c44;
+    }
+
+    .progress {
+        display: flex;
+        height: 1rem;
+        /* Ajusta la altura */
+        overflow: hidden;
+        font-size: 0.75rem;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+    }
+
+    .progress-bar {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        background-color: #38cb89;
+        /* Color de la barra */
+        transition: width 0.6s ease;
+    }
+
+    .progress-sm {
+        height: 0.5rem;
+        /* Tamaño pequeño */
+    }
+
+    .h-5 {
+        height: 5px !important;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #30336b; /* Color índigo */
+        border-color: #30336b; /* Borde índigo */
+        color: #fff; /* Texto blanco */
+    }
+
+    .pagination .page-link:hover {
+        background-color: #ec008c; /* Color índigo más oscuro al pasar el mouse */
+        color: #fff;
+    }
+</style>
+<div class="">
+        <!-- Página 2 -->
+  <?php include_once 'page1.php'; ?>
+    <!-- Página 2 -->
+    <?php include_once 'page2.php'; ?>
+    <!-- Paginador -->
+<div id="pagination-container" class="d-flex justify-content-center mb-4">
+    <nav>
+        <ul class="pagination pagination-lg">
+            <li class="page-item disabled" id="prev-page">
+                <a class="page-link" href="#" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item active" id="page-btn-1">
+                <a class="page-link" href="#">1</a>
+            </li>
+            <li class="page-item" id="page-btn-2">
+                <a class="page-link" href="#">2</a>
+            </li>
+            <li class="page-item" id="next-page">
+                <a class="page-link " href="#" aria-label="Siguiente">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 </div>
-<br>
-<br>
+</div>
+<script>
+    function actualizarBarraProgreso() {
+        var progreso = 0;
+        var intervalo = setInterval(function() {
+            progreso += 20; // Incremento para completar 100% en 5 segundos
+            $('#progress-bar-global').css('width', progreso + '%').attr('aria-valuenow', progreso);
+            if (progreso >= 100) {
+                clearInterval(intervalo);
+                $('#progress-bar-global').css('width', '0%').attr('aria-valuenow', 0); // Reiniciar la barra de progreso
+            }
+        }, 1000); // Actualizar cada 1 segundo
+    }
+</script>
 <!-- Asegúrate de incluir jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
@@ -303,19 +674,33 @@
                     console.log('Datos recibidos:', data); // Agregar esta línea para depuración
                     $('#usuers_registrados').text(data.total_registrados);
                     $('#total_usuarios').text(data.total_usuarios);
+                    // Actualizar el porcentaje de usuarios aceptados
+                    $('#porc_usuarios').text(data.porc_usuarios);
+                    const porcentajeUsuarios = data.porc_usuarios || 0; // Asegurarse de que no sea null o undefined
+                    $('#progress-bar-usuarios')
+                        .css('width', porcentajeUsuarios + '%')
+                        .attr('aria-valuenow', porcentajeUsuarios);
                     $('#total_boyaca').text(data.total_boyaca);
                     $('#porc_boyaca').text(data.porc_boyaca + '%');
+                    // Actualizar la barra de progreso de Boyacá
+                    const porcentajeBoyaca = data.porc_boyaca || 0; // Asegurarse de que no sea null o undefined
+                    $('#progress-bar-boyaca')
+                        .css('width', porcentajeBoyaca + '%')
+                        .attr('aria-valuenow', porcentajeBoyaca);
                     $('#total_cundinamarca').text(data.total_cundinamarca);
                     $('#porc_cundinamarca').text(data.porc_cundinamarca + '%');
-                    
-                    // Agrega estas líneas para los nuevos campos
-                    $('#total_lote1').text(data.total_lote1);
-                    $('#porc_lote1').text(data.porc_lote1 + '%');
-                    $('#total_lote2').text(data.total_lote2);
-                    $('#porc_lote2').text(data.porc_lote2 + '%');
-                    
+                    // Actualizar la barra de progreso de Cundinamarca
+                    const porcentajeCundinamarca = data.porc_cundinamarca || 0; // Asegurarse de que no sea null o undefined
+                    $('#progress-bar-cundinamarca')
+                        .css('width', porcentajeCundinamarca + '%')
+                        .attr('aria-valuenow', porcentajeCundinamarca);
                     $('#total_sinVerificar').text(data.total_sinVerificar);
                     $('#porc_sinVerificar').text(data.porc_sinVerificar + '%');
+                    // Actualizar la barra de progreso de "sin verificar"
+                    const porcentajeSinVerificar = data.porc_sinVerificar || 0; // Asegurarse de que no sea null o undefined
+                    $('#progress-bar-sin-verificar')
+                        .css('width', porcentajeSinVerificar + '%')
+                        .attr('aria-valuenow', porcentajeSinVerificar);
                     $('#total_GobernacionBoyaca').text(data.total_GobernacionBoyaca);
                     $('#porc_GobernacionBoyaca').text(data.porc_GobernacionBoyaca + '%');
                     $('#total_contacto_si').text(data.total_contacto_si);
@@ -328,17 +713,58 @@
                     $('#porc_contacto_no_admin').text(data.porc_contacto_no_admin + '%');
                     $('#total_matriculados').text(data.total_matriculados); // Actualizar total matriculados
                     $('#porc_matriculados').text(data.porc_matriculados + '%'); // Actualizar porcentaje matriculados
+                    // Actualizar la barra de progreso de matriculados
+                    const porcentajeMatriculados = data.porc_matriculados || 0; // Asegurarse de que no sea null o undefined
+                    $('#progress-bar-matriculados')
+                        .css('width', porcentajeMatriculados + '%')
+                        .attr('aria-valuenow', porcentajeMatriculados);
+                    
+                    // Ya no necesitamos actualizar estos campos porque ahora están en el gráfico
+                    // $('#total_matriculados_card').text(data.total_matriculados || 0);
+                    // $('#total_formados_card').text(data.total_formados || 0);
+                    // $('#total_certificados_card').text(data.total_certificados || 0);
+                    
                     $('#total_radio').text(data.total_radio);
                     $('#total_redes_sociales').text(data.total_redes_sociales);
                     $('#total_rechazados').text(data.total_rechazados); // Agregar esta línea
-                    $('#porc_rechazados').text(data.porc_rechazados ); // Agregar esta línea
-                    $('#porc_matriculados').text(data.porc_matriculados ); // Agregar esta línea
-                    
+                    $('#porc_rechazados').text(data.porc_rechazados); // Agregar esta línea
+                    // Actualizar la barra de progreso de rechazados
+                    const porcentajeRechazados = data.porc_rechazados || 0; // Asegurarse de que no sea null o undefined
+                    $('#progress-bar-rechazados')
+                        .css('width', porcentajeRechazados + '%')
+                        .attr('aria-valuenow', porcentajeRechazados);
+                    $('#porc_matriculados').text(data.porc_matriculados); // Agregar esta línea
+                    $('#total_activos').text(data.total_activos); // Agregar esta línea
+                    $('#total_inactivos').text(data.total_inactivos); // Agregar esta línea
+                    $('#total_nuevos').text(data.total_nuevos); // Agregar esta línea
+                    $('#total_premium').text(data.total_premium); // Agregar esta línea
+                    $('#total_basicos').text(data.total_basicos); // Agregar esta línea
+                    $('#total_suspendidos').text(data.total_suspendidos); // Agregar esta línea
+                    $('#total_eliminados').text(data.total_eliminados); // Agregar esta línea
+                    $('#total_invitados').text(data.total_invitados); // Agregar esta línea
+                    $('#total_administradores').text(data.total_administradores); // Agregar esta línea
+                    $('#total_vip').text(data.total_vip); // Agregar esta línea
+
+                    $('#total_lote1').text(data.total_lote1);
+$('#porc_lote1').text(data.porc_lote1 + '%');
+// Actualizar la barra de progreso del Lote 1
+const porcentajeLote1 = data.porc_lote1 || 0;
+$('#progress-bar-lote1')
+    .css('width', porcentajeLote1 + '%')
+    .attr('aria-valuenow', porcentajeLote1);
+
+$('#total_lote2').text(data.total_lote2);
+$('#porc_lote2').text(data.porc_lote2 + '%');
+// Actualizar la barra de progreso del Lote 2
+const porcentajeLote2 = data.porc_lote2 || 0;
+$('#progress-bar-lote2')
+    .css('width', porcentajeLote2 + '%')
+    .attr('aria-valuenow', porcentajeLote2);
                     // Actualizar select de instituciones
                     var select = $('#institucionSelect');
                     select.empty();
                     select.append('<option value="">Seleccione una institución</option>');
-                    
+
                     data.instituciones.forEach(function(inst) {
                         select.append(`<option value="${inst.total}">${inst.nombre}</option>`);
                     });
@@ -380,7 +806,7 @@
         }
 
         iniciarActualizacion();
-        setInterval(iniciarActualizacion, 5000);
+        setInterval(iniciarActualizacion, 10000);
         setInterval(actualizarHoraActual, 1000); // Actualizar la hora cada segundo
 
         // Agregar el evento change para el select
@@ -392,3 +818,73 @@
         });
     });
 </script>
+<script>
+    $(document).ready(function() {
+        $('#date-select').on('change', function() {
+            const selectedDate = $(this).val();
+
+            if (selectedDate) {
+                $.ajax({
+                    url: 'components/cardContadores/actualizarContadores.php',
+                    method: 'GET',
+                    data: {
+                        date: selectedDate
+                    },
+                    success: function(data) {
+                        $('#usuers_registrados').text(data.total_registrados_por_fecha);
+                    },
+                    error: function(error) {
+                        console.error('Error al obtener los datos:', error);
+                    }
+                });
+            } else {
+                $('#usuers_registrados').text(0);
+            }
+        });
+    });
+</script>
+<script>
+$(document).ready(function () {
+    let currentPage = 1;
+    const totalPages = 2; // Cambia este valor según la cantidad de páginas que tengas
+
+    function mostrarPagina(page) {
+        // Ocultar todas las páginas
+        $('.page').each(function () {
+            $(this).hide(); // Asegúrate de ocultar todas las páginas
+        });
+
+        // Mostrar la página seleccionada
+        $(`#page-${page}`).show();
+
+        // Actualizar el estado del paginador
+        $('.pagination .page-item').removeClass('active disabled');
+        $(`#page-btn-${page}`).addClass('active');
+
+        // Deshabilitar botones "Anterior" y "Siguiente" si es necesario
+        $('#prev-page').toggleClass('disabled', page === 1);
+        $('#next-page').toggleClass('disabled', page === totalPages);
+    }
+
+    // Manejar clics en el paginador
+    $('.pagination .page-item').on('click', function (e) {
+        e.preventDefault();
+
+        if ($(this).hasClass('disabled')) return;
+
+        if ($(this).attr('id') === 'prev-page') {
+            currentPage = Math.max(1, currentPage - 1);
+        } else if ($(this).attr('id') === 'next-page') {
+            currentPage = Math.min(totalPages, currentPage + 1);
+        } else {
+            currentPage = parseInt($(this).attr('id').replace('page-btn-', ''));
+        }
+
+        mostrarPagina(currentPage);
+    });
+
+    // Mostrar la primera página al cargar
+    mostrarPagina(currentPage);
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

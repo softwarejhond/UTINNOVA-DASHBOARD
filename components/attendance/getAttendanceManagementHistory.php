@@ -12,39 +12,35 @@ $studentId = $_POST['student_id'];
 $courseId = $_POST['course_id'];
 
 try {
-    // Consulta con JOIN para obtener el registro más reciente
-    $sql = "SELECT sam.*, u.nombre as responsible_name 
+    // Consulta con JOIN para obtener el nombre del responsable para todos los registros
+    $sql = "SELECT sam.*, u.nombre as responsible_name, 
+            DATE_FORMAT(sam.created_at, '%d/%m/%Y %H:%i') as formatted_date
             FROM student_attendance_management sam
             LEFT JOIN users u ON sam.responsible_username = u.username
             WHERE sam.student_id = ? AND sam.course_id = ?
-            ORDER BY sam.created_at DESC
-            LIMIT 1";
+            ORDER BY sam.created_at DESC";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('si', $studentId, $courseId);
     $stmt->execute();
     $result = $stmt->get_result();
     
-    if ($result->num_rows > 0) {
-        $data = $result->fetch_assoc();
-        
-        echo json_encode([
-            'success' => true,
-            'data' => $data
-        ]);
-    } else {
-        echo json_encode([
-            'success' => true,
-            'data' => null
-        ]);
+    $history = [];
+    while ($row = $result->fetch_assoc()) {
+        $history[] = $row;
     }
+    
+    echo json_encode([
+        'success' => true,
+        'data' => $history
+    ]);
     
     $stmt->close();
     
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'message' => 'Error al obtener información de gestión: ' . $e->getMessage()
+        'message' => 'Error al obtener historial de gestión: ' . $e->getMessage()
     ]);
 }
 ?>

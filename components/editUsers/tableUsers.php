@@ -1,7 +1,7 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario actual
 
-// Consulta para obtener todos los usuarios (incluir extra_rol)
+// Consulta para obtener todos los usuarios (incluir extra_rol y orden)
 $sql = "SELECT * FROM users ORDER BY id ASC";
 $result = $conn->query($sql);
 $users = [];
@@ -43,6 +43,7 @@ function getRolText($rolNum) {
                     <th>Nombre</th>
                     <th>Rol</th>
                     <th>Rol Extra</th>
+                    <th>Estado</th>
                     <th>Email</th>
                     <th>Género</th>
                     <th>Teléfono</th>
@@ -53,7 +54,7 @@ function getRolText($rolNum) {
             </thead>
             <tbody>
                 <?php foreach ($users as $user) { ?>
-                    <tr>
+                    <tr class="<?php echo (isset($user['orden']) && $user['orden'] == 0) ? 'table-secondary' : ''; ?>">
                         <td><?php echo !empty($user['username']) ? htmlspecialchars($user['username']) : '--'; ?></td>
                         <td><?php echo !empty($user['nombre']) ? htmlspecialchars($user['nombre']) : '--'; ?></td>
                         <td><?php echo !empty($user['rol']) ? htmlspecialchars(getRolText($user['rol'])) : '--'; ?></td>
@@ -65,6 +66,17 @@ function getRolText($rolNum) {
                             <?php else: ?>
                                 <span class="badge bg-secondary">
                                     <i class="bi bi-dash-circle"></i> Inactivo
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="text-center">
+                            <?php if (isset($user['orden']) && $user['orden'] == 1): ?>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-person-check"></i> Habilitado
+                                </span>
+                            <?php else: ?>
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-person-x"></i> Deshabilitado
                                 </span>
                             <?php endif; ?>
                         </td>
@@ -111,6 +123,30 @@ function getRolText($rolNum) {
                     <form id="updateForm<?php echo $user['id']; ?>">
                         <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
                         
+                        <!-- Campo Estado del Usuario -->
+                        <div class="mb-3">
+                            <label class="form-label">Estado del Usuario</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       role="switch" 
+                                       id="estadoUsuarioSwitch<?php echo $user['id']; ?>" 
+                                       name="orden" 
+                                       value="1"
+                                       <?php echo (isset($user['orden']) && $user['orden'] == 1) ? 'checked' : ''; ?>
+                                       style="border: 2px solid #30336B; width: 3em; height: 1.5em;">
+                                <label class="form-check-label" for="estadoUsuarioSwitch<?php echo $user['id']; ?>">
+                                    <span id="estadoUsuarioLabel<?php echo $user['id']; ?>">
+                                        <?php echo (isset($user['orden']) && $user['orden'] == 1) ? 'Habilitado' : 'Deshabilitado'; ?>
+                                    </span>
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Los usuarios deshabilitados no podrán iniciar sesión en el sistema
+                            </small>
+                        </div>
+                        
                         <div class="mb-3">
                             <label class="form-label">Nombre completo</label>
                             <input type="text" class="form-control" name="nombre" value="<?php echo htmlspecialchars($user['nombre']); ?>" required>
@@ -136,7 +172,7 @@ function getRolText($rolNum) {
                             </select>
                         </div>
 
-                        <!-- NUEVO CAMPO: Rol Extra -->
+                        <!-- CAMPO: Rol Extra -->
                         <div class="mb-3">
                             <label class="form-label">Rol Extra</label>
                             <div class="form-check form-switch">
@@ -277,10 +313,29 @@ $(document).ready(function() {
         
         // Inicializar el switch de rol extra
         initExtraRolSwitch(<?php echo $user['id']; ?>);
+        
+        // Inicializar el switch de estado de usuario
+        initEstadoUsuarioSwitch(<?php echo $user['id']; ?>);
     <?php } ?>
 });
 
-// Nueva función para manejar el switch de rol extra
+// Nueva función para manejar el switch de estado de usuario
+function initEstadoUsuarioSwitch(userId) {
+    const switchElement = document.getElementById('estadoUsuarioSwitch' + userId);
+    const labelElement = document.getElementById('estadoUsuarioLabel' + userId);
+    
+    switchElement.addEventListener('change', function() {
+        if (this.checked) {
+            labelElement.textContent = 'Habilitado';
+            labelElement.className = 'text-success fw-bold';
+        } else {
+            labelElement.textContent = 'Deshabilitado';
+            labelElement.className = 'text-danger fw-bold';
+        }
+    });
+}
+
+// Función para manejar el switch de rol extra
 function initExtraRolSwitch(userId) {
     const switchElement = document.getElementById('extraRolSwitch' + userId);
     const labelElement = document.getElementById('extraRolLabel' + userId);
@@ -324,6 +379,12 @@ function updateUser(userId) {
     const extraRolSwitch = document.getElementById('extraRolSwitch' + userId);
     if (!extraRolSwitch.checked) {
         formData.append('extra_rol', '0');
+    }
+
+    // Agregar valor del orden (estado de usuario) al FormData
+    const estadoUsuarioSwitch = document.getElementById('estadoUsuarioSwitch' + userId);
+    if (!estadoUsuarioSwitch.checked) {
+        formData.append('orden', '0');
     }
 
     Swal.fire({

@@ -24,7 +24,8 @@ if (!isset($_SESSION['username'])) {
 }
 
 // Función para obtener las horas totales según el tipo de curso
-function getHorasTotalesCurso($courseType) {
+function getHorasTotalesCurso($courseType)
+{
     switch ($courseType) {
         case 'bootcamp':
             return 120; // Técnico
@@ -76,34 +77,73 @@ try {
             break;
     }
 
-    // Consultar el progreso grupal
-    $sqlProgress = "SELECT AVG($realsColumn) as avg_progress FROM groups 
-                    WHERE $courseIdColumn = ? 
-                    AND mode = ? 
-                    AND headquarters = ?";
-    
+    // Consultar el promedio de intensidad grupal desde la tabla groups
+    $sqlProgress = "";
+    switch ($courseType) {
+        case 'bootcamp':
+            $sqlProgress = "SELECT AVG(b_intensity) as avg_intensity, 120 as total_required_hours 
+                            FROM groups 
+                            WHERE id_bootcamp = ? 
+                            AND mode = ? 
+                            AND headquarters = ?";
+            break;
+        case 'english_code':
+            $sqlProgress = "SELECT AVG(ec_intensity) as avg_intensity, 24 as total_required_hours 
+                            FROM groups 
+                            WHERE id_english_code = ? 
+                            AND mode = ? 
+                            AND headquarters = ?";
+            break;
+        case 'skills':
+            $sqlProgress = "SELECT AVG(s_intensity) as avg_intensity, 15 as total_required_hours 
+                            FROM groups 
+                            WHERE id_skills = ? 
+                            AND mode = ? 
+                            AND headquarters = ?";
+            break;
+        default:
+            $sqlProgress = "SELECT 0 as avg_intensity, 0 as total_required_hours";
+    }
+
     $stmtProgress = mysqli_prepare($conn, $sqlProgress);
     if (!$stmtProgress) {
         echo json_encode(['error' => 'Error en la preparación de progreso: ' . mysqli_error($conn)]);
         exit;
     }
-    
-    mysqli_stmt_bind_param($stmtProgress, "iss", $bootcamp, $modalidad, $sede);
-    
+
+    // Bind parameters solo si hay parámetros que vincular
+    if ($courseType != '') {
+        mysqli_stmt_bind_param($stmtProgress, "iss", $bootcamp, $modalidad, $sede);
+    }
+
     if (!mysqli_stmt_execute($stmtProgress)) {
         echo json_encode(['error' => 'Error al ejecutar consulta de progreso: ' . mysqli_stmt_error($stmtProgress)]);
         exit;
     }
-    
+
     $resultProgress = mysqli_stmt_get_result($stmtProgress);
     $progressRow = mysqli_fetch_assoc($resultProgress);
-    $avgProgress = $progressRow['avg_progress'] ?? 0;
-    
-    // Obtener el total de horas requeridas para calcular el porcentaje
-    $totalHorasRequeridas = getHorasTotalesCurso($courseType);
-    $progressPercent = ($totalHorasRequeridas > 0) ? ($avgProgress / $totalHorasRequeridas) * 100 : 0;
-    $progressPercent = round($progressPercent, 1);
-    
+
+    // Verificar si se obtuvo información del curso
+    if ($progressRow) {
+        $avgIntensity = $progressRow['avg_intensity'] ?? 0;
+        $totalHorasRequeridas = $progressRow['total_required_hours'] ?? 0;
+
+        // Calcular el porcentaje de progreso
+        $progressPercent = ($totalHorasRequeridas > 0) ? ($avgIntensity / $totalHorasRequeridas) * 100 : 0;
+        $progressPercent = round($progressPercent, 1);
+    } else {
+        // Si no hay información del curso, establecer valores predeterminados
+        $avgIntensity = 0;
+        $totalHorasRequeridas = getHorasTotalesCurso($courseType);
+        $progressPercent = 0;
+    }
+
+    // Asegurar que el porcentaje no exceda el 100%
+    if ($progressPercent > 100) {
+        $progressPercent = 100;
+    }
+
     // MODIFICACIÓN: Mejorar la consulta SQL para obtener con seguridad los estados de asistencia
     $sql = "SELECT g.*, 
         (SELECT attendance_status FROM attendance_records 
@@ -118,7 +158,7 @@ try {
         AND g.mode = ? 
         AND g.headquarters = ?
         ORDER BY g.full_name ASC";
-        
+
 
     $stmt = mysqli_prepare($conn, $sql);
     if (!$stmt) {
@@ -144,7 +184,7 @@ try {
     $studentCount = 0;
     $attendanceCount = 0;
     $contador = 1;
-    
+
     // Verificar primero si hay registros de asistencia para esta fecha y curso
     $checkAttendanceSQL = "SELECT COUNT(*) as count FROM attendance_records 
                           WHERE class_date = ? AND course_id = ?";
@@ -153,7 +193,7 @@ try {
     mysqli_stmt_execute($checkStmt);
     $checkResult = mysqli_stmt_get_result($checkStmt);
     $attendanceExists = mysqli_fetch_assoc($checkResult)['count'] > 0;
-    
+
     // Si no hay registros para esta fecha, mostrar mensaje específico
     if (!$attendanceExists) {
         $tableContent = '<tr><td colspan="11" class="text-center">No hay registros de asistencia para la fecha seleccionada</td></tr>';
@@ -167,13 +207,13 @@ try {
         ]);
         exit;
     }
-    
+
     // Continúa con el procesamiento normal si sí hay registros
     while ($row = mysqli_fetch_assoc($result)) {
         $studentCount++;
         // Normalizar el estado de asistencia (quitar espacios y convertir a minúsculas)
         $attendanceStatus = isset($row['attendance_status']) ? trim(strtolower($row['attendance_status'])) : '';
-        
+
         if (!empty($attendanceStatus)) {
             $attendanceCount++;
         }
@@ -268,11 +308,12 @@ try {
         $tableContent = '<tr><td colspan="10" class="text-center">No se encontraron registros</td></tr>';
     }
 
+    // Modificar la parte donde se envía la respuesta JSON
     echo json_encode([
-        'html' => $tableContent, 
+        'html' => $tableContent,
         'progressInfo' => [
             'percent' => $progressPercent,
-            'avgHours' => round($avgProgress, 1),
+            'avgHours' => $avgIntensity,
             'totalHours' => $totalHorasRequeridas
         ],
         'debug' => [
@@ -285,4 +326,3 @@ try {
     echo json_encode(['error' => 'Error en el servidor: ' . $e->getMessage()]);
     exit;
 }
-?>

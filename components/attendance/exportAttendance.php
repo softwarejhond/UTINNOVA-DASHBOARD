@@ -153,6 +153,41 @@ try {
         ];
     }
 
+    // Agregar esta función para obtener el estado de asistencia de un estudiante en una clase
+    function getAttendanceStatus($conn, $studentId, $courseId, $classDate) {
+        $sql = "SELECT attendance_status 
+                FROM attendance_records 
+                WHERE student_id = ? AND course_id = ? AND class_date = ?
+                LIMIT 1";
+        
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            return null;
+        }
+        
+        $stmt->bind_param('sis', $studentId, $courseId, $classDate);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        
+        return $row ? $row['attendance_status'] : null;
+    }
+
+    // Función para obtener el color según estado de asistencia
+    function getAttendanceColor($attendanceStatus) {
+        switch($attendanceStatus) {
+            case 'presente':
+                return '9CCC65'; // Verde más intenso
+            case 'tarde':
+                return 'FFD54F'; // Amarillo más intenso
+            case 'ausente':
+                return 'EF5350'; // Rojo más intenso
+            default:
+                return 'CFD8DC'; // Gris más visible
+        }
+    }
+
     $courseTypes = [
         'tecnico' => 'Técnico',
         'ingles_nivelado' => 'Inglés Nivelado', 
@@ -264,14 +299,35 @@ try {
             
             // Datos de observaciones por clase (separadas en dos columnas)
             foreach ($classDates as $classDate) {
+                // Obtener el estado de asistencia para este estudiante y esta clase
+                $attendanceStatus = getAttendanceStatus($conn, $student['number_id'], $student['course_code'], $classDate);
+                $cellColor = getAttendanceColor($attendanceStatus);
+                
+                // Columna para el tipo de observación
+                $typeColIndex = $col++;
                 if (isset($observations[$classDate])) {
-                    $obs = $observations[$classDate];
-                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $obs['type'] ?? '');
-                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, $obs['text'] ?? '');
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($typeColIndex) . $row, $observations[$classDate]['type'] ?? '');
                 } else {
-                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, '');
-                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col++) . $row, '');
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($typeColIndex) . $row, '');
                 }
+                // Aplicar color de fondo según estado de asistencia
+                $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($typeColIndex) . $row)
+                    ->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB($cellColor);
+                
+                // Columna para el texto de la observación
+                $textColIndex = $col++;
+                if (isset($observations[$classDate])) {
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($textColIndex) . $row, $observations[$classDate]['text'] ?? '');
+                } else {
+                    $sheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($textColIndex) . $row, '');
+                }
+                // Aplicar color de fondo según estado de asistencia
+                $sheet->getStyle(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($textColIndex) . $row)
+                    ->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB($cellColor);
             }
             
             // Obtener estadísticas de asistencia

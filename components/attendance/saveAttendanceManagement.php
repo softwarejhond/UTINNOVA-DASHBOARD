@@ -33,24 +33,13 @@ try {
         throw new Exception("Error de conexión a la base de datos");
     }
     
-    // Usar UPSERT (INSERT ... ON DUPLICATE KEY UPDATE) para mayor eficiencia
+    // Siempre insertar un nuevo registro para mantener el historial
     $sql = "INSERT INTO student_attendance_management (
                 student_id, course_id, requires_intervention, 
                 responsible_username, intervention_observation, is_resolved,
                 requires_additional_strategy, strategy_observation, strategy_fulfilled,
                 withdrawal_reason, withdrawal_date
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                requires_intervention = VALUES(requires_intervention),
-                responsible_username = VALUES(responsible_username),
-                intervention_observation = VALUES(intervention_observation),
-                is_resolved = VALUES(is_resolved),
-                requires_additional_strategy = VALUES(requires_additional_strategy),
-                strategy_observation = VALUES(strategy_observation),
-                strategy_fulfilled = VALUES(strategy_fulfilled),
-                withdrawal_reason = VALUES(withdrawal_reason),
-                withdrawal_date = VALUES(withdrawal_date),
-                updated_at = CURRENT_TIMESTAMP";
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
