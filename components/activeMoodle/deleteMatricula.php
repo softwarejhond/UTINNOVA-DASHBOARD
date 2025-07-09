@@ -19,8 +19,16 @@ if ($input && isset($input['number_id'])) {
 require  '../../controller/conexion.php';
 
 try {
-    // 1. Obtener información del usuario desde la tabla groups
-    $stmt = $conn->prepare("SELECT institutional_email FROM groups WHERE number_id = ?");
+    // 1. Obtener información completa del usuario desde la tabla groups ANTES de eliminarlo
+    $stmt = $conn->prepare("SELECT 
+        type_id, number_id, full_name, email, institutional_email, 
+        department, headquarters, program, mode,
+        id_bootcamp, bootcamp_name,
+        id_leveling_english, leveling_english_name,
+        id_english_code, english_code_name,
+        id_skills, skills_name,
+        creation_date
+        FROM groups WHERE number_id = ?");
     $stmt->bind_param("s", $number_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -107,12 +115,56 @@ try {
     // 4. Actualizar registros en la base de datos local
     $conn->begin_transaction();
 
-    // 4.1 Eliminar de la tabla groups
+    // 4.1 Guardar el historial de matrícula ANTES de eliminar el registro
+    // Establecer zona horaria de Colombia
+    date_default_timezone_set('America/Bogota');
+    $unenrollment_date = date('Y-m-d H:i:s');
+    $username = $_SESSION['username'] ?? 'Sistema';
+
+    $historyStmt = $conn->prepare("INSERT INTO enrollment_history (
+        type_id, number_id, full_name, email, institutional_email,
+        department, headquarters, program, mode,
+        id_bootcamp, bootcamp_name,
+        id_leveling_english, leveling_english_name,
+        id_english_code, english_code_name,
+        id_skills, skills_name,
+        enrollment_date, unenrollment_date, unenrolled_by
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+    $historyStmt->bind_param("sisssssssisisissssss",
+        $userInfo['type_id'],
+        $userInfo['number_id'],
+        $userInfo['full_name'],
+        $userInfo['email'],
+        $userInfo['institutional_email'],
+        $userInfo['department'],
+        $userInfo['headquarters'],
+        $userInfo['program'],
+        $userInfo['mode'],
+        $userInfo['id_bootcamp'],
+        $userInfo['bootcamp_name'],
+        $userInfo['id_leveling_english'],
+        $userInfo['leveling_english_name'],
+        $userInfo['id_english_code'],
+        $userInfo['english_code_name'],
+        $userInfo['id_skills'],
+        $userInfo['skills_name'],
+        $userInfo['creation_date'],
+        $unenrollment_date,
+        $username
+    );
+
+    if (!$historyStmt->execute()) {
+        throw new Exception("Error al guardar el historial de matrícula: " . $historyStmt->error);
+    }
+    $historyStmt->close();
+
+    // 4.2 Eliminar de la tabla groups
     $deleteStmt = $conn->prepare("DELETE FROM groups WHERE number_id = ?");
     $deleteStmt->bind_param("s", $number_id);
     $deleteStmt->execute();
 
-    // 4.2 Actualizar statusAdmin a 1 en la tabla user_register
+    // 4.3 Actualizar statusAdmin a 1 en la tabla user_register
     $updateStmt = $conn->prepare("UPDATE user_register SET statusAdmin = 1 WHERE number_id = ?");
     $updateStmt->bind_param("s", $number_id);
     $updateStmt->execute();
@@ -135,11 +187,6 @@ try {
 
     $verifyStmt->close();
 
-    // 4.3 Eliminar registros de asistencia
-    $deleteAttendanceStmt = $conn->prepare("DELETE FROM attendance_records WHERE student_id = ?");
-    $deleteAttendanceStmt->bind_param("s", $number_id);
-    $deleteAttendanceStmt->execute();
-
     // Registrar en el historial de cambios
     $historialSql = "INSERT INTO change_history (student_id, user_change, change_made) VALUES (?, ?, ?)";
     $stmtHistorial = $conn->prepare($historialSql);
@@ -149,7 +196,7 @@ try {
         $descripcion = isset($input['isMultiple']) && $input['isMultiple'] === true 
             ? "Se elimina matrícula de Moodle (Desmatricula multiple)"
             : "Se elimina matrícula de Moodle";
-        $username = $_SESSION['username'];
+        
         $stmtHistorial->bind_param('iss', $number_id, $username, $descripcion);
         
         if (!$stmtHistorial->execute()) {
@@ -162,11 +209,13 @@ try {
 
     echo json_encode([
         'success' => true, 
-        'message' => 'Usuario eliminado correctamente',
+        'message' => 'Usuario eliminado correctamente y historial guardado',
         'details' => [
             'number_id' => $number_id,
             'institutional_email' => $institutional_email,
-            'moodle_user_id' => $moodleUserId
+            'moodle_user_id' => $moodleUserId,
+            'unenrollment_date' => $unenrollment_date,
+            'unenrolled_by' => $username
         ]
     ]);
 } catch (Exception $e) {

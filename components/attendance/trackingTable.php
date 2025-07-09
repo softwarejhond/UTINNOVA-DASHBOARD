@@ -288,8 +288,14 @@ $courses_data = getCourses();
 <!-- Contenedor para centrar los Nav tabs -->
 <div class="d-flex justify-content-center">
     <ul class="nav nav-tabs" id="studentsTab" role="tablist">
+        <!-- NUEVO TAB: Panel estadístico -->
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="tecnico-tab" data-bs-toggle="tab" data-bs-target="#tecnico-tab-pane" type="button" role="tab" aria-controls="tecnico-tab-pane" aria-selected="true">
+            <button class="nav-link active" id="estadistico-tab" data-bs-toggle="tab" data-bs-target="#estadistico-tab-pane" type="button" role="tab" aria-controls="estadistico-tab-pane" aria-selected="true">
+                Panel estadístico
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tecnico-tab" data-bs-toggle="tab" data-bs-target="#tecnico-tab-pane" type="button" role="tab" aria-controls="tecnico-tab-pane" aria-selected="false">
                 Técnico (<span id="tecnico-count">0</span>)
             </button>
         </li>
@@ -316,9 +322,14 @@ $courses_data = getCourses();
     <div class="card-body">
 
         <!-- Tab content - Con margen superior para separarse claramente de las pestañas -->
-        <div class="tab-content mt-3" id="studentsTabContent">
+        <div class="tab-content mt-3 container-fluid px-0" id="studentsTabContent">
+            <!-- NUEVO PANEL: Panel estadístico -->
+            <div class="tab-pane fade show active w-100" id="estadistico-tab-pane" role="tabpanel" aria-labelledby="estadistico-tab" tabindex="0">
+                <?php include 'components/attendance/statisticalPanel.php'; ?>
+            </div>
+
             <!-- Técnico -->
-            <div class="tab-pane fade show active" id="tecnico-tab-pane" role="tabpanel" aria-labelledby="tecnico-tab" tabindex="0">
+            <div class="tab-pane fade" id="tecnico-tab-pane" role="tabpanel" aria-labelledby="tecnico-tab" tabindex="0">
                 <div class="table-responsive">
                     <table class="table table-striped table-hover datatable" id="tecnico-table">
                         <thead>
@@ -1043,7 +1054,22 @@ $courses_data = getCourses();
                     row.append(`<td style="text-align: left;">${student.email || 'N/A'}</td>`);
                     row.append(`<td>${student.horario || 'N/A'}</td>`);
                     row.append(`<td>${student.group_name || 'N/A'}</td>`);
-                    row.append(`<td><span class="badge ${getStatusBadge(student.estado_admision)}">${statusText}</span></td>`);
+                    
+                    // Celda de Estado de Admisión con popover condicional
+                    let badgeHtml;
+                    if (student.student_status === 'unenrolled') {
+                        badgeHtml = `<span class="badge ${getStatusBadge(student.estado_admision)}" 
+                                           data-bs-toggle="popover" 
+                                           data-bs-trigger="hover"
+                                           data-bs-placement="top" 
+                                           title="Estudiante Desmatriculado"
+                                           data-bs-content="Este estudiante fue desmatriculado de este curso.">
+                                        ${statusText}
+                                     </span>`;
+                    } else {
+                        badgeHtml = `<span class="badge ${getStatusBadge(student.estado_admision)}">${statusText}</span>`;
+                    }
+                    row.append(`<td>${badgeHtml}</td>`);
 
                     // Agregar celdas para cada clase con color según estado de asistencia
                     classData.forEach((classInfo, index) => {
@@ -1102,7 +1128,28 @@ $courses_data = getCourses();
         // Crear solo los modales genéricos
         createGenericModals();
 
+        // Inicializar Popovers después de que todo el contenido se haya agregado
+        initializePopovers();
+
+        // Mostrar automáticamente el tab de estadísticas cuando se cargan los datos
+        $('#estadistico-tab').tab('show');
+
+        // NUEVO: Actualizar el panel estadístico
+        if (typeof updateStatisticsPanel === 'function') {
+            updateStatisticsPanel(currentCourseCode);
+        }
+
         console.log("Total de estudiantes cargados:", totalStudents);
+    }
+
+    // Función para inicializar los popovers de Bootstrap
+    function initializePopovers() {
+        // Destruir popovers existentes para evitar duplicados
+        $('[data-bs-toggle="popover"]').popover('dispose');
+        
+        // Inicializar nuevos popovers
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
     }
 
     // Función para obtener la clase CSS del botón según el estado de asistencia
@@ -1967,6 +2014,7 @@ $courses_data = getCourses();
                             const interventionObs = item.intervention_observation ?
                                 `<span class="text-truncate d-inline-block" style="max-width: 200px;" 
                                           title="${item.intervention_observation}">${item.intervention_observation}</span>` :
+                               
                                 'N/A';
                             row.append(`<td>${interventionObs}</td>`);
 

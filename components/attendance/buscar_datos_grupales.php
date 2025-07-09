@@ -23,19 +23,39 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
-// Función para obtener las horas totales según el tipo de curso
-function getHorasTotalesCurso($courseType)
-{
-    switch ($courseType) {
-        case 'bootcamp':
-            return 120; // Técnico
-        case 'english_code':
-            return 24;  // English Code
-        case 'skills':
-            return 15;  // Habilidades de poder
-        default:
-            return 0;
-    }
+// Consultar el promedio de intensidad grupal desde la tabla groups
+$sqlProgress = "";
+switch ($courseType) {
+    case 'bootcamp':
+        $sqlProgress = "SELECT AVG(b_intensity) as avg_intensity, 120 as total_required_hours 
+                        FROM groups 
+                        WHERE id_bootcamp = ? 
+                        AND mode = ? 
+                        AND headquarters = ?";
+        break;
+    case 'leveling_english':
+        $sqlProgress = "SELECT AVG(le_intensity) as avg_intensity, 80 as total_required_hours 
+                        FROM groups 
+                        WHERE id_leveling_english = ? 
+                        AND mode = ? 
+                        AND headquarters = ?";
+        break;
+    case 'english_code':
+        $sqlProgress = "SELECT AVG(ec_intensity) as avg_intensity, 24 as total_required_hours 
+                        FROM groups 
+                        WHERE id_english_code = ? 
+                        AND mode = ? 
+                        AND headquarters = ?";
+        break;
+    case 'skills':
+        $sqlProgress = "SELECT AVG(s_intensity) as avg_intensity, 15 as total_required_hours 
+                        FROM groups 
+                        WHERE id_skills = ? 
+                        AND mode = ? 
+                        AND headquarters = ?";
+        break;
+    default:
+        $sqlProgress = "SELECT 0 as avg_intensity, 0 as total_required_hours";
 }
 
 try {
@@ -84,6 +104,13 @@ try {
             $sqlProgress = "SELECT AVG(b_intensity) as avg_intensity, 120 as total_required_hours 
                             FROM groups 
                             WHERE id_bootcamp = ? 
+                            AND mode = ? 
+                            AND headquarters = ?";
+            break;
+        case 'leveling_english':
+            $sqlProgress = "SELECT AVG(le_intensity) as avg_intensity, 20 as total_required_hours 
+                            FROM groups 
+                            WHERE id_leveling_english = ? 
                             AND mode = ? 
                             AND headquarters = ?";
             break;
@@ -224,6 +251,9 @@ try {
             case 'bootcamp':
                 $horasAsistidas = (float)$row['b_intensity'] ?? 0;
                 break;
+            case 'leveling_english':
+                $horasAsistidas = (float)$row['le_intensity'] ?? 0;
+                break;
             case 'english_code':
                 $horasAsistidas = (float)$row['ec_intensity'] ?? 0;
                 break;
@@ -325,4 +355,21 @@ try {
 } catch (Exception $e) {
     echo json_encode(['error' => 'Error en el servidor: ' . $e->getMessage()]);
     exit;
+}
+
+// Función para obtener las horas totales según el tipo de curso
+function getHorasTotalesCurso($courseType)
+{
+    switch ($courseType) {
+        case 'bootcamp':
+            return 120; // Técnico
+        case 'leveling_english':
+            return 20;  // Inglés Nivelatorio
+        case 'english_code':
+            return 24;  // English Code
+        case 'skills':
+            return 15;  // Habilidades de poder
+        default:
+            return 0;
+    }
 }

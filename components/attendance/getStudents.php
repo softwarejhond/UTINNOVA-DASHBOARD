@@ -123,20 +123,24 @@ try {
 
     // Buscar estudiantes por código usando LIKE en los nombres de los cursos
     // 1. Buscar para bootcamp (tecnico)
-    $sql = "SELECT 
-                g.number_id,
-                g.full_name,
-                g.email,
-                g.institutional_email,
-                g.bootcamp_name as group_name,
-                g.id_bootcamp as course_code,
-                ur.first_phone as celular,
-                ur.schedules as horario,
-                ur.statusAdmin as estado_admision
+    $sql = "(SELECT 
+                g.number_id, g.full_name, g.email, g.institutional_email,
+                g.bootcamp_name as group_name, g.id_bootcamp as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'active' as student_status
             FROM groups g
             LEFT JOIN user_register ur ON g.number_id = ur.number_id
-            WHERE g.bootcamp_name LIKE ?";
-    
+            WHERE g.bootcamp_name LIKE ?)
+            UNION ALL
+            (SELECT 
+                eh.number_id, eh.full_name, eh.email, eh.institutional_email,
+                eh.bootcamp_name as group_name, eh.id_bootcamp as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'unenrolled' as student_status
+            FROM enrollment_history eh
+            LEFT JOIN user_register ur ON eh.number_id = ur.number_id
+            WHERE eh.bootcamp_name LIKE ?)";
+
     $debug['queriesRun']++;
     $searchPattern = '%' . $courseCode . '%';
     
@@ -146,7 +150,7 @@ try {
         throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    mysqli_stmt_bind_param($stmt, "ss", $searchPattern, $searchPattern);
     
     if (!mysqli_stmt_execute($stmt)) {
         $debug['errors'][] = 'Error ejecución consulta bootcamp: ' . mysqli_stmt_error($stmt);
@@ -162,7 +166,8 @@ try {
     $students['tecnico'] = [];
     $courseCodeTecnico = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $statusText = getStatusText($row['estado_admision']);
+        $row['estado_admision_texto'] = ($row['student_status'] === 'unenrolled') ? $statusText . '/Desmatriculado' : $statusText;
         $students['tecnico'][] = $row;
         if (!$courseCodeTecnico && $row['course_code']) {
             $courseCodeTecnico = $row['course_code'];
@@ -185,20 +190,24 @@ try {
     mysqli_stmt_close($stmt);
 
     // 2. Buscar para inglés nivelado
-    $sql = "SELECT 
-                g.number_id,
-                g.full_name,
-                g.email,
-                g.institutional_email,
-                g.leveling_english_name as group_name,
-                g.id_leveling_english as course_code,
-                ur.first_phone as celular,
-                ur.schedules as horario,
-                ur.statusAdmin as estado_admision
+    $sql = "(SELECT 
+                g.number_id, g.full_name, g.email, g.institutional_email,
+                g.leveling_english_name as group_name, g.id_leveling_english as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'active' as student_status
             FROM groups g
             LEFT JOIN user_register ur ON g.number_id = ur.number_id
-            WHERE g.leveling_english_name LIKE ?";
-    
+            WHERE g.leveling_english_name LIKE ?)
+            UNION ALL
+            (SELECT 
+                eh.number_id, eh.full_name, eh.email, eh.institutional_email,
+                eh.leveling_english_name as group_name, eh.id_leveling_english as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'unenrolled' as student_status
+            FROM enrollment_history eh
+            LEFT JOIN user_register ur ON eh.number_id = ur.number_id
+            WHERE eh.leveling_english_name LIKE ?)";
+
     $debug['queriesRun']++;
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -207,7 +216,7 @@ try {
         throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    mysqli_stmt_bind_param($stmt, "ss", $searchPattern, $searchPattern);
     
     if (!mysqli_stmt_execute($stmt)) {
         $debug['errors'][] = 'Error ejecución consulta inglés: ' . mysqli_stmt_error($stmt);
@@ -223,7 +232,8 @@ try {
     $students['ingles_nivelado'] = [];
     $courseCodeIngles = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $statusText = getStatusText($row['estado_admision']);
+        $row['estado_admision_texto'] = ($row['student_status'] === 'unenrolled') ? $statusText . '/Desmatriculado' : $statusText;
         $students['ingles_nivelado'][] = $row;
         if (!$courseCodeIngles && $row['course_code']) {
             $courseCodeIngles = $row['course_code'];
@@ -245,20 +255,24 @@ try {
     mysqli_stmt_close($stmt);
 
     // 3. Buscar para english_code
-    $sql = "SELECT 
-                g.number_id,
-                g.full_name,
-                g.email,
-                g.institutional_email,
-                g.english_code_name as group_name,
-                g.id_english_code as course_code,
-                ur.first_phone as celular,
-                ur.schedules as horario,
-                ur.statusAdmin as estado_admision
+    $sql = "(SELECT 
+                g.number_id, g.full_name, g.email, g.institutional_email,
+                g.english_code_name as group_name, g.id_english_code as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'active' as student_status
             FROM groups g
             LEFT JOIN user_register ur ON g.number_id = ur.number_id
-            WHERE g.english_code_name LIKE ?";
-    
+            WHERE g.english_code_name LIKE ?)
+            UNION ALL
+            (SELECT 
+                eh.number_id, eh.full_name, eh.email, eh.institutional_email,
+                eh.english_code_name as group_name, eh.id_english_code as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'unenrolled' as student_status
+            FROM enrollment_history eh
+            LEFT JOIN user_register ur ON eh.number_id = ur.number_id
+            WHERE eh.english_code_name LIKE ?)";
+
     $debug['queriesRun']++;
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -267,7 +281,7 @@ try {
         throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    mysqli_stmt_bind_param($stmt, "ss", $searchPattern, $searchPattern);
     
     if (!mysqli_stmt_execute($stmt)) {
         $debug['errors'][] = 'Error ejecución consulta english_code: ' . mysqli_stmt_error($stmt);
@@ -283,7 +297,8 @@ try {
     $students['english_code'] = [];
     $courseCodeEnglishCode = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $statusText = getStatusText($row['estado_admision']);
+        $row['estado_admision_texto'] = ($row['student_status'] === 'unenrolled') ? $statusText . '/Desmatriculado' : $statusText;
         $students['english_code'][] = $row;
         if (!$courseCodeEnglishCode && $row['course_code']) {
             $courseCodeEnglishCode = $row['course_code'];
@@ -305,20 +320,24 @@ try {
     mysqli_stmt_close($stmt);
 
     // 4. Buscar para habilidades
-    $sql = "SELECT 
-                g.number_id,
-                g.full_name,
-                g.email,
-                g.institutional_email,
-                g.skills_name as group_name,
-                g.id_skills as course_code,
-                ur.first_phone as celular,
-                ur.schedules as horario,
-                ur.statusAdmin as estado_admision
+    $sql = "(SELECT 
+                g.number_id, g.full_name, g.email, g.institutional_email,
+                g.skills_name as group_name, g.id_skills as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'active' as student_status
             FROM groups g
             LEFT JOIN user_register ur ON g.number_id = ur.number_id
-            WHERE g.skills_name LIKE ?";
-    
+            WHERE g.skills_name LIKE ?)
+            UNION ALL
+            (SELECT 
+                eh.number_id, eh.full_name, eh.email, eh.institutional_email,
+                eh.skills_name as group_name, eh.id_skills as course_code,
+                ur.first_phone as celular, ur.schedules as horario, ur.statusAdmin as estado_admision,
+                'unenrolled' as student_status
+            FROM enrollment_history eh
+            LEFT JOIN user_register ur ON eh.number_id = ur.number_id
+            WHERE eh.skills_name LIKE ?)";
+
     $debug['queriesRun']++;
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -327,7 +346,7 @@ try {
         throw new Exception('Error en la preparación de consulta: ' . mysqli_error($conn));
     }
     
-    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    mysqli_stmt_bind_param($stmt, "ss", $searchPattern, $searchPattern);
     
     if (!mysqli_stmt_execute($stmt)) {
         $debug['errors'][] = 'Error ejecución consulta habilidades: ' . mysqli_stmt_error($stmt);
@@ -343,7 +362,8 @@ try {
     $students['habilidades'] = [];
     $courseCodeHabilidades = null;
     while ($row = mysqli_fetch_assoc($result)) {
-        $row['estado_admision_texto'] = getStatusText($row['estado_admision']);
+        $statusText = getStatusText($row['estado_admision']);
+        $row['estado_admision_texto'] = ($row['student_status'] === 'unenrolled') ? $statusText . '/Desmatriculado' : $statusText;
         $students['habilidades'][] = $row;
         if (!$courseCodeHabilidades && $row['course_code']) {
             $courseCodeHabilidades = $row['course_code'];
