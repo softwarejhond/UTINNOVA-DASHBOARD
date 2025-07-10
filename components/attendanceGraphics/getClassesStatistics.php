@@ -32,18 +32,26 @@ try {
         exit;
     }
 
-    // Buscar el curso en Moodle para obtener el ID
-    $moodleCourseId = findMoodleCourseId($courseCode);
-    if (!$moodleCourseId) {
-        echo json_encode(['success' => false, 'message' => 'Curso no encontrado en Moodle']);
+    // NUEVO: Buscar directamente usando el código del curso en lugar de ID de Moodle
+    $courseIds = findCourseIdsByCode($conn, $courseCode, $courseType);
+    
+    if (empty($courseIds)) {
+        echo json_encode([
+            'success' => true, 
+            'data' => [
+                'classes' => [],
+                'totalStudents' => 0,
+                'courseType' => $courseType
+            ]
+        ]);
         exit;
     }
 
     // Obtener el total de estudiantes según el tipo de curso
-    $totalStudents = getTotalStudentsByCourseType($conn, $moodleCourseId, $courseType);
+    $totalStudents = getTotalStudentsByCourseType($conn, $courseCode, $courseType);
 
-    // Obtener estadísticas de clases por fecha
-    $classesStats = getClassesStatsByType($conn, $moodleCourseId, $courseType, $totalStudents);
+    // Obtener estadísticas de clases por fecha usando los IDs encontrados
+    $classesStats = getClassesStatsByType($conn, $courseIds, $courseType, $totalStudents);
 
     // Preparar respuesta
     $response = [
@@ -51,7 +59,12 @@ try {
         'data' => [
             'classes' => $classesStats,
             'totalStudents' => $totalStudents,
-            'courseType' => $courseType
+            'courseType' => $courseType,
+            'debug' => [
+                'courseCode' => $courseCode,
+                'courseIds' => $courseIds,
+                'totalClasses' => count($classesStats)
+            ]
         ]
     ];
 
@@ -61,19 +74,110 @@ try {
     echo json_encode(['success' => false, 'message' => 'Error en el servidor: ' . $e->getMessage()]);
 }
 
-// Función para obtener el total de estudiantes por tipo de curso
-function getTotalStudentsByCourseType($conn, $moodleCourseId, $courseType) {
-    // Primero, obtener todos los estudiantes que han tenido asistencia registrada para este curso
-    $sql = "SELECT COUNT(DISTINCT student_id) as total_students
-            FROM attendance_records 
-            WHERE course_id = ?";
+// NUEVA función para buscar IDs de curso por código
+function findCourseIdsByCode($conn, $courseCode, $courseType) {
+    $courseIds = [];
+    
+    // Primero buscar en Moodle
+    $moodleCourseId = findMoodleCourseId($courseCode);
+    if ($moodleCourseId) {
+        $courseIds[] = $moodleCourseId;
+    }
+    
+    // Luego buscar en la base de datos local según el tipo de curso
+    $localIds = findLocalCourseIds($conn, $courseCode, $courseType);
+    $courseIds = array_merge($courseIds, $localIds);
+    
+    // Eliminar duplicados
+    return array_unique($courseIds);
+}
+
+// NUEVA función para buscar IDs locales
+function findLocalCourseIds($conn, $courseCode, $courseType) {
+    $searchPattern = '%' . $courseCode . '%';
+    $localIds = [];
+    
+    // Buscar en la tabla groups según el tipo de curso
+    switch ($courseType) {
+        case 'bootcamp':
+            $sql = "SELECT DISTINCT id_bootcamp as course_id 
+                    FROM groups 
+                    WHERE bootcamp_name LIKE ? AND id_bootcamp IS NOT NULL";
+            break;
+        case 'leveling_english':
+            $sql = "SELECT DISTINCT id_leveling_english as course_id 
+                    FROM groups 
+                    WHERE leveling_english_name LIKE ? AND id_leveling_english IS NOT NULL";
+            break;
+        case 'english_code':
+            $sql = "SELECT DISTINCT id_english_code as course_id 
+                    FROM groups 
+                    WHERE english_code_name LIKE ? AND id_english_code IS NOT NULL";
+            break;
+        case 'skills':
+            $sql = "SELECT DISTINCT id_skills as course_id 
+                    FROM groups 
+                    WHERE skills_name LIKE ? AND id_skills IS NOT NULL";
+            break;
+        default:
+            return [];
+    }
     
     $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
-        return 0;
+    if (!$stmt) return [];
+    
+    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
+    
+    if (!mysqli_stmt_execute($stmt)) {
+        mysqli_stmt_close($stmt);
+        return [];
     }
+    
+    $result = mysqli_stmt_get_result($stmt);
+    while ($row = mysqli_fetch_assoc($result)) {
+        if ($row['course_id']) {
+            $localIds[] = (int)$row['course_id'];
+        }
+    }
+    
+    mysqli_stmt_close($stmt);
+    return $localIds;
+}
 
-    mysqli_stmt_bind_param($stmt, "i", $moodleCourseId);
+// Función MODIFICADA para obtener el total de estudiantes por tipo de curso
+function getTotalStudentsByCourseType($conn, $courseCode, $courseType) {
+    $searchPattern = '%' . $courseCode . '%';
+    
+    // Construir la consulta según el tipo de curso
+    switch ($courseType) {
+        case 'bootcamp':
+            $sql = "SELECT COUNT(DISTINCT number_id) as total_students
+                    FROM groups 
+                    WHERE bootcamp_name LIKE ?";
+            break;
+        case 'leveling_english':
+            $sql = "SELECT COUNT(DISTINCT number_id) as total_students
+                    FROM groups 
+                    WHERE leveling_english_name LIKE ?";
+            break;
+        case 'english_code':
+            $sql = "SELECT COUNT(DISTINCT number_id) as total_students
+                    FROM groups 
+                    WHERE english_code_name LIKE ?";
+            break;
+        case 'skills':
+            $sql = "SELECT COUNT(DISTINCT number_id) as total_students
+                    FROM groups 
+                    WHERE skills_name LIKE ?";
+            break;
+        default:
+            return 0;
+    }
+    
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) return 0;
+
+    mysqli_stmt_bind_param($stmt, "s", $searchPattern);
     
     if (!mysqli_stmt_execute($stmt)) {
         mysqli_stmt_close($stmt);
@@ -84,59 +188,22 @@ function getTotalStudentsByCourseType($conn, $moodleCourseId, $courseType) {
     $row = mysqli_fetch_assoc($result);
     
     mysqli_stmt_close($stmt);
-    
-    $totalFromRecords = $row ? (int)$row['total_students'] : 0;
-    
-    // Si no hay registros de asistencia, intentar obtener de la tabla groups
-    if ($totalFromRecords == 0) {
-        $courseIdColumn = '';
-        switch ($courseType) {
-            case 'bootcamp':
-                $courseIdColumn = 'id_bootcamp';
-                break;
-            case 'leveling_english':
-                $courseIdColumn = 'id_leveling_english';
-                break;
-            case 'english_code':
-                $courseIdColumn = 'id_english_code';
-                break;
-            case 'skills':
-                $courseIdColumn = 'id_skills';
-                break;
-            default:
-                return 0;
-        }
-
-        $groupSql = "SELECT COUNT(DISTINCT number_id) as total_students
-                     FROM groups 
-                     WHERE $courseIdColumn = ?";
-        
-        $groupStmt = mysqli_prepare($conn, $groupSql);
-        if (!$groupStmt) return 0;
-
-        mysqli_stmt_bind_param($groupStmt, "i", $moodleCourseId);
-        
-        if (!mysqli_stmt_execute($groupStmt)) {
-            mysqli_stmt_close($groupStmt);
-            return 0;
-        }
-
-        $groupResult = mysqli_stmt_get_result($groupStmt);
-        $groupRow = mysqli_fetch_assoc($groupResult);
-        
-        mysqli_stmt_close($groupStmt);
-        return $groupRow ? (int)$groupRow['total_students'] : 0;
-    }
-    
-    return $totalFromRecords;
+    return $row ? (int)$row['total_students'] : 0;
 }
 
-// Función para obtener estadísticas de clases por tipo
-function getClassesStatsByType($conn, $moodleCourseId, $courseType, $totalStudents) {
-    // Obtener todas las fechas de clases para este curso
+// Función MODIFICADA para obtener estadísticas de clases por tipo
+function getClassesStatsByType($conn, $courseIds, $courseType, $totalStudents) {
+    if (empty($courseIds)) {
+        return [];
+    }
+    
+    // Crear placeholders para los IDs
+    $placeholders = str_repeat('?,', count($courseIds) - 1) . '?';
+    
+    // Obtener todas las fechas de clases para estos cursos
     $sql = "SELECT DISTINCT class_date 
             FROM attendance_records 
-            WHERE course_id = ? 
+            WHERE course_id IN ($placeholders) 
             ORDER BY class_date ASC";
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -144,7 +211,9 @@ function getClassesStatsByType($conn, $moodleCourseId, $courseType, $totalStuden
         return [];
     }
 
-    mysqli_stmt_bind_param($stmt, "i", $moodleCourseId);
+    // Bind parameters dinámicamente
+    $types = str_repeat('i', count($courseIds));
+    mysqli_stmt_bind_param($stmt, $types, ...$courseIds);
     
     if (!mysqli_stmt_execute($stmt)) {
         mysqli_stmt_close($stmt);
@@ -161,7 +230,7 @@ function getClassesStatsByType($conn, $moodleCourseId, $courseType, $totalStuden
         $classDate = $row['class_date'];
         
         // Obtener estadísticas para esta fecha
-        $stats = getAttendanceStatsForDate($conn, $moodleCourseId, $classDate, $totalStudents);
+        $stats = getAttendanceStatsForDate($conn, $courseIds, $classDate, $totalStudents);
         
         if ($stats) {
             // Obtener el nombre del día en español
@@ -199,14 +268,21 @@ function getClassesStatsByType($conn, $moodleCourseId, $courseType, $totalStuden
     return $classesStats;
 }
 
-// Función para obtener estadísticas de asistencia para una fecha específica
-function getAttendanceStatsForDate($conn, $courseId, $classDate, $totalStudents) {
+// Función MODIFICADA para obtener estadísticas de asistencia para una fecha específica
+function getAttendanceStatsForDate($conn, $courseIds, $classDate, $totalStudents) {
+    if (empty($courseIds)) {
+        return null;
+    }
+    
+    // Crear placeholders para los IDs
+    $placeholders = str_repeat('?,', count($courseIds) - 1) . '?';
+    
     // Obtener conteos por estado de asistencia
     $sql = "SELECT 
                 attendance_status,
                 COUNT(*) as count
             FROM attendance_records 
-            WHERE course_id = ? AND class_date = ?
+            WHERE course_id IN ($placeholders) AND class_date = ?
             GROUP BY attendance_status";
     
     $stmt = mysqli_prepare($conn, $sql);
@@ -214,7 +290,11 @@ function getAttendanceStatsForDate($conn, $courseId, $classDate, $totalStudents)
         return null;
     }
 
-    mysqli_stmt_bind_param($stmt, "is", $courseId, $classDate);
+    // Preparar parámetros: IDs + fecha
+    $params = array_merge($courseIds, [$classDate]);
+    $types = str_repeat('i', count($courseIds)) . 's';
+    
+    mysqli_stmt_bind_param($stmt, $types, ...$params);
     
     if (!mysqli_stmt_execute($stmt)) {
         mysqli_stmt_close($stmt);
@@ -246,7 +326,7 @@ function getAttendanceStatsForDate($conn, $courseId, $classDate, $totalStudents)
     
     // Calcular estudiantes sin registro
     $totalWithRecord = $present + $late + $absent;
-    $noRecord = $totalStudents - $totalWithRecord;
+    $noRecord = max(0, $totalStudents - $totalWithRecord);
     
     // Calcular porcentajes
     $presentPercentage = $totalStudents > 0 ? round(($present / $totalStudents) * 100, 1) : 0;
@@ -267,7 +347,7 @@ function getAttendanceStatsForDate($conn, $courseId, $classDate, $totalStudents)
     ];
 }
 
-// Función para buscar el ID del curso en Moodle
+// Función para buscar el ID del curso en Moodle (sin cambios)
 function findMoodleCourseId($courseCode) {
     // Configuración de la API de Moodle
     $api_url = "https://talento-tech.uttalento.co/webservice/rest/server.php";

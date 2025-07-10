@@ -24,13 +24,57 @@ function getCourses()
     return json_decode($response, true);
 }
 
+// NUEVA función para obtener los códigos de cursos válidos desde la base de datos local
+function getValidCourseCodes($conn) {
+    $validCodes = [];
+    
+    $sql = "SELECT DISTINCT code FROM courses";
+    $result = mysqli_query($conn, $sql);
+    
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $validCodes[] = (int)$row['code'];
+        }
+    }
+    
+    return $validCodes;
+}
+
+// NUEVA función para filtrar cursos de Moodle según códigos válidos
+function filterValidCourses($moodleCourses, $validCodes) {
+    $filteredCourses = [];
+    
+    if (!is_array($moodleCourses)) {
+        return $filteredCourses;
+    }
+    
+    foreach ($moodleCourses as $course) {
+        // Verificar si el ID del curso de Moodle está en la lista de códigos válidos
+        if (in_array((int)$course['id'], $validCodes)) {
+            $filteredCourses[] = $course;
+        }
+    }
+    
+    return $filteredCourses;
+}
+
 // Definir las variables globales para Moodle
 $api_url = "https://talento-tech.uttalento.co/webservice/rest/server.php";
 $token   = "3f158134506350615397c83d861c2104";
 $format  = "json";
 
-// Obtener cursos y almacenarlos en $courses_data
-$courses_data = getCourses();
+// Obtener cursos de Moodle
+$moodle_courses = getCourses();
+
+// Obtener códigos de cursos válidos desde la base de datos local
+$valid_course_codes = getValidCourseCodes($conn);
+
+// Filtrar cursos de Moodle para mostrar solo los que tienen código válido
+$courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
+
+// Debug: mostrar información en consola (opcional, puedes comentar estas líneas)
+// echo "<script>console.log('Códigos válidos:', " . json_encode($valid_course_codes) . ");</script>";
+// echo "<script>console.log('Cursos filtrados:', " . json_encode(count($courses_data)) . ");</script>";
 ?>
 
 <style>
@@ -251,15 +295,23 @@ $courses_data = getCourses();
                             <option value="">Seleccione un curso</option>
                             <?php
                             $allowed_categories = [20, 22, 23, 25, 28, 35, 19, 21, 24, 26, 27, 35];
-                            foreach ($courses_data as $course):
-                                if (in_array($course['categoryid'], $allowed_categories)):
+                            
+                            // Verificar si hay cursos filtrados
+                            if (!empty($courses_data)) {
+                                foreach ($courses_data as $course):
+                                    // Aplicar filtro adicional por categorías si es necesario
+                                    if (in_array($course['categoryid'], $allowed_categories)):
                             ?>
-                                    <option value="<?= htmlspecialchars($course['id']) ?>">
-                                        <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
-                                    </option>
+                                        <option value="<?= htmlspecialchars($course['id']) ?>">
+                                            <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
+                                        </option>
                             <?php
-                                endif;
-                            endforeach;
+                                    endif;
+                                endforeach;
+                            } else {
+                                // Mostrar mensaje si no hay cursos válidos
+                                echo '<option value="" disabled>No hay cursos disponibles</option>';
+                            }
                             ?>
                         </select>
                     </div>
@@ -459,8 +511,8 @@ $courses_data = getCourses();
                 return;
             }
 
-            // Extraer el código del curso
-            const courseCodeMatch = selectedText.match(/C\d+L\d+-G\d+[A-Z]?/);
+            // Extraer el código del curso - EXPRESIÓN REGULAR ACTUALIZADA
+            const courseCodeMatch = selectedText.match(/C\d+L\d+-G\d+[A-Z]*\d*/);
             if (!courseCodeMatch) {
                 $('#courseCodeDisplay').val('Código no disponible');
                 Swal.fire({

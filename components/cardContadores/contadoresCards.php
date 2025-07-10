@@ -608,45 +608,75 @@
     .h-5 {
         height: 5px !important;
     }
+
     .pagination .page-item.active .page-link {
-        background-color: #30336b; /* Color índigo */
-        border-color: #30336b; /* Borde índigo */
-        color: #fff; /* Texto blanco */
+        background-color: #30336b;
+        /* Color índigo */
+        border-color: #30336b;
+        /* Borde índigo */
+        color: #fff;
+        /* Texto blanco */
     }
 
     .pagination .page-link:hover {
-        background-color: #ec008c; /* Color índigo más oscuro al pasar el mouse */
+        background-color: #ec008c;
+        /* Color índigo más oscuro al pasar el mouse */
         color: #fff;
     }
 </style>
-<div class="">
-        <!-- Página 2 -->
-  <?php include_once 'page1.php'; ?>
+<style>
+    /* Agregar escala del 80% al contenedor principal */
+    .scale-container {
+        transform: scale(0.9);
+        transform-origin: top left;
+        width: 111.11%; /* Compensar la reducción de escala para ocupar el espacio completo */
+        height: 111.11%;
+    }
+    
+    /* Mantener el contenedor principal responsivo */
+    @media (max-width: 768px) {
+        .scale-container {
+            transform: scale(0.7); /* Escala más pequeña en móviles */
+            width: 142.85%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .scale-container {
+            transform: scale(0.6); /* Escala aún más pequeña en pantallas muy pequeñas */
+            width: 166.67%;
+        }
+    }
+</style>
+
+<div class="scale-container">
+    <!-- Página 1 -->
+    <?php include_once 'page1.php'; ?>
     <!-- Página 2 -->
     <?php include_once 'page2.php'; ?>
     <!-- Paginador -->
-<div id="pagination-container" class="d-flex justify-content-center mb-4">
-    <nav>
-        <ul class="pagination pagination-lg">
-            <li class="page-item disabled" id="prev-page">
-                <a class="page-link" href="#" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item active" id="page-btn-1">
-                <a class="page-link" href="#">1</a>
-            </li>
-            <li class="page-item" id="page-btn-2">
-                <a class="page-link" href="#">2</a>
-            </li>
-            <li class="page-item" id="next-page">
-                <a class="page-link " href="#" aria-label="Siguiente">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</div>
+    <div id="pagination-container" class="d-flex justify-content-center mb-4">
+        <nav>
+            <ul class="pagination pagination-lg">
+                <li class="page-item disabled" id="prev-page">
+                    <a class="page-link" href="#" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item active" id="page-btn-1">
+                    <a class="page-link" href="#">1</a>
+                </li>
+                <li class="page-item" id="page-btn-2">
+                    <a class="page-link" href="#">2</a>
+                </li>
+                <li class="page-item" id="next-page">
+                    <a class="page-link " href="#" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 </div>
 <script>
     function actualizarBarraProgreso() {
@@ -718,12 +748,12 @@
                     $('#progress-bar-matriculados')
                         .css('width', porcentajeMatriculados + '%')
                         .attr('aria-valuenow', porcentajeMatriculados);
-                    
+
                     // Ya no necesitamos actualizar estos campos porque ahora están en el gráfico
                     // $('#total_matriculados_card').text(data.total_matriculados || 0);
                     // $('#total_formados_card').text(data.total_formados || 0);
                     // $('#total_certificados_card').text(data.total_certificados || 0);
-                    
+
                     $('#total_radio').text(data.total_radio);
                     $('#total_redes_sociales').text(data.total_redes_sociales);
                     $('#total_rechazados').text(data.total_rechazados); // Agregar esta línea
@@ -746,20 +776,20 @@
                     $('#total_vip').text(data.total_vip); // Agregar esta línea
 
                     $('#total_lote1').text(data.total_lote1);
-$('#porc_lote1').text(data.porc_lote1 + '%');
-// Actualizar la barra de progreso del Lote 1
-const porcentajeLote1 = data.porc_lote1 || 0;
-$('#progress-bar-lote1')
-    .css('width', porcentajeLote1 + '%')
-    .attr('aria-valuenow', porcentajeLote1);
+                    $('#porc_lote1').text(data.porc_lote1 + '%');
+                    // Actualizar la barra de progreso del Lote 1
+                    const porcentajeLote1 = data.porc_lote1 || 0;
+                    $('#progress-bar-lote1')
+                        .css('width', porcentajeLote1 + '%')
+                        .attr('aria-valuenow', porcentajeLote1);
 
-$('#total_lote2').text(data.total_lote2);
-$('#porc_lote2').text(data.porc_lote2 + '%');
-// Actualizar la barra de progreso del Lote 2
-const porcentajeLote2 = data.porc_lote2 || 0;
-$('#progress-bar-lote2')
-    .css('width', porcentajeLote2 + '%')
-    .attr('aria-valuenow', porcentajeLote2);
+                    $('#total_lote2').text(data.total_lote2);
+                    $('#porc_lote2').text(data.porc_lote2 + '%');
+                    // Actualizar la barra de progreso del Lote 2
+                    const porcentajeLote2 = data.porc_lote2 || 0;
+                    $('#progress-bar-lote2')
+                        .css('width', porcentajeLote2 + '%')
+                        .attr('aria-valuenow', porcentajeLote2);
                     // Actualizar select de instituciones
                     var select = $('#institucionSelect');
                     select.empty();
@@ -844,47 +874,47 @@ $('#progress-bar-lote2')
     });
 </script>
 <script>
-$(document).ready(function () {
-    let currentPage = 1;
-    const totalPages = 2; // Cambia este valor según la cantidad de páginas que tengas
+    $(document).ready(function() {
+        let currentPage = 1;
+        const totalPages = 2; // Cambia este valor según la cantidad de páginas que tengas
 
-    function mostrarPagina(page) {
-        // Ocultar todas las páginas
-        $('.page').each(function () {
-            $(this).hide(); // Asegúrate de ocultar todas las páginas
-        });
+        function mostrarPagina(page) {
+            // Ocultar todas las páginas
+            $('.page').each(function() {
+                $(this).hide(); // Asegúrate de ocultar todas las páginas
+            });
 
-        // Mostrar la página seleccionada
-        $(`#page-${page}`).show();
+            // Mostrar la página seleccionada
+            $(`#page-${page}`).show();
 
-        // Actualizar el estado del paginador
-        $('.pagination .page-item').removeClass('active disabled');
-        $(`#page-btn-${page}`).addClass('active');
+            // Actualizar el estado del paginador
+            $('.pagination .page-item').removeClass('active disabled');
+            $(`#page-btn-${page}`).addClass('active');
 
-        // Deshabilitar botones "Anterior" y "Siguiente" si es necesario
-        $('#prev-page').toggleClass('disabled', page === 1);
-        $('#next-page').toggleClass('disabled', page === totalPages);
-    }
-
-    // Manejar clics en el paginador
-    $('.pagination .page-item').on('click', function (e) {
-        e.preventDefault();
-
-        if ($(this).hasClass('disabled')) return;
-
-        if ($(this).attr('id') === 'prev-page') {
-            currentPage = Math.max(1, currentPage - 1);
-        } else if ($(this).attr('id') === 'next-page') {
-            currentPage = Math.min(totalPages, currentPage + 1);
-        } else {
-            currentPage = parseInt($(this).attr('id').replace('page-btn-', ''));
+            // Deshabilitar botones "Anterior" y "Siguiente" si es necesario
+            $('#prev-page').toggleClass('disabled', page === 1);
+            $('#next-page').toggleClass('disabled', page === totalPages);
         }
 
+        // Manejar clics en el paginador
+        $('.pagination .page-item').on('click', function(e) {
+            e.preventDefault();
+
+            if ($(this).hasClass('disabled')) return;
+
+            if ($(this).attr('id') === 'prev-page') {
+                currentPage = Math.max(1, currentPage - 1);
+            } else if ($(this).attr('id') === 'next-page') {
+                currentPage = Math.min(totalPages, currentPage + 1);
+            } else {
+                currentPage = parseInt($(this).attr('id').replace('page-btn-', ''));
+            }
+
+            mostrarPagina(currentPage);
+        });
+
+        // Mostrar la primera página al cargar
         mostrarPagina(currentPage);
     });
-
-    // Mostrar la primera página al cargar
-    mostrarPagina(currentPage);
-});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

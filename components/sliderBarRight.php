@@ -5,7 +5,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
 ?>
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasRightLabel"><i class="bi bi-boxes"></i> SIGP Opciones</h5>
+        <h5 class="offcanvas-title" id="offcanvasRightLabel"><i class="bi bi-boxes"></i> SYGNIA - Opciones</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -179,19 +179,6 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
                         </a>
                     </div>
                 <?php endif; ?>
-
-                <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
-                    <a href="https://agenciaeaglesoftware.com/" target="_blank">
-                        <label class="checkbox-wrapper">
-                            <span class="checkbox-tile">
-                                <span class="checkbox-icon">
-                                    <img src="img/icons/eagle.png" alt="LogoEagle" width="60px">
-                                </span>
-                            </span>
-                        </label>
-                    </a>
-
-                </div>
                 <!-- Agrega más elementos según necesites -->
             </fieldset>
         </div>

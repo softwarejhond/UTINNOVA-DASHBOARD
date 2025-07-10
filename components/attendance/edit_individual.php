@@ -193,11 +193,15 @@ function getStudentData($student_id, $conn)
                             <label class="form-label">Sede</label>
                             <select name="sede" id="sede" class="form-select" disabled>
                                 <option value="">...</option>
-                                <option value="Cota">Cota</option>
-                                <option value="Tunja">Tunja</option>
-                                <option value="Sogamoso">Sogamoso</option>
-                                <option value="Soacha">Soacha</option>
-                                <option value="No aplica">No aplica</option>
+                                <?php
+                                $headquarters_query = "SELECT name FROM headquarters_attendance ORDER BY name";
+                                $headquarters_result = $conn->query($headquarters_query);
+                                if ($headquarters_result && $headquarters_result->num_rows > 0) {
+                                    while ($headquarters = $headquarters_result->fetch_assoc()) {
+                                        echo '<option value="' . htmlspecialchars($headquarters['name']) . '">' . htmlspecialchars($headquarters['name']) . '</option>';
+                                    }
+                                }
+                                ?>
                             </select>
                         </div>
 

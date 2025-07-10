@@ -1,14 +1,12 @@
 <div class="row mt-4 page" id="page-2">
-    <div class="col-md-6 col-lg-3 col-sm-12">
-    <div class="card">
     <div class="card-body"><span class="corner corner-danger"></span>
         <div class="d-flex mb-0">
             <div class="">
                 <h3 class="card-title text-black">
                     <b>
-                    <i class="fa-solid fa-transgender "></i> Registros por géneros
+                        <i class="fa-solid fa-transgender "></i> Registros por géneros
                         <label for="date-select" id="openModal" class="btn btn-link p-0 ml-2 text-danger cursor-pointer" style="font-size: 1.2rem; cursor: pointer;" id="date-button">
-                        <i class="fa-solid fa-transgender fa-beat"></i>
+                            <i class="fa-solid fa-transgender fa-beat"></i>
                         </label>
                         <input type="hidden" class="form-control d-inline-block ml-2" style="width: auto; display: none;">
                     </b>
@@ -37,8 +35,53 @@
             </div>
         </div>
     </div>
-</div>
+
+    <div class="col-md-6 col-lg-3 col-sm-12 ">
+        <div class="card">
+            <div class="card-body"><span class="corner corner-danger"></span>
+                <div class="d-flex mb-0">
+                    <h3 class="card-title text-black "><b><i class="bi bi-broadcast"></i> Impacto por radio</b>
+                        <h><br><br>
+                            <h4 class="mb-1 font-weight-bold text-black"><b id="total_radio">0</b> | <b></b>100%</h4>
+                            <p class="mb-2 text-xs text-muted"><i class="bi bi-broadcast"></i> <span class="opacity-75">
+                                    Usuarios que se han registrado por pauta radial</span></p>
+                            <div class="progress progress-sm h-5 mt-2 mb-3">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <br>
+                            <h6 class="p-0">
+                                <span id="current-time"></span>
+                                <small class="text-muted text-xs ml-1">Hora actual</small>
+                            </h6>
+                            <br>
+                </div>
+            </div>
+        </div>
     </div>
+    <div class="col-md-6 col-lg-3 col-sm-12 ">
+        <div class="card">
+            <div class="card-body"><span class="corner corner-info"></span>
+                <div class="d-flex mb-0">
+                    <h3 class="card-title text-black "><b><i class="bi bi-wechat"></i> Impacto en redes</b>
+                        <h><br><br>
+                            <h4 class="mb-1 font-weight-bold text-black"><b id="total_redes_sociales">0</b> | <b></b>100%</h4>
+                            <p class="mb-2 text-xs text-muted"><i class="bi bi-wechat"></i><span class="opacity-75">
+                                    Usuarios que se han registrado por pauta en redes sociales</span></p>
+                            <div class="progress progress-sm h-5 mt-2 mb-3">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <br>
+                            <h6 class="p-0">
+                                <span id="current-time"></span>
+                                <small class="text-muted text-xs ml-1">Hora actual</small>
+                            </h6>
+                            <br>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 </div>
 
 <!-- Modal para seleccionar género -->
@@ -96,11 +139,11 @@
                 listItem.addEventListener('click', () => {
                     // Mostrar el género seleccionado y su cantidad
                     cantidadGenero.textContent = `Género: ${genero.gener} | Cantidad: ${genero.cantidad}`;
-                    
+
                     // Actualizar la barra de progreso
                     progressBar.style.width = `${genero.cantidad}%`;
                     progressBar.setAttribute('aria-valuenow', genero.cantidad);
-                    
+
                     // Cerrar el modal
                     const modal = bootstrap.Modal.getInstance(document.getElementById('generoModal'));
                     modal.hide();

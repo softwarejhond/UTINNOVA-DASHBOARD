@@ -39,31 +39,31 @@ function exportDataToExcel($conn)
     g.id_skills,
     g.skills_name,
     g.creation_date,
-    g.cohort,
-    c.start_date,
+    -- Obtener cohorte y fechas desde course_periods
+    cp.cohort as bootcamp_cohort,
+    cp.start_date as bootcamp_start_date,
     u.fecha_registro,
-    -- Bootcamp staff
+    -- Bootcamp staff (convertir a mayúsculas en la consulta)
     bc.teacher as bootcamp_teacher_id,
-    bc.start_date as bootcamp_start_date,
-    bc_teacher.nombre as bootcamp_teacher_name,
+    UPPER(bc_teacher.nombre) as bootcamp_teacher_name,
     bc.mentor as bootcamp_mentor_id,
-    bc_mentor.nombre as bootcamp_mentor_name,
+    UPPER(bc_mentor.nombre) as bootcamp_mentor_name,
     bc.monitor as bootcamp_monitor_id, 
-    bc_monitor.nombre as bootcamp_monitor_name,
-    -- English Code staff
+    UPPER(bc_monitor.nombre) as bootcamp_monitor_name,
+    -- English Code staff (convertir a mayúsculas en la consulta)
     ec.teacher as ec_teacher_id,
-    ec_teacher.nombre as ec_teacher_name,
+    UPPER(ec_teacher.nombre) as ec_teacher_name,
     ec.mentor as ec_mentor_id,
-    ec_mentor.nombre as ec_mentor_name,
+    UPPER(ec_mentor.nombre) as ec_mentor_name,
     ec.monitor as ec_monitor_id,
-    ec_monitor.nombre as ec_monitor_name,
-    -- Skills staff 
+    UPPER(ec_monitor.nombre) as ec_monitor_name,
+    -- Skills staff (convertir a mayúsculas en la consulta)
     sk.teacher as skills_teacher_id,
-    sk_teacher.nombre as skills_teacher_name,
+    UPPER(sk_teacher.nombre) as skills_teacher_name,
     sk.mentor as skills_mentor_id,
-    sk_mentor.nombre as skills_mentor_name,
+    UPPER(sk_mentor.nombre) as skills_mentor_name,
     sk.monitor as skills_monitor_id,
-    sk_monitor.nombre as skills_monitor_name,
+    UPPER(sk_monitor.nombre) as skills_monitor_name,
     g.mode as group_mode,
     (SELECT COALESCE(SUM(b_intensity), 0) + COALESCE(SUM(ec_intensity), 0) + COALESCE(SUM(s_intensity), 0) 
      FROM groups 
@@ -72,6 +72,8 @@ function exportDataToExcel($conn)
     INNER JOIN municipios ON user_register.municipality = municipios.id_municipio
     INNER JOIN departamentos ON user_register.department = departamentos.id_departamento
     LEFT JOIN groups g ON user_register.number_id = g.number_id
+    -- Join con course_periods para obtener cohorte y fechas
+    LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code
     -- Bootcamp joins
     LEFT JOIN courses bc ON g.id_bootcamp = bc.code
     LEFT JOIN users bc_teacher ON bc.teacher = bc_teacher.username
@@ -88,7 +90,8 @@ function exportDataToExcel($conn)
     LEFT JOIN users sk_mentor ON sk.mentor = sk_mentor.username
     LEFT JOIN users sk_monitor ON sk.monitor = sk_monitor.username
     
-    LEFT JOIN cohorts c ON g.cohort = c.cohort_number
+    -- Remover este join ya que ahora usamos course_periods
+    -- LEFT JOIN cohorts c ON g.cohort = c.cohort_number
     LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
     WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
@@ -268,12 +271,12 @@ function exportDataToExcel($conn)
             $data[] = [
                 'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
                 'id' => $row['id'],
-                'Tipo_documento' => $row['typeID'],
+                'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'], // Cambio: normalizar CC
                 'Número_documento' => $row['number_id'],
-                'Nombre1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])),
-                'Nombre2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])),
-                'Apellido1' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_last'])),
-                'Apellido2' => strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_last'])),
+                'Nombre1' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])), // Cambio: agregar espacio en blanco
+                'Nombre2' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])), // Cambio: agregar espacio en blanco
+                'Apellido1' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_last'])), // Cambio: agregar espacio en blanco
+                'Apellido2' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_last'])), // Cambio: agregar espacio en blanco
                 'Fecha_nacimiento' => date('d/m/Y', strtotime($row['birthdate'])),
                 'Correo' => $row['email'],
 
@@ -281,13 +284,13 @@ function exportDataToExcel($conn)
                 'Departamento' => strtoupper($row['departamento']),
 
                 'Region' => 'Región 8 Lote 1',
- 
+
                 'Codigo_municipio' => $row['municipality'],
-                'Municipio' => mb_strtoupper($row['municipio']),
+                'Municipio' => mb_strtoupper($row['municipio']), // Cambio: usar mb_strtoupper
 
                 'Telefono_movil' => str_replace('+57', '', $row['first_phone']),
 
-                'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']),
+                'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']), // Cambio: simplificar lógica
 
                 'Campesino' => '',
 
@@ -315,12 +318,12 @@ function exportDataToExcel($conn)
                 'Autoriza_manejo_datos_personales' => ($row['accept_data_policies'] === 'Sí') ? 'SI' : $row['accept_data_policies'],
                 'Disponibilidad_d_Equipo' => !empty($row['technologies']) ? 'SI' : '',
                 'creationdate' => $row['creationDate'] ? date('d/m/Y', strtotime($row['creationDate'])) : '',
-                'Presento' =>  ($puntaje !== null && $puntaje !== '') ? 'SI' : 'NO',
+                'Presento' => ($puntaje !== null && $puntaje !== '') ? 'SI' : 'NO',
                 'fecha_ini' => $row['fecha_registro'] ? date('d/m/Y', strtotime($row['fecha_registro'])) : '',
                 'tiempo_segundos' => '',
                 'Eje_tematico' => $row['program'],
-                'Eje_final' => $row['program'],
-                'Puntaje eje tematico seleccionado' => ($puntaje !== null && $puntaje !== '') ? $puntaje : 'Sin presentar',
+                'Eje final' => $row['program'],
+                'Puntaje_eje_tematico_seleccionado' => ($puntaje !== null && $puntaje !== '') ? $puntaje : 'Sin presentar',
                 'linea_1_programacion' => '',
                 'linea_2_inteligecia_artificial' => '',
                 'linea_3_analisis_de_datos' => '',
@@ -344,8 +347,8 @@ function exportDataToExcel($conn)
                 'area_3_des_contenidos_digitales' => '',
                 'Origen' => 'UTI-R8L1',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
-                'Estado' => $tieneProfesor,
-                'Programa de interés' => $estaEnGroups ? $row['program'] : '',
+                'Estado' => ($row['statusAdmin'] === '10') ? 'Formado' : $tieneProfesor, // Cambio: agregar verificación de estado 10
+                'Programa de Formación' => $estaEnGroups ? $row['program'] : '',
                 'Nivel' => $estaEnGroups ? match ($row['level']) {
                     'Explorador' => 'Básico',
                     'Integrador' => 'Intermedio',
@@ -355,12 +358,12 @@ function exportDataToExcel($conn)
                 'Documento_Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_id'],
                 'Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_name'],
                 'Fecha Inicio de la formación (dd/mm/aaaa)' => $row['bootcamp_start_date'] ? date('d/m/Y', strtotime($row['bootcamp_start_date'])) : '',
-                'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['cohort'],
+                'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['bootcamp_cohort'], // Cambio: usar bootcamp_cohort en lugar de cohort
                 'Año Cohorte' => $row['bootcamp_start_date'] ? date('Y', strtotime($row['bootcamp_start_date'])) : '',
                 'Tipo de formación' => $row['group_mode'],
                 'Enlace al certificado en Sharepoint' => '',
                 'Observaciones (menos de 50 cracteres)' => '',
-                'Codigo del curso' => $row['id_bootcamp'],
+                'codigo del curso' => $row['id_bootcamp'],
                 'Nombre del curso' => $row['bootcamp_name'],
                 'Asistencias' => $estaEnGroups ? ($attendanceCount[$row['number_id']] ?? 0) : '',
                 'Asistencias programadas' => $estaEnGroups ? '159' : '',
@@ -371,7 +374,23 @@ function exportDataToExcel($conn)
                 'Documento_Ejecutor_ingles' => $row['ec_teacher_id'],
                 'Ejecutor de ingles' => $row['ec_teacher_name'],
                 'Documento_Ejecutor de habilidades de poder' => $row['skills_teacher_id'],
-                'Ejecutor de habilidades de poder' => $row['skills_teacher_name']
+                'Ejecutor de habilidades de poder' => $row['skills_teacher_name'],
+                // Nuevo campo agregado
+                'Estado Admision' => match ($row['statusAdmin']) {
+                    '1' => 'BENEFICIARIO',
+                    '0' => 'SIN ESTADO', 
+                    '2' => 'RECHAZADO',
+                    '3' => 'MATRICULADO',
+                    '4' => 'SIN CONTACTO',
+                    '5' => 'EN PROCESO',
+                    '6' => 'CERTIFICADO',
+                    '7' => 'INACTIVO',
+                    '8' => 'BENEFICIARIO CONTRAPARTIDA',
+                    '9' => 'APLAZADO',
+                    '10' => 'FORMADO',
+                    '11' => 'NO VALIDO',
+                    default => ''
+                },
             ];
         }
     }

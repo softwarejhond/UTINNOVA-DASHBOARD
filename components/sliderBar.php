@@ -7,7 +7,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
 ?>
 <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel"><i class="bi bi-boxes"></i> SIGP Aplicaciones</h5>
+        <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel"><i class="bi bi-boxes"></i> SYGNIA Aplicaciones</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 
     </div>
@@ -100,7 +100,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                 <?php endif; ?>
 
                 <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
-                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Perfil">
+                    <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Registro de contacto a estudiantes">
                         <a href="contactLogs.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">
                                     <span class="checkbox-icon">
@@ -180,19 +180,6 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </a>
                     </div>
                 <?php endif; ?>
-
-                <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Visítanos">
-                    <a href="https://agenciaeaglesoftware.com/" target="_blank">
-                        <label class="checkbox-wrapper">
-                            <span class="checkbox-tile">
-                                <span class="checkbox-icon">
-                                    <img src="img/icons/eagle.png" alt="LogoEagle" width="60px">
-                                </span>
-                            </span>
-                        </label>
-                    </a>
-
-                </div>
             </fieldset>
         </div>
     </div>
