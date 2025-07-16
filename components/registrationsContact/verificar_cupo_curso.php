@@ -16,10 +16,10 @@ $courseType = $_GET['course_type'];
 
 // Definir cupos máximos predeterminados según el tipo de curso
 $cuposMaximos = [
-    'bootcamp' => 40,
-    'english' => 40, // Inglés Nivelatorio
-    'english_code' => 40,
-    'skills' => 40
+    'bootcamp' => 45,
+    'english' => 45, // Inglés Nivelatorio
+    'english_code' => 45,
+    'skills' => 45
 ];
 
 // Verificar que el tipo de curso sea válido

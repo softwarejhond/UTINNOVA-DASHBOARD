@@ -166,7 +166,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
                     </div>
                 <?php endif; ?>
 
-                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Monitor' || $rol === 'Permanencia'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Registro de seguimiento de asistencias por grupos">
                         <a href="attendance_tracking.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">

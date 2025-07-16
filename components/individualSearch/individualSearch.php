@@ -3393,98 +3393,231 @@
     }
 
     function mostrarModalActualizarPrograma(id) {
-        $('#modalActualizarPrograma_' + id).modal('show');
+        // Remover cualquier modal previo del DOM
+        $('#modalActualizarPrograma_' + id).remove();
 
-        const modalHtml = `
-        <div id="modalActualizarPrograma_${id}" class="modal fade" aria-hidden="true" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-indigo-dark">
-                        <h5 class="modal-title text-center">
-                            <i class="bi bi-arrow-left-right"></i> Actualizar Programa, Nivel, Sede y Lote
-                        </h5>
-                        <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="formActualizarPrograma_${id}">
-                            <div class="form-group mb-3">
-                                <label for="nuevoPrograma_${id}">Seleccionar nuevo programa:</label>
-                                <select class="form-control" id="nuevoPrograma_${id}" name="nuevoPrograma">
-                                    <option value="">Seleccionar programa</option>
-                                    <option value="Programación">Programación</option>
-                                    <option value="Ciberseguridad">Ciberseguridad</option>
-                                    <option value="Arquitectura en la Nube">Arquitectura en la Nube</option>
-                                    <option value="Análisis de datos">Análisis de datos</option>
-                                    <option value="Inteligencia Artificial">Inteligencia Artificial</option>
-                                    <option value="Blockchain">Blockchain</option>
-                                </select>
+        // Mostrar indicador de carga
+        Swal.fire({
+            title: 'Cargando información',
+            text: 'Obteniendo datos actuales...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Obtener datos actuales del usuario
+        $.ajax({
+            url: 'components/individualSearch/get_programa_info.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                id: id
+            },
+            success: function(response) {
+                Swal.close();
+
+                if (response.success) {
+                    const data = response.data;
+
+                    // Crear el modal dinámicamente con los datos actuales
+                    const modalHtml = `
+                    <div id="modalActualizarPrograma_${id}" class="modal fade" aria-hidden="true" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-indigo-dark">
+                                    <h5 class="modal-title text-center">
+                                        <i class="bi bi-arrow-left-right"></i> Actualizar Programa, Nivel, Sede y Lote
+                                    </h5>
+                                    <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i>
+                                        <strong>Información actual:</strong> ${data.program || 'No asignado'} - ${data.level || 'No asignado'} - ${data.headquarters || 'No asignado'} - Lote ${data.lote || 'No asignado'}
+                                    </div>
+                                    
+                                    <form id="formActualizarPrograma_${id}">
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoPrograma_${id}">Programa actual: <strong>${data.program || 'No asignado'}</strong></label>
+                                            <label for="nuevoPrograma_${id}">Seleccionar nuevo programa:</label>
+                                            <select class="form-control" id="nuevoPrograma_${id}" name="nuevoPrograma">
+                                                <option value="">Mantener actual (${data.program || 'No asignado'})</option>
+                                                <option value="Programación" ${data.program === 'Programación' ? 'selected' : ''}>Programación</option>
+                                                <option value="Ciberseguridad" ${data.program === 'Ciberseguridad' ? 'selected' : ''}>Ciberseguridad</option>
+                                                <option value="Arquitectura en la Nube" ${data.program === 'Arquitectura en la Nube' ? 'selected' : ''}>Arquitectura en la Nube</option>
+                                                <option value="Análisis de datos" ${data.program === 'Análisis de datos' ? 'selected' : ''}>Análisis de datos</option>
+                                                <option value="Inteligencia Artificial" ${data.program === 'Inteligencia Artificial' ? 'selected' : ''}>Inteligencia Artificial</option>
+                                                <option value="Blockchain" ${data.program === 'Blockchain' ? 'selected' : ''}>Blockchain</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoNivel_${id}">Nivel actual: <strong>${data.level || 'No asignado'}</strong></label>
+                                            <label for="nuevoNivel_${id}">Seleccionar nuevo nivel:</label>
+                                            <select class="form-control" id="nuevoNivel_${id}" name="nuevoNivel">
+                                                <option value="">Mantener actual (${data.level || 'No asignado'})</option>
+                                                <option value="Explorador" ${data.level === 'Explorador' ? 'selected' : ''}>Explorador</option>
+                                                <option value="Innovador" ${data.level === 'Innovador' ? 'selected' : ''}>Innovador</option>
+                                                <option value="Integrador" ${data.level === 'Integrador' ? 'selected' : ''}>Integrador</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoSede_${id}">Sede actual: <strong>${data.headquarters || 'No asignado'}</strong></label>
+                                            <label for="nuevoSede_${id}">Seleccionar nueva sede:</label>
+                                            <select class="form-control" id="nuevoSede_${id}" name="nuevoSede">
+                                                <option value="">Mantener actual (${data.headquarters || 'No asignado'})</option>
+                                                <option value="">Cargando sedes...</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoLote_${id}">Lote actual: <strong>${data.lote || 'No asignado'}</strong></label>
+                                            <label for="nuevoLote_${id}">Seleccionar lote:</label>
+                                            <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
+                                                <option value="">Mantener actual (${data.lote || 'No asignado'})</option>
+                                                <option value="1" ${data.lote === '1' ? 'selected' : ''}>Lote 1</option>
+                                                <option value="2" ${data.lote === '2' ? 'selected' : ''}>Lote 2</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Nota:</strong> Si no selecciona una nueva opción, se mantendrá la información actual.
+                                        </div>
+                                        
+                                        <input type="hidden" name="id" value="${id}">
+                                        <button type="submit" class="btn bg-indigo-dark text-white w-100">
+                                            <i class="bi bi-check-circle"></i> Actualizar Información
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="form-group mb-3">
-                                <label for="nuevoNivel_${id}">Seleccionar nuevo nivel:</label>
-                                <select class="form-control" id="nuevoNivel_${id}" name="nuevoNivel" >
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="Explorador">Explorador</option>
-                                    <option value="Innovador">Innovador</option>
-                                    <option value="Integrador">Integrador</option>
-                                </select>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="nuevoSede_${id}">Seleccionar nueva sede:</label>
-                                <select class="form-control" id="nuevoSede_${id}" name="nuevoNivel">
-                                    <option value="">Seleccionar sede</option>
-                                    <?php
-                                    $sedes = obtenerSedes($conn, $row['mode']);
-                                    foreach ($sedes as $sede):
-                                    ?>
-                                        <option value="<?php echo htmlspecialchars($sede); ?>">
-                                            <?php echo htmlspecialchars($sede); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="nuevoLote_${id}">Seleccionar lote:</label>
-                                <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
-                                    <option value="">Seleccionar lote</option>
-                                    <option value="1">Lote 1</option>
-                                    <option value="2">Lote 2</option>
-                                </select>
-                            </div>
-                            <input type="hidden" name="id" value="${id}">
-                            <button type="submit" class="btn bg-indigo-dark text-white w-100">Actualizar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>`;
+                        </div>
+                    </div>`;
 
-        // Añadir el modal al DOM
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        $('#modalActualizarPrograma_' + id).modal('show');
+                    // Añadir el modal al DOM
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-        $('#formActualizarPrograma_' + id).on('submit', function(e) {
-            e.preventDefault();
+                    // Mostrar el modal
+                    $('#modalActualizarPrograma_' + id).modal('show');
 
-            Swal.fire({
-                title: '¿Está seguro?',
-                text: "¿Desea actualizar la información?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, actualizar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const nuevoPrograma = $('#nuevoPrograma_' + id).val() || null;
-                    const nuevoNivel = $('#nuevoNivel_' + id).val() || null;
-                    const nuevoSede = $('#nuevoSede_' + id).val() || null;
-                    const nuevoLote = $('#nuevoLote_' + id).val() || null;
+                    // Cargar las sedes después de mostrar el modal
+                    cargarSedesParaModal(id, data.mode, data.headquarters);
 
-                    actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote);
-                    $('#modalActualizarPrograma_' + id).modal('hide');
+                    // Manejar el envío del formulario
+                    $('#formActualizarPrograma_' + id).on('submit', function(e) {
+                        e.preventDefault();
+
+                        // Obtener los valores seleccionados
+                        const nuevoPrograma = $('#nuevoPrograma_' + id).val();
+                        const nuevoNivel = $('#nuevoNivel_' + id).val();
+                        const nuevoSede = $('#nuevoSede_' + id).val();
+                        const nuevoLote = $('#nuevoLote_' + id).val();
+
+                        // Verificar si se ha seleccionado al menos un campo para actualizar
+                        if (!nuevoPrograma && !nuevoNivel && !nuevoSede && !nuevoLote) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sin cambios',
+                                text: 'Debe seleccionar al menos un campo para actualizar.'
+                            });
+                            return;
+                        }
+
+                        Swal.fire({
+                            title: '¿Está seguro?',
+                            html: `
+                                <div class="text-start">
+                                    <p><strong>Se actualizará:</strong></p>
+                                    ${nuevoPrograma ? `<p>• Programa: ${nuevoPrograma}</p>` : ''}
+                                    ${nuevoNivel ? `<p>• Nivel: ${nuevoNivel}</p>` : ''}
+                                    ${nuevoSede ? `<p>• Sede: ${nuevoSede}</p>` : ''}
+                                    ${nuevoLote ? `<p>• Lote: ${nuevoLote}</p>` : ''}
+                                </div>
+                            `,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Sí, actualizar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote);
+                                $('#modalActualizarPrograma_' + id).modal('hide');
+                            }
+                        });
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudieron cargar los datos del usuario'
+                    });
                 }
-            });
+            },
+            error: function() {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al conectar con el servidor'
+                });
+            }
+        });
+    }
+
+    // Función auxiliar para generar opciones de sedes
+    function generateSedeOptions(currentSede) {
+        // Esta función será reemplazada por la carga AJAX de sedes
+        return '<option value="">Cargando sedes...</option>';
+    }
+
+    // Función para cargar sedes según la modalidad
+    // Función para cargar sedes según la modalidad
+    function cargarSedesParaModal(id, mode, currentSede) {
+        console.log('Cargando sedes para modalidad:', mode, 'sede actual:', currentSede);
+
+        if (!mode) {
+            $('#nuevoSede_' + id).html('<option value="">Mantener actual (Sin modalidad definida)</option>');
+            return;
+        }
+
+        // Mostrar indicador de carga
+        $('#nuevoSede_' + id).html('<option value="">Cargando sedes...</option>');
+
+        $.ajax({
+            url: 'components/individualSearch/get_sedes_por_modalidad.php',
+            type: 'POST',
+            data: {
+                mode: mode
+            },
+            dataType: 'json',
+            success: function(response) {
+                console.log('Respuesta del servidor:', response);
+
+                let options = `<option value="">Mantener actual (${currentSede || 'No asignado'})</option>`;
+
+                if (response.success && response.data && response.data.length > 0) {
+                    response.data.forEach(sede => {
+                        const selected = sede.name === currentSede ? 'selected' : '';
+                        options += `<option value="${sede.name}" ${selected}>${sede.name}</option>`;
+                    });
+                } else {
+                    options += '<option value="">No hay sedes disponibles para esta modalidad</option>';
+                }
+
+                $('#nuevoSede_' + id).html(options);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al cargar sedes:', error);
+                $('#nuevoSede_' + id).html(`
+                    <option value="">Mantener actual (${currentSede || 'No asignado'})</option>
+                    <option value="">Error al cargar sedes</option>
+                `);
+            }
         });
     }
 
@@ -3492,10 +3625,21 @@
         const formData = new FormData();
         formData.append('id', id);
 
+        // Solo enviar los valores que no estén vacíos
         if (nuevoPrograma) formData.append('nuevoPrograma', nuevoPrograma);
         if (nuevoNivel) formData.append('nuevoNivel', nuevoNivel);
         if (nuevoSede) formData.append('nuevoSede', nuevoSede);
         if (nuevoLote) formData.append('nuevoLote', nuevoLote);
+
+        // Mostrar indicador de carga
+        Swal.fire({
+            title: 'Actualizando información',
+            text: 'Por favor espere...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "components/registrationsContact/actualizar_programa.php", true);
@@ -3504,6 +3648,8 @@
             if (xhr.readyState == 4) {
                 if (xhr.status == 200) {
                     const response = xhr.responseText.trim();
+                    console.log("Respuesta del servidor:", response);
+
                     if (response === "success") {
                         Swal.fire({
                             icon: 'success',
@@ -3514,15 +3660,41 @@
                         }).then(() => {
                             location.reload();
                         });
+                    } else if (response === "no_changes") {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Sin cambios',
+                            text: 'No se detectaron cambios en la información.'
+                        });
+                    } else if (response === "user_not_found") {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Usuario no encontrado.'
+                        });
                     } else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: 'Hubo un problema al actualizar la información.'
+                            text: 'Hubo un problema al actualizar la información: ' + response
                         });
                     }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error de conexión con el servidor'
+                    });
                 }
             }
+        };
+
+        xhr.onerror = function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error de conexión con el servidor'
+            });
         };
 
         xhr.send(formData);

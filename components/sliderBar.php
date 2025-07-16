@@ -126,7 +126,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                     </div>
                 <?php endif; ?>
 
-                <?php if ($rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Monitor' || $rol === 'Permanencia'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Emitir certificado de estudio">
                         <a href="generateCertFormat.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">

@@ -326,9 +326,13 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                 <!-- Botón de exportación -->
                 <div class="row mt-3">
                     <div class="col-12 text-center">
-                        <button id="exportBtn" class="btn btn-success" disabled>
+                        <button id="exportBtn" class="btn btn-success me-2" disabled>
                             <i class="fas fa-file-excel me-2"></i>
-                            Exportar a Excel
+                            Exportar seguimiento
+                        </button>
+                        <button id="exportSimpleBtn" class="btn bg-cyan-dark text-white" disabled>
+                            <i class="fas fa-table me-2"></i>
+                            Exportar asistencias
                         </button>
                     </div>
                 </div>
@@ -503,6 +507,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
 
             // Deshabilitar botón de exportación
             $('#exportBtn').prop('disabled', true);
+            $('#exportSimpleBtn').prop('disabled', true);
             currentCourseData = null;
             currentCourseCode = null;
 
@@ -598,8 +603,10 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                     // Habilitar botón de exportación si hay datos
                     if (totalStudents > 0) {
                         $('#exportBtn').prop('disabled', false);
+                        $('#exportSimpleBtn').prop('disabled', false);
                     } else {
                         $('#exportBtn').prop('disabled', true);
+                        $('#exportSimpleBtn').prop('disabled', true);
                     }
 
                     // Inicializar DataTables DESPUÉS de poblar las tablas
@@ -721,6 +728,92 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
             }
         });
     });
+
+    // Función para manejar la exportación simple
+    $('#exportSimpleBtn').on('click', function() {
+        if (!currentCourseData || !currentCourseCode) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No hay datos para exportar'
+            });
+            return;
+        }
+
+        // Mostrar indicador de carga
+        Swal.fire({
+            title: 'Generando archivo Excel Simple',
+            text: 'Por favor espere...',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Hacer petición AJAX para exportar
+        $.ajax({
+            url: 'components/attendance/exportAttendanceSimple.php',
+            method: 'POST',
+            data: {
+                courseCode: currentCourseCode,
+                data: JSON.stringify(currentCourseData.data),
+                classes: JSON.stringify(currentCourseData.classes)
+            },
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(data, status, xhr) {
+                // Crear enlace de descarga
+                const blob = new Blob([data], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Asistencia_Simple_${currentCourseCode}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                // Cerrar loading
+                Swal.close();
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Exportación exitosa',
+                    text: 'El archivo simple se ha descargado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de exportación',
+                    text: 'No se pudo generar el archivo Excel simple'
+                });
+                console.error("Error exportando:", error);
+            }
+        });
+    });
+
+    // Modificar la función donde se habilita el botón de exportación
+    // En la función loadStudentsData, donde dice:
+    // $('#exportBtn').prop('disabled', false);
+    // Cambiar por:
+    $('#exportBtn').prop('disabled', false);
+    $('#exportSimpleBtn').prop('disabled', false);
+
+    // Y donde dice:
+    // $('#exportBtn').prop('disabled', true);
+    // Cambiar por:
+    $('#exportBtn').prop('disabled', true);
+    $('#exportSimpleBtn').prop('disabled', true);
 
     // Función para inicializar DataTables solo with búsqueda
     function initializeDataTables() {
