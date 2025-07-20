@@ -273,7 +273,7 @@ $html = '<html>
         Cordial saludo,
     </div><br><br>
     <div class="justificado" style="margin-bottom:20px;">
-        En mi calidad de Directora de Proyecto para la ejecución del contrato 1107 de 2025 suscrito entre el Fondo Único de Tecnologías de la Información y las Comunicaciones y la Unión Temporal Innova Digital, me dirijo a usted con el fin de informar que la señora <b>' . strtoupper($nombre_estudiante) . '</b> identificada con cédula de ciudadanía No <b>' . $cedula . '</b>, se encuentra matriculada en el <b>Programa Talento Tech - Bogotá</b> en el bootcamp de <b>' . $nombre_bootcamp . '</b> de manera <b>' . $modalidad_asistencia . '</b> en los horarios <b>' . $schedules . '</b>, el cual se desarrollará del <b>' . $dia_inicio . ' de ' . $mes_inicio . '</b> al <b>' . $dia_fin . ' de ' . $mes_fin . '</b> de ' . $anio_fin . '.
+        En mi calidad de Directora de Proyecto para la ejecución del contrato 1107 de 2025 suscrito entre el Fondo Único de Tecnologías de la Información y las Comunicaciones y la Unión Temporal Innova Digital, me dirijo a usted con el fin de informar que el (la) señora <b>' . strtoupper($nombre_estudiante) . '</b> identificado (a) con cédula de ciudadanía No <b>' . $cedula . '</b>, se encuentra matriculada en el <b>Programa Talento Tech - Bogotá</b> en el bootcamp de <b>' . $nombre_bootcamp . '</b> de manera <b>' . $modalidad_asistencia . '</b> en los horarios <b>' . $schedules . '</b>, el cual se desarrollará del <b>' . $dia_inicio . ' de ' . $mes_inicio . '</b> al <b>' . $dia_fin . ' de ' . $mes_fin . '</b> de ' . $anio_fin . '.
     </div><br><br>
     <div style="margin-bottom:20px;">
         Cordialmente,
@@ -365,21 +365,12 @@ try {
     $mail->isHTML(true);
     $mail->Subject = 'Certificado académico - Bootcamp Talento Tech';
 
-    $mail->Body = "
-    <div style='font-family: Arial, sans-serif; color: #000; font-size: 16px;'>
-        <p>Estimado/a <b>" . htmlspecialchars($nombre_estudiante) . "</b>,</p>
-        <p>Por medio de la presente, el equipo de <b>UT Innova</b> se permite certificar que usted se encuentra matriculado/a y asiste regularmente al bootcamp <b>" . htmlspecialchars($nombre_bootcamp) . "</b>, en el marco del programa <b>Talento Tech</b>.</p>
-        <p>Adjunto a este correo encontrará la constancia oficial de su participación, la cual acredita su vinculación y asistencia a las actividades académicas programadas.</p>
-        <p>Si requiere información adicional o tiene alguna inquietud, puede contactarnos a través de los siguientes medios:</p>
-        <ul>
-            <li><b>Email:</b> servicioalcliente.ut2@cendi.edu.co</li>
-            <li><b>Whatsapp:</b> 3125410929</li>
-        </ul>
-        <p>Agradecemos su compromiso y participación.<br>
-        Atentamente,<br>
-        <b>Equipo UT Innova</b></p>
-    </div>
-    ";
+    // Reemplazar el cuerpo del correo por la imagen adjunta
+    $mail->Body = '
+        <div style="text-align:center;">
+            <img src="https://dashboard.utinnova.co/dashboard/img/cuerpo_certificado.png" alt="Certificado académico" style="max-width:100%;height:auto;">
+        </div>
+    ';
 
     $mail->addAttachment($pdfPath, 'certificacion_' . $cedula . '.pdf');
 

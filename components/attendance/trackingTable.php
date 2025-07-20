@@ -1563,6 +1563,10 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                                                     <option value="Psicológico">Psicológico</option>
                                                     <option value="Institucional">Institucional</option>
                                                     <option value="Académico">Académico</option>
+                                                    <option value="Laboral">Laboral</option>
+                                                    <option value="Personal">Personal</option>
+                                                    <option value="Inconformidad">Inconformidad</option>
+                                                    <option value="Inactivo">Inactivo</option>
                                                 </select>
                                             </div>
                                             <div class="col-lg-4">

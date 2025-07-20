@@ -315,7 +315,7 @@ if ($result && $result->num_rows > 0) {
             // Determinar categorías según el tipo
             switch (type) {
                 case 'tecnico':
-                    categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 35];
+                    categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 34, 35];
                     break;
                 case 'nivelatorio':
                     categories = [18, 17];

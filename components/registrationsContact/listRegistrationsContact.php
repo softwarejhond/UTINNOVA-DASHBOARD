@@ -1406,7 +1406,7 @@ function obtenerSedes($conn)
                         case 23:
                         case 25:
                         case 28:
-                        case 35:
+                        case 34:
                             bootcampOptions += courseOption;
                             break;
 

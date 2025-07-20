@@ -89,15 +89,13 @@ $rol = $infoUsuario['rol'];
         $('#link-dashboard').addClass('pagina-activa');
 
         // Inicialización de DataTable
-        $('#listaInscritos').DataTable({
+        $('#tablaCertificados').DataTable({
             responsive: true,
-            language: {
-                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-            },
-            paging: false, // Deshabilita la paginación
-            searching: false, // Oculta la barra de búsqueda
-            lengthChange: false, // Oculta el selector de cantidad de registros
-            info: false, // Oculta el texto de "Mostrando X de Y registros"
+            language: <?php echo file_get_contents(__DIR__ . '/controller/datatable_esp.json'); ?>,
+            paging: true, // Habilita la paginación
+            searching: true, // Muestra la barra de búsqueda
+            lengthChange: true, // Muestra el selector de cantidad de registros
+            info: true, // Muestra el texto de "Mostrando X de Y registros"
         });
     });
 </script>

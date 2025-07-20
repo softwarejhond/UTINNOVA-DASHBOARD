@@ -194,7 +194,7 @@ foreach ($data as $row) {
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
-                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 35, 19, 21, 24, 26,27, 35]);
+                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 35, 19, 21, 24, 26, 27, 34, 35]);
                                         if ($categoryAllowed):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">

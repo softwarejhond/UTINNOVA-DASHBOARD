@@ -174,7 +174,7 @@ foreach ($data as $row) {
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
-                                        $categoryAllowed = in_array($course['categoryid'], [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32]);
+                                        $categoryAllowed = in_array($course['categoryid'], [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 31, 32, 34, 35]);
                                         if ($categoryAllowed):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
@@ -698,16 +698,19 @@ foreach ($data as $row) {
                             if (emailResponse && emailResponse.success) {
                                 emailSuccesses++;
                             } else {
+                                // Mostrar error en consola y agregar detalles al error
+                                console.error('Error al enviar correo:', emailResponse?.message, emailResponse);
                                 errors.push({
                                     student: formData.number_id,
-                                    message: `Matrícula exitosa, pero error al enviar correo: ${emailResponse?.message || 'Error desconocido'}\nDetalles: ${JSON.stringify(emailResponse)}`,
+                                    message: `Matrícula exitosa, pero error al enviar correo: ${emailResponse?.message || 'Error desconocido'}<br>Detalles: <pre>${JSON.stringify(emailResponse, null, 2)}</pre>`,
                                     type: 'email'
                                 });
                             }
                         } catch (emailError) {
+                            console.error('Error al enviar correo (catch):', emailError);
                             errors.push({
                                 student: formData.number_id,
-                                message: `Matrícula exitosa, pero error al enviar correo: ${emailError.message}\nDetalles: ${emailError.stack || 'No disponible'}`,
+                                message: `Matrícula exitosa, pero error al enviar correo: ${emailError.message}<br>Detalles: <pre>${emailError.stack || 'No disponible'}</pre>`,
                                 type: 'email'
                             });
                         }
@@ -962,12 +965,11 @@ foreach ($data as $row) {
                 const emailData = {
                     email: userData.email,
                     program: userData.program,
-                    first_name: userData.full_name.split(' ')[0], // Toma el primer nombre
+                    first_name: userData.full_name.split(' ')[0],
                     usuario: userData.number_id,
                     password: userData.password
                 };
 
-                // Agregar la ruta del carnet si está disponible
                 if (carnetFilePath) {
                     emailData.carnet_file_path = carnetFilePath;
                 }
@@ -980,11 +982,13 @@ foreach ($data as $row) {
                     body: JSON.stringify(emailData)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
+                const data = await response.json();
+
+                // Mostrar errores HTTP en consola
+                if (!response.ok || !data.success) {
+                    console.error('Error enviando email:', data.message || response.statusText);
                 }
 
-                const data = await response.json();
                 return data;
             } catch (error) {
                 console.error('Error enviando email:', error);
@@ -1061,7 +1065,7 @@ foreach ($data as $row) {
                     skills: [33]
                 },
                 2: {
-                    bootcamp: [19, 21, 24, 26, 27, 35],
+                    bootcamp: [19, 21, 24, 26, 27, 34],
                     ingles: [18],
                     english_code: [31],
                     skills: [32]
