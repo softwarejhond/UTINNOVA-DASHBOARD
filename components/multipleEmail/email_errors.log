@@ -9,3 +9,34 @@
 [2025-07-17 23:10:23] Intentando conectar a: smtp.hostinger.com:465 con cuenta: notificaciones@utinnova.co
 [2025-07-17 23:12:45] Intentando conectar a: smtp.hostinger.com:465 con cuenta: noreply@utinnova.co
 [2025-07-19 00:17:41] Intentando conectar a: smtp.hostinger.com:465 con cuenta: noreply@utinnova.co
+[2025-07-21 20:41:39] Intentando conectar a: smtp-relay.brevo.com
+:587 con cuenta: 928c52002@smtp-brevo.com
+
+[2025-07-21 20:41:40] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 20:41:40] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 20:42:21] Intentando conectar a: smtp.hostinger.com:465 con cuenta: noreply@utinnova.co
+[2025-07-21 22:34:52] Intentando conectar a: smtp-relay.brevo.com
+:587 con cuenta: 928c52002@smtp-brevo.com
+
+[2025-07-21 22:34:52] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 22:34:52] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 22:36:57] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com
+[2025-07-21 22:36:57] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 22:36:57] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 22:55:20] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com
+[2025-07-21 22:55:21] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 22:55:21] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:06:51] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: noreply@utinnova.co
+[2025-07-21 23:06:52] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:06:52] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:10:55] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: noreply@utinnova.co
+[2025-07-21 23:10:55] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:10:55] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:17:13] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: noreply@utinnova.co
+[2025-07-21 23:17:14] Error en envío: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:17:14] Excepción capturada: SMTP Error: Could not connect to SMTP host. Failed to connect to server
+[2025-07-21 23:19:19] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: noreply@utinnova.co
+[2025-07-21 23:19:21] Error en envío: SMTP Error: Could not authenticate.
+[2025-07-21 23:19:21] Excepción capturada: SMTP Error: Could not authenticate.
+[2025-07-21 23:22:07] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com
+[2025-07-21 23:57:26] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com

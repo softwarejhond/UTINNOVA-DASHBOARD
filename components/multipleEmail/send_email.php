@@ -48,7 +48,7 @@ try {
     }
 
     // Obtener la configuración SMTP
-    $query = "SELECT * FROM smtpConfig WHERE id=1";
+    $query = "SELECT * FROM smtpConfig WHERE id=3";
     $querySMTP = mysqli_query($conn, $query);
 
     if ($querySMTP && mysqli_num_rows($querySMTP) > 0) {
@@ -72,7 +72,7 @@ try {
         $mail->SMTPAuth = true;
         $mail->Username = $emailSmtp;
         $mail->Password = $password;
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = $port;
 
         // Aumentar tiempos de espera
@@ -88,7 +88,7 @@ try {
             )
         );
 
-        $mail->setFrom($emailSmtp, 'Servicio al cliente');
+        $mail->setFrom('noreply@utinnova.co', 'Servicio al cliente');
         $mail->CharSet = 'UTF-8';
 
         // Configurar destinatario

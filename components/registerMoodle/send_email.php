@@ -27,7 +27,7 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 });
 
 try {
-    $query = "SELECT * FROM smtpConfig WHERE id=1"; 
+    $query = "SELECT * FROM smtpConfig WHERE id=3"; 
 
     $querySMTPResult = mysqli_query($conn, $query);
     if (!$querySMTPResult) {
@@ -69,9 +69,19 @@ try {
     $mail->SMTPAuth = true; 
     $mail->Username = $emailSmtp; 
     $mail->Password = $passwordSmtp; 
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; 
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
     $mail->Port = $port; 
-    $mail->setFrom($emailSmtp, 'Servicio al cliente'); 
+
+    // Desactivar verificación de certificado (igual que en multipleEmail)
+    $mail->SMTPOptions = array(
+        'ssl' => array(
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        )
+    );
+
+    $mail->setFrom('noreply@utinnova.co', 'Servicio al cliente'); 
     $mail->CharSet = 'UTF-8';  
     $mail->addAddress($data['email']); 
     $mail->isHTML(true);

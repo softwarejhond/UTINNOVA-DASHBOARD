@@ -112,7 +112,7 @@ $stmt->close();
 // Si existe certificado, enviarlo por correo (no descargarlo)
 if ($certificado_existente) {
     // Obtener configuración SMTP
-    $query = "SELECT * FROM smtpConfig WHERE id=1";
+    $query = "SELECT * FROM smtpConfig WHERE id=3";
     $querySMTPResult = mysqli_query($conn, $query);
     $smtpConfig = mysqli_fetch_array($querySMTPResult);
 
@@ -129,9 +129,17 @@ if ($certificado_existente) {
         $mail->SMTPAuth = true;
         $mail->Username = $emailSmtp;
         $mail->Password = $passwordSmtp;
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = $port;
-        $mail->setFrom($emailSmtp, 'Talento Tech');
+        // Desactivar verificación de certificado
+        $mail->SMTPOptions = array(
+            'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            )
+        );
+        $mail->setFrom('noreply@utinnova.co', 'Talento Tech');
         $mail->CharSet = 'UTF-8';
         $mail->addAddress($email, $nombre_estudiante);
         $mail->isHTML(true);
@@ -336,7 +344,7 @@ try {
 // --- 3. Enviar el certificado por correo electrónico ---
 
 // Obtener configuración SMTP
-$query = "SELECT * FROM smtpConfig WHERE id=1";
+$query = "SELECT * FROM smtpConfig WHERE id=3";
 $querySMTPResult = mysqli_query($conn, $query);
 $smtpConfig = mysqli_fetch_array($querySMTPResult);
 
@@ -357,9 +365,17 @@ try {
     $mail->SMTPAuth = true;
     $mail->Username = $emailSmtp;
     $mail->Password = $passwordSmtp;
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = $port;
-    $mail->setFrom($emailSmtp, 'Talento Tech');
+    // Desactivar verificación de certificado
+    $mail->SMTPOptions = array(
+        'ssl' => array(
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        )
+    );
+    $mail->setFrom('noreply@utinnova.co', 'Talento Tech');
     $mail->CharSet = 'UTF-8';
     $mail->addAddress($email, $nombre_estudiante);
     $mail->isHTML(true);

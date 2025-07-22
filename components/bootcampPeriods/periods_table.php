@@ -198,7 +198,7 @@ if ($result->num_rows > 0) {
                                 <option value="">Seleccione un curso técnico</option>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course):
-                                        $categoryAllowed = in_array($course['categoryid'], [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32]);
+                                        $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 35]);
                                         if ($categoryAllowed): ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>"
                                                 data-fullname="<?php echo htmlspecialchars($course['fullname']); ?>">

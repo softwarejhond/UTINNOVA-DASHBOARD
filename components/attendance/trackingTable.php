@@ -294,7 +294,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                         <select id="bootcamp" class="form-select course-select" style="height: calc(2.375rem + 10px); padding: 8px 12px; padding-bottom: 10px;">
                             <option value="">Seleccione un curso</option>
                             <?php
-                            $allowed_categories = [20, 22, 23, 25, 28, 35, 19, 21, 24, 26, 27, 35];
+                            $allowed_categories = [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 35];
                             
                             // Verificar si hay cursos filtrados
                             if (!empty($courses_data)) {

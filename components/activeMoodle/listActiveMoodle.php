@@ -1,7 +1,7 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 
-$sql = "SELECT g.*, ur.* FROM groups g 
+$sql = "SELECT g.*, ur.*, g.password AS group_password FROM groups g 
     LEFT JOIN user_register ur ON g.number_id = ur.number_id";
 $result = $conn->query($sql);
 $data = [];
@@ -137,6 +137,7 @@ sort($modalidades);
                     <th>Telefono</th>
                     <th>Correo personal</th>
                     <th>Correo institucional</th>
+                    <th>Contraseña</th>
                     <th>Departamento</th>
                     <th>Sede</th>
                     <th>Modalidad</th>
@@ -144,6 +145,7 @@ sort($modalidades);
                     <th>Ingles Nivelatorio</th>
                     <th>English Code</th>
                     <th>Habilidades</th>
+                    <th>Fecha de matricula</th>
                     <th>Desmatricular</th>
                 </tr>
             </thead>
@@ -161,6 +163,7 @@ sort($modalidades);
                         <td><?php echo htmlspecialchars(string: $row['first_phone']); ?></td>
                         <td><?php echo htmlspecialchars($row['email']); ?></td>
                         <td><?php echo htmlspecialchars($row['institutional_email']); ?></td>
+                        <td><?php echo htmlspecialchars($row['group_password']); ?></td>
                         <td>
                             <?php
                             $departamento = htmlspecialchars($row['department']);
@@ -168,6 +171,8 @@ sort($modalidades);
                                 echo "<button class='btn bg-lime-light w-100'><b>{$departamento}</b></button>"; // Botón verde para CUNDINAMARCA
                             } elseif ($departamento === 'BOYACÁ') {
                                 echo "<button class='btn bg-indigo-light w-100'><b>{$departamento}</b></button>"; // Botón azul para BOYACÁ
+                            } elseif ($departamento === '11') {
+                                echo "<button class='btn bg-teal-light w-100'><b>BOGOTA</b></button>"; // Botón teal para 11 (BOGOTA)
                             } else {
                                 echo "<span>{$departamento}</span>"; // Texto normal para otros valores
                             }
@@ -179,6 +184,16 @@ sort($modalidades);
                         <td><?php echo htmlspecialchars($row['id_leveling_english'] . ' - ' . $row['leveling_english_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['id_english_code'] . ' - ' . $row['english_code_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['id_skills'] . ' - ' . $row['skills_name']); ?></td>
+                        <td>
+                            <?php
+                                $fecha = $row['creation_date'];
+                                if ($fecha) {
+                                    echo date('d/m/Y', strtotime($fecha));
+                                } else {
+                                    echo '';
+                                }
+                            ?>
+                        </td>
                         <td class="text-center">
                             <?php
                             switch($rol) {

@@ -833,7 +833,7 @@ foreach ($data as $row) {
                             mode: row.dataset.mode,
                             level: row.dataset.level,
                             schedule: row.dataset.schedule,
-                            password: 'UTt@2025!' // Usar la misma contraseña
+                            password: numberId // Usar la misma contraseña
                         });
                     } else {
                         selectedUsers.delete(numberId);
@@ -1238,7 +1238,7 @@ foreach ($data as $row) {
                     headquarters: userData.headquarters,
                     program: userData.program,
                     mode: userData.mode,
-                    password: 'UTt@2025!', // Usar la misma contraseña
+                    password: numberId, // Usar la misma contraseña
                     id_bootcamp: bootcamp.id,
                     bootcamp_name: bootcamp.name,
                     id_leveling_english: ingles.id,
