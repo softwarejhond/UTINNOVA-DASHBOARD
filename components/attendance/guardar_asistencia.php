@@ -4,11 +4,11 @@ require_once __DIR__ . '/../../controller/conexion.php';
 
 header('Content-Type: application/json');
 
-// Verificar sesión
-if (!isset($_SESSION['username'])) {
-    echo json_encode(['error' => 'Usuario no autorizado']);
-    exit;
-}
+// // Verificar sesión
+// if (!isset($_SESSION['username'])) {
+//     echo json_encode(['error' => 'Usuario no autorizado']);
+//     exit;
+// }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['error' => 'Método no permitido']);

@@ -180,7 +180,7 @@ $courses_data = getCourses();
                             <label class="form-label">Clase</label>
                             <select id="bootcamp" class="form-select course-select">
                                 <?php
-                                $allowed_categories = [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 18, 17, 30, 31, 32];
+                                $allowed_categories = [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 31, 32, 33, 34, 35];
                                 foreach ($courses_data as $course):
                                     if (in_array($course['categoryid'], $allowed_categories)):
                                 ?>
