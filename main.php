@@ -25,7 +25,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     $campos_faltantes = $_SESSION['campos_faltantes'];
     $mensaje_campos = "Por favor complete los siguientes campos en su perfil: ";
     $mensaje_campos .= implode(", ", $campos_faltantes);
-    
+
     // Limpiar las variables de sesión para no mostrar la alerta en futuras cargas
     unset($_SESSION['campos_incompletos']);
     unset($_SESSION['campos_faltantes']);
@@ -42,7 +42,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    
+
     <!-- Integración de Bootstrap y DataTables -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.6/css/dataTables.bootstrap5.min.css">
@@ -57,6 +57,9 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     <link rel="icon" href="img/uttInnova.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Start of HubSpot Embed Code -->
+    <script type="text/javascript" id="hs-script-loader" async defer src="//js-na2.hs-scripts.com/243394779.js"></script>
+    <!-- End of HubSpot Embed Code -->
 
 </head>
 
@@ -66,59 +69,61 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     <?php include("components/modals/userNew.php"); ?>
     <?php include("components/modals/newAdvisor.php"); ?>
     <br><br>
-    </body>
-    <div style="margin-top: 50px;">
-        <div class="mt-3">
-          
-            <div id="dashboard">
-                <div class="position-relative bg-transparent">
-                    <h2 class="position-absolute top-4 start-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
-                </div>
-                <br><br>
-                <hr>
-                <?php include("components/cardContadores/contadoresCards.php"); ?>
+</body>
+<div style="margin-top: 50px;">
+    <div class="mt-3">
 
-                <?php //include("components/aceptUsers/updateStatus.php");  ?>
-                <div class="row">
-                    <div class="col-sm-12 col-md-3 col-lg-3">
-                  
-                    </div>
-                    <div class="col-sm-12 col-md-3 col-lg-3">
-                  
-                        <?php //include("components/graphics/stratum.php");  ?>
-                    </div>
+        <div id="dashboard">
+            <div class="position-relative bg-transparent">
+                <h2 class="position-absolute top-4 start-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+            </div>
+            <br><br>
+            <hr>
+            <?php include("components/cardContadores/contadoresCards.php"); ?>
+
+            <?php //include("components/aceptUsers/updateStatus.php");  
+            ?>
+            <div class="row">
+                <div class="col-sm-12 col-md-3 col-lg-3">
+
+                </div>
+                <div class="col-sm-12 col-md-3 col-lg-3">
+
+                    <?php //include("components/graphics/stratum.php");  
+                    ?>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 
 
-    <?php include("controller/footer.php"); ?>
-    <?php include("controller/botonFlotanteDerecho.php"); ?>
-    <?php include("components/sliderBarBotton.php"); ?>
-    <!-- Scripts de Bootstrap, DataTables y personalizaciones -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.min.js"></script>
-    <!-- <script src="js/real-time-update-contadores.js?v=0.3"></script> -->
-    <script src="js/dataTables.js?v=0.2"></script>
-    <script>
-        $(document).ready(function() {
-            $('#link-dashboard').addClass('pagina-activa');
-            
-            // Inicialización de DataTable
-            $('#listaInscritos').DataTable({
-                responsive: true,
-                language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-                },
-                pagingType: "simple"
-            });
-            
-            // Mostrar alerta si hay campos incompletos
-            <?php if ($mostrar_alerta): ?>
+<?php include("controller/footer.php"); ?>
+<?php include("controller/botonFlotanteDerecho.php"); ?>
+<?php include("components/sliderBarBotton.php"); ?>
+<!-- Scripts de Bootstrap, DataTables y personalizaciones -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.min.js"></script>
+<!-- <script src="js/real-time-update-contadores.js?v=0.3"></script> -->
+<script src="js/dataTables.js?v=0.2"></script>
+<script>
+    $(document).ready(function() {
+        $('#link-dashboard').addClass('pagina-activa');
+
+        // Inicialización de DataTable
+        $('#listaInscritos').DataTable({
+            responsive: true,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+            },
+            pagingType: "simple"
+        });
+
+        // Mostrar alerta si hay campos incompletos
+        <?php if ($mostrar_alerta): ?>
             Swal.fire({
                 title: 'Perfil incompleto',
                 html: '<div style="text-align: center;"><p><strong><?php echo $mensaje_campos; ?></strong></p></div>',
@@ -133,11 +138,11 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
                     window.location.href = 'profile.php'; // Cambia esta ruta por la correcta
                 }
             });
-            <?php endif; ?>
-        });
-    </script>
-    <script>
-        /*
+        <?php endif; ?>
+    });
+</script>
+<script>
+    /*
     // Función para hacer la solicitud AJAX y mostrar el total en una alerta
     function mostrarTotalEnAlerta() {
         // Hacer la solicitud AJAX al script PHP
@@ -153,13 +158,13 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     // Llamar a la función al cargar la página
     window.onload = mostrarTotalEnAlerta;
     */
-    </script>
+</script>
 
-    <style>
+<style>
     .swal-wide {
         width: 600px !important;
     }
-    </style>
+</style>
 
 </body>
 
