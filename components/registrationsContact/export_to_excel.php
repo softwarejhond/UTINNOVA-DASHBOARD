@@ -110,7 +110,7 @@ function exportDataToExcel($conn)
             if ($row['statusAdmin'] === '1') {
                 $estadoAdmision = 'BENEFICIARIO';
             } elseif ($row['statusAdmin'] === '2') {
-                $estadoAdmision = 'RECHAZADO';
+                $estadoAdmision = 'RECHAZADO';  
             } elseif ($row['statusAdmin'] === '3') {
                 $estadoAdmision = 'MATRICULADO';
             } elseif ($row['statusAdmin'] === '4') {
@@ -124,9 +124,11 @@ function exportDataToExcel($conn)
             } elseif ($row['statusAdmin'] === '8') {
                 $estadoAdmision = 'BENEFICIARIO CONTRAPARTIDA';
             } elseif ($row['statusAdmin'] === '9') {
-                $estadoAdmision = 'PENDIENTE MINTIC';
-            } elseif ($row['statusAdmin'] === '0') {
-                $estadoAdmision = 'SIN ESTADO';
+                $estadoAdmision = 'APLAZADO';
+            } elseif ($row['statusAdmin'] === '10') {
+                $estadoAdmision = 'FORMADO';
+            } elseif ($row['statusAdmin'] === '11') {
+                $estadoAdmision = 'NO VALIDO';
             }
 
 
@@ -296,7 +298,7 @@ function exportDataToExcel($conn)
             if ($row['statusAdmin'] === '1') {
                 $estadoAdmision = 'BENEFICIARIO';
             } elseif ($row['statusAdmin'] === '2') {
-                $estadoAdmision = 'RECHAZADO';
+                $estadoAdmision = 'RECHAZADO';  
             } elseif ($row['statusAdmin'] === '3') {
                 $estadoAdmision = 'MATRICULADO';
             } elseif ($row['statusAdmin'] === '4') {
@@ -310,9 +312,11 @@ function exportDataToExcel($conn)
             } elseif ($row['statusAdmin'] === '8') {
                 $estadoAdmision = 'BENEFICIARIO CONTRAPARTIDA';
             } elseif ($row['statusAdmin'] === '9') {
-                $estadoAdmision = 'PENDIENTE MINTIC';
-            } elseif ($row['statusAdmin'] === '0') {
-                $estadoAdmision = 'SIN ESTADO';
+                $estadoAdmision = 'APLAZADO';
+            } elseif ($row['statusAdmin'] === '10') {
+                $estadoAdmision = 'FORMADO';
+            } elseif ($row['statusAdmin'] === '11') {
+                $estadoAdmision = 'NO VALIDO';
             }
 
             $sheet2->fromArray([

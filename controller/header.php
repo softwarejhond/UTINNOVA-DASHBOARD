@@ -175,19 +175,18 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
     </div>
 </nav>
 
-<!-- Bootstrap 5.3.3 CDN -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-<script src="https://js-na2.hsforms.net/forms/embed/243394779.js" defer></script>
+<!-- Start of HubSpot Embed Code -->
+<script type="text/javascript" id="hs-script-loader" async defer src="//js-na2.hs-scripts.com/243394779.js"></script>
+<!-- End of HubSpot Embed Code -->
 
 
 <!-- Botón para abrir el modal -->
-<button type="button" class="btn btn-success floating-button ml-2" style="bottom: 80px;" data-bs-toggle="modal" data-bs-target="#hubspotModal">
+<!-- <button type="button" class="btn btn-success floating-button" style="bottom: 80px;" data-bs-toggle="modal" data-bs-target="#hubspotModal">
     <i class="fa-solid fa-ticket"></i>
-</button>
+</button> -->
 
 <!-- Modal -->
-<div class="modal fade" id="hubspotModal" tabindex="-1" aria-labelledby="hubspotModalLabel" aria-hidden="true">
+<!-- <div class="modal fade" id="hubspotModal" tabindex="-1" aria-labelledby="hubspotModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content bg-white text-black">
             <div class="modal-header">
@@ -199,7 +198,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             </div>
         </div>
     </div>
-</div>
+</div> -->
+
 <script>
     function descargarInforme(url, tipo) {
         let timerInterval;

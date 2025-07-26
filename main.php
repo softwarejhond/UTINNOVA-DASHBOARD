@@ -57,9 +57,6 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     <link rel="icon" href="img/uttInnova.png" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Start of HubSpot Embed Code -->
-    <script type="text/javascript" id="hs-script-loader" async defer src="//js-na2.hs-scripts.com/243394779.js"></script>
-    <!-- End of HubSpot Embed Code -->
 
 </head>
 
