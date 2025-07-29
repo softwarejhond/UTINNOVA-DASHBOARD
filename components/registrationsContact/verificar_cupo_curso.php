@@ -76,7 +76,7 @@ try {
             if (!empty($courseName) && substr(trim($courseName), -1) === "V") {
                 $isVirtualCourse = true;
                 // Usar límite de 100 para cursos virtuales
-                $cupoMaximo = 100;
+                $cupoMaximo = 120;
             } else {
                 // Usar límite normal
                 $cupoMaximo = $cuposMaximos[$courseType];
@@ -116,7 +116,7 @@ try {
                 // Verificar si es un curso virtual
                 if (!empty($courseName) && substr(trim($courseName), -1) === "V") {
                     $isVirtualCourse = true;
-                    $cupoMaximo = 100; // Límite para cursos virtuales
+                    $cupoMaximo = 120; // Límite para cursos virtuales
                 }
             }
         }

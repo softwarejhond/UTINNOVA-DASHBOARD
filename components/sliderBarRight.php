@@ -42,7 +42,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
                     </div>
                 <?php endif; ?>
 
-                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Asesor'): ?>
                     <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Listado de pre-matriculados">
                         <a href="course_assignments.php"> <label class="checkbox-wrapper">
                                 <span class="checkbox-tile">
