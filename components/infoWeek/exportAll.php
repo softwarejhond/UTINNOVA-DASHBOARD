@@ -273,10 +273,26 @@ function exportDataToExcel($conn)
                 'id' => $row['id'],
                 'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'], // Cambio: normalizar CC
                 'Número_documento' => $row['number_id'],
-                'Nombre1' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])), // Cambio: agregar espacio en blanco
-                'Nombre2' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])), // Cambio: agregar espacio en blanco
-                'Apellido1' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_last'])), // Cambio: agregar espacio en blanco
-                'Apellido2' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_last'])), // Cambio: agregar espacio en blanco
+                'Nombre1' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['first_name']
+                )),
+                'Nombre2' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['second_name']
+                )),
+                'Apellido1' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['first_last']
+                )),
+                'Apellido2' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['second_last']
+                )),
                 'Fecha_nacimiento' => date('d/m/Y', strtotime($row['birthdate'])),
                 'Correo' => $row['email'],
 
