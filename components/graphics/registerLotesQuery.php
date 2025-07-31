@@ -11,44 +11,41 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: index.php');
     exit;
 }
+if (isset($_GET['json']) && $_GET['json'] == 'lote1') {
+    // Consultar la cantidad de registros para lote 1
+    $query1 = "SELECT COUNT(*) as cantidad FROM user_register WHERE lote = 1";
+    $result1 = $conn->query($query1);
+    $cantidad1 = $result1->fetch_assoc()['cantidad'] ?? 0;
 
-// Consultar la cantidad de registros por lote
-$query = "SELECT 
-            CASE 
-                WHEN lote IS NULL THEN 'Sin asignar'
-                ELSE lote 
-            END AS lote_valor, 
-            COUNT(*) as cantidad 
-          FROM user_register 
-          GROUP BY lote_valor";
-$resultado = $conn->query($query);
-
-$data = [
-    'labels' => [],
-    'data' => []
-];
-
-$lotes = [
-    1 => 'Lote 1',
-    2 => 'Lote 2',
-    'Sin asignar' => 'Sin asignar lote'
-];
-
-if ($resultado->num_rows > 0) {
-    while ($fila = $resultado->fetch_assoc()) {
-        $etiqueta = isset($lotes[$fila['lote_valor']]) ? 
-                    $lotes[$fila['lote_valor']] : 
-                    'Lote ' . $fila['lote_valor'];
-        
-        $data['labels'][] = $etiqueta;
-        $data['data'][] = $fila['cantidad'];
-    }
+    header('Content-Type: application/json');
+    echo json_encode([
+        'labels' => ['Lote 1'],
+        'data' => [$cantidad1]
+    ]);
+    exit;
 }
 
-// Retornar los datos en formato JSON si es una solicitud específica
-if (isset($_GET['json'])) {
+if (isset($_GET['json']) && $_GET['json'] == 'lote2') {
+    // Consultar la cantidad de registros para lote 2
+    $query2 = "SELECT COUNT(*) as cantidad FROM user_register WHERE lote = 2";
+    $result2 = $conn->query($query2);
+    $cantidad2 = $result2->fetch_assoc()['cantidad'] ?? 0;
+
     header('Content-Type: application/json');
-    echo json_encode($data);
+    echo json_encode([
+        'labels' => ['Lote 2'],
+        'data' => [$cantidad2]
+    ]);
+    exit;
+}
+
+// JSON para total general de usuarios
+if (isset($_GET['json']) && $_GET['json'] == 'total') {
+    $queryTotal = "SELECT COUNT(*) as total FROM user_register";
+    $resultTotal = $conn->query($queryTotal);
+    $total = $resultTotal->fetch_assoc()['total'] ?? 0;
+    header('Content-Type: application/json');
+    echo json_encode(['total' => $total]);
     exit;
 }
 ?>

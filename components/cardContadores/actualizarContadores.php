@@ -133,6 +133,42 @@ try {
     $total_certificados = mysqli_fetch_assoc($result_certificados)['total_certificados'];
     $porc_certificados = ($total_registrados > 0) ? round(($total_certificados / $total_registrados) * 100, 2) : 0;
 
+    // Obtener total de usuarios matriculados LOTE 1
+    $sql_matriculados_1 = "SELECT COUNT(*) AS total_matriculados FROM user_register WHERE statusAdmin = 3 AND lote = 1";
+    $result_matriculados_1 = mysqli_query($conn, $sql_matriculados_1);
+    $total_matriculados_1 = mysqli_fetch_assoc($result_matriculados_1)['total_matriculados'];
+    $porc_matriculados_1 = ($total_registrados > 0) ? round(($total_matriculados_1 / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios matriculados LOTE 2
+    $sql_matriculados_2 = "SELECT COUNT(*) AS total_matriculados FROM user_register WHERE statusAdmin = 3 AND lote = 2";
+    $result_matriculados_2 = mysqli_query($conn, $sql_matriculados_2);
+    $total_matriculados_2 = mysqli_fetch_assoc($result_matriculados_2)['total_matriculados'];
+    $porc_matriculados_2 = ($total_registrados > 0) ? round(($total_matriculados_2 / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios formados LOTE 1
+    $sql_formados_1 = "SELECT COUNT(*) AS total_formados FROM user_register WHERE statusAdmin = 10 AND lote = 1";
+    $result_formados_1 = mysqli_query($conn, $sql_formados_1);
+    $total_formados_1 = mysqli_fetch_assoc($result_formados_1)['total_formados'];
+    $porc_formados_1 = ($total_registrados > 0) ? round(($total_formados_1 / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios formados LOTE 2
+    $sql_formados_2 = "SELECT COUNT(*) AS total_formados FROM user_register WHERE statusAdmin = 10 AND lote = 2";
+    $result_formados_2 = mysqli_query($conn, $sql_formados_2);
+    $total_formados_2 = mysqli_fetch_assoc($result_formados_2)['total_formados'];
+    $porc_formados_2 = ($total_registrados > 0) ? round(($total_formados_2 / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios certificados LOTE 1
+    $sql_certificados_1 = "SELECT COUNT(*) AS total_certificados FROM user_register WHERE statusAdmin = 6 AND lote = 1";
+    $result_certificados_1 = mysqli_query($conn, $sql_certificados_1);
+    $total_certificados_1 = mysqli_fetch_assoc($result_certificados_1)['total_certificados'];
+    $porc_certificados_1 = ($total_registrados > 0) ? round(($total_certificados_1 / $total_registrados) * 100, 2) : 0;
+
+    // Obtener total de usuarios certificados LOTE 2
+    $sql_certificados_2 = "SELECT COUNT(*) AS total_certificados FROM user_register WHERE statusAdmin = 6 AND lote = 2";
+    $result_certificados_2 = mysqli_query($conn, $sql_certificados_2);
+    $total_certificados_2 = mysqli_fetch_assoc($result_certificados_2)['total_certificados'];
+    $porc_certificados_2 = ($total_registrados > 0) ? round(($total_certificados_2 / $total_registrados) * 100, 2) : 0;
+
     // Calcular porcentajes
     $porc_boyaca = ($total_usuarios > 0) ? round(($total_boyaca / $total_registrados) * 100, 2) : 0;
     $porc_cundinamarca = ($total_usuarios > 0) ? round(($total_cundinamarca / $total_registrados) * 100, 2) : 0;
@@ -220,7 +256,19 @@ try {
         "total_lote1" => $total_lote1,
         "porc_lote1" => $porc_lote1,
         "total_lote2" => $total_lote2,
-        "porc_lote2" => $porc_lote2
+        "porc_lote2" => $porc_lote2,
+        "total_matriculados_1" => $total_matriculados_1,
+        "porc_matriculados_1" => $porc_matriculados_1,
+        "total_matriculados_2" => $total_matriculados_2,
+        "porc_matriculados_2" => $porc_matriculados_2,
+        "total_formados_1" => $total_formados_1,
+        "porc_formados_1" => $porc_formados_1,
+        "total_formados_2" => $total_formados_2,
+        "porc_formados_2" => $porc_formados_2,
+        "total_certificados_1" => $total_certificados_1,
+        "porc_certificados_1" => $porc_certificados_1,
+        "total_certificados_2" => $total_certificados_2,
+        "porc_certificados_2" => $porc_certificados_2
     ]);
 } catch (Exception $e) {
     // Manejo de errores

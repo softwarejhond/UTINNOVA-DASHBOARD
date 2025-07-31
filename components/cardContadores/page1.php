@@ -4,7 +4,7 @@
         <div class="card  relative ">
             <div class="card-body z-10">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title text-black "><b><i class="bi bi-pie-chart-fill"></i> Registro por Lotes</b>
+                    <h5 class="card-title text-black "><b><i class="bi bi-pie-chart-fill"></i> Registros del Lote 1</b>
                         <h><br>
 
                             <?php include("components/graphics/registerDeparments.php"); ?>
@@ -13,7 +13,7 @@
                 </div>
             </div>
             <svg class="absolute bottom-0  right-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-                <path fill="#0099ff" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #38cb89;"></path>
+                <path fill="#6610f2" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #5d3fd3;"></path>
             </svg>
         </div>
     </div>
@@ -21,7 +21,7 @@
         <div class="card  relative ">
             <div class="card-body z-10">
                 <div class="d-flex align-items-center">
-                    <h5 class="card-title text-black "><b><i class="bi bi-pie-chart-fill"></i> Registros vs Matriculados</b>
+                    <h5 class="card-title text-black "><b><i class="bi bi-pie-chart-fill"></i> Matriculados Lote 1</b>
                         <h><br>
 
                             <?php include("components/graphics/registerVsEnrolled.php"); ?>
@@ -41,7 +41,7 @@
         <div class="card relative">
             <div class="card-body z-10">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title text-black"><b><i class="bi bi-pie-chart-fill"></i> Progreso de campistas</b>
+                    <h5 class="card-title text-black"><b><i class="bi bi-pie-chart-fill"></i> Progreso de campistas Lote 1</b>
                         <h><br>
                             <?php include("components/graphics/enrolledVsGraduated.php"); ?>
                         </h>
@@ -59,9 +59,82 @@
         <div class="card relative">
             <div class="card-body z-10">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title text-black"><b><i class="bi bi-people-fill"></i> Rangos de Edad</b>
+                    <h5 class="card-title text-black"><b><i class="bi bi-people-fill"></i> Rangos de Edad Lote 1</b>
                         <h><br>
                             <?php include("components/graphics/ageRanges.php"); ?>
+                        </h>
+                    </h5>
+                </div>
+            </div>
+            <svg class="absolute bottom-0 right-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#0099ff" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #FF6B6B;"></path>
+            </svg>
+        </div>
+    </div>
+
+
+    <div class="col-md-6 col-lg-3 col-sm-12 ">
+        <div class="card  relative ">
+            <div class="card-body z-10">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title text-black "><b><i class="bi bi-pie-chart-fill"></i> Registros del Lote 2</b>
+                        <h><br>
+
+                            <?php include("components/graphics/registerDeparmentsDos.php"); ?>
+                        </h>
+                    </h5>
+                </div>
+            </div>
+            <svg class="absolute bottom-0  right-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#6610f2" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #5d3fd3;"></path>
+            </svg>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 col-sm-12 ">
+        <div class="card  relative ">
+            <div class="card-body z-10">
+                <div class="d-flex align-items-center">
+                    <h5 class="card-title text-black "><b><i class="bi bi-pie-chart-fill"></i> Matriculados Lote 2</b>
+                        <h><br>
+
+                            <?php include("components/graphics/registerVsEnrolledDos.php"); ?>
+                        </h>
+                    </h5>
+                </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="absolute bottom-0  right-0">
+                <path fill="#0099ff" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #ffc107;"></path>
+            </svg>
+        </div>
+    </div>
+
+
+    <!-- Nueva tarjeta: Matriculados vs Formados vs Certificados -->
+    <div class="col-md-6 col-lg-3 col-sm-12">
+        <div class="card relative">
+            <div class="card-body z-10">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title text-black"><b><i class="bi bi-pie-chart-fill"></i> Progreso Lote 2</b>
+                        <h><br>
+                            <?php include("components/graphics/enrolledVsGraduatedDos.php"); ?>
+                        </h>
+                    </h5>
+                </div>
+            </div>
+            <svg class="absolute bottom-0 right-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                <path fill="#0099ff" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #02d7ff;"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Nueva tarjeta: Rangos de Edad -->
+    <div class="col-md-6 col-lg-3 col-sm-12">
+        <div class="card relative">
+            <div class="card-body z-10">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title text-black"><b><i class="bi bi-people-fill"></i> Rangos de Edad Lote 2</b>
+                        <h><br>
+                            <?php include("components/graphics/ageRangesDos.php"); ?>
                         </h>
                     </h5>
                 </div>
