@@ -130,7 +130,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                     </a>
                 </div>
             <?php endif; ?>
-            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Asesor' || $rol === 'Monitor' || $rol === 'Control maestro'): ?>
+            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Asesor' || $rol === 'Monitor' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                 <div class="checkbox me-3 text-center"
                     data-bs-toggle="popover"
                     data-bs-trigger="hover focus"
