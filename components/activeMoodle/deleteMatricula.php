@@ -159,10 +159,23 @@ try {
     }
     $historyStmt->close();
 
+    // 4.2.1 Eliminar registros de asistencia del curso técnico (attendance_records) ANTES de eliminar de groups
+    // Antes del borrado
+    error_log("Intentando borrar asistencia: student_id=$number_id, course_id={$userInfo['id_bootcamp']}");
+
+    if (!empty($userInfo['id_bootcamp'])) {
+        $deleteAttendanceStmt = $conn->prepare("DELETE FROM attendance_records WHERE student_id = ? AND course_id = ?");
+        $deleteAttendanceStmt->bind_param("ss", $number_id, $userInfo['id_bootcamp']);
+        $deleteAttendanceStmt->execute();
+        error_log("Filas afectadas: " . $deleteAttendanceStmt->affected_rows);
+        $deleteAttendanceStmt->close();
+    }
+
     // 4.2 Eliminar de la tabla groups
     $deleteStmt = $conn->prepare("DELETE FROM groups WHERE number_id = ?");
     $deleteStmt->bind_param("s", $number_id);
     $deleteStmt->execute();
+    $deleteStmt->close();
 
     // 4.3 Actualizar statusAdmin a 1 en la tabla user_register
     $updateStmt = $conn->prepare("UPDATE user_register SET statusAdmin = 1 WHERE number_id = ?");

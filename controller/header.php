@@ -404,10 +404,6 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
         });
     }
 
-    // Inicializa todos los tooltips en la página
-    $(function() {
-        $('[data-bs-toggle="tooltip"]').tooltip();
-    });
 </script>
 
 <style>
