@@ -176,7 +176,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                     <a href="changeMoodle.php"><label class="checkbox-wrapper">
                             <span class="checkbox-tile">
                                 <span class="checkbox-icon">
-                                    <i class="fa-solid fa-user-tag icono text-indigo-dark"></i>
+                                    <i class="fa-solid fa-repeat icono text-indigo-dark"></i>
                                 </span>
                                 <span class="checkbox-label">Cambiar</span>
                             </span>
@@ -184,7 +184,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                     </a>
                 </div>
             <?php endif; ?>
-            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Asesor' || $rol === 'Control maestro'): ?>
+            <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Asesor' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                 <div class="checkbox me-3 text-center"
                     data-bs-toggle="popover"
                     data-bs-trigger="hover focus"
@@ -296,7 +296,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                 </div>
             <?php endif; ?>
 
-            <?php if ($extraRol === 'Extra Administrador' || $rol === 'Control maestro'): ?>
+            <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                 <div class="checkbox me-3 text-center"
                     data-bs-toggle="popover"
                     data-bs-trigger="hover focus"

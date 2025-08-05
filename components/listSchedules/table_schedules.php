@@ -78,6 +78,8 @@ if ($result->num_rows > 0) {
                             <option value="Análisis de Datos">Análisis de Datos</option>
                             <option value="Inteligencia Artificial">Inteligencia Artificial</option>
                             <option value="Ciberseguridad">Ciberseguridad</option>
+                            <option value="Blockchain">Blockchain</option>
+                            <option value="Arquitectura en la Nube">Arquitectura en la Nube</option>
                         </select>
                     </div>
                     <div class="mb-3">

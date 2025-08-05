@@ -490,6 +490,8 @@
                                                     echo '<span class="badge bg-cyan-dark text-white"><i class="bi bi-mortarboard-fill"></i> FORMADO</span>';
                                                 } elseif ($row['statusAdmin'] == '11') {
                                                     echo '<span class="badge bg-red-dark text-white"><i class="bi bi-exclamation-triangle"></i> NO VÁLIDO</span>';
+                                                } elseif ($row['statusAdmin'] == '12') {
+                                                    echo '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> PENDIENTE MINTIC</span>';
                                                 }
                                                 ?>
                                             </span>
@@ -2593,8 +2595,7 @@
 
                 if (data.existe) {
                     // Si existe en participantes, mostrar opción de Beneficiario para contrapartida
-                    opcionBeneficiario = `<option value="8">Beneficiario para contrapartida</option>
-                                          <option value="9">Pendiente MINTIC</option>`;
+                    opcionBeneficiario = `<option value="8">Beneficiario para contrapartida</option>`;
                 } else {
                     // Si no existe, mostrar opción regular de Beneficiario
                     opcionBeneficiario = '<option value="1">Beneficiario</option>';
@@ -2625,6 +2626,7 @@
                                             <option value="9">Aplazado</option>
                                             <option value="10">Formado</option>
                                             <option value="11">No valido</option>
+                                            <option value="12">Pendiente MINTIC</option>
                                         </select>
                                     </div>
                                     <br>

@@ -360,7 +360,7 @@ function exportDataToExcel($conn)
                 'Documento_Ejecutor de habilidades de poder' => $row['skills_teacher_id'],
                 'Ejecutor de habilidades de poder' => $row['skills_teacher_name'],
                 
-                'Estado Admision' => match ($row['statusAdmin']) {
+               'Estado Admision' => match ($row['statusAdmin']) {
                     '1' => 'BENEFICIARIO',
                     '0' => 'SIN ESTADO', 
                     '2' => 'RECHAZADO',
@@ -372,6 +372,8 @@ function exportDataToExcel($conn)
                     '8' => 'BENEFICIARIO CONTRAPARTIDA',
                     '9' => 'APLAZADO',
                     '10' => 'FORMADO',
+                    '11' => 'NO VALIDO',
+                    '12' => 'PENDIENTE MINTIC',
                     default => ''
                 },
             ];

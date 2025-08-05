@@ -101,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             // Verificar si hay campos vacíos
                             $campos_incompletos = false;
                             $campos_faltantes = array();
-                            
+
                             if (empty($email)) {
                                 $campos_incompletos = true;
                                 $campos_faltantes[] = "Email";
@@ -122,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 $campos_incompletos = true;
                                 $campos_faltantes[] = "Edad";
                             }
-                            
+
                             // Guardar la información de campos incompletos en la sesión
                             $_SESSION['campos_incompletos'] = $campos_incompletos;
                             $_SESSION['campos_faltantes'] = $campos_faltantes;
@@ -169,7 +169,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 include("conexion.php");
 $queryCompany = mysqli_query($conn, "SELECT nombre,nit FROM company");
 while ($empresaLog = mysqli_fetch_array($queryCompany)) {
-  $empresa = $empresaLog['nombre'] . '</label>';
+    $empresa = $empresaLog['nombre'] . '</label>';
 }
 ?>
 
@@ -201,21 +201,40 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
         .login-container {
             transition: background-color 0.3s, color 0.3s;
         }
+
+        /* Fuente Sparose igual que el footer */
+        @font-face {
+            font-family: 'Sparose';
+            src: url('css/fonts/fonnts.com-Sparose.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        .eagle-link-footer {
+            font-family: 'Sparose', sans-serif !important;
+            font-size: 14px;
+            color: #fff !important;
+            text-decoration: none !important;
+            font-weight: normal;
+        }
     </style>
 </head>
 
 <body>
     <div class="login-container">
-        <div class="login-sidebar">
+        <div class="login-sidebar" style="position: relative;">
             <div class="login-logo">
-            <img src="./img/innovablanco.png" alt="Logo UTT" class="img-fluid pb-2">
+                <img src="./img/innovablanco.png" alt="Logo UTT" class="img-fluid pb-2">
             </div>
-            
+
             <p class="login-text text-white">Inicia sesión con tus credenciales para acceder al sistema</p>
 
             <br>
-            <small class="text-white-50">Made by <b class="text-lime-dark">Agencia Eagle Software</b> &copy; <?php echo date("Y"); ?>. Todos los derechos reservados a <?php echo $empresa?>.</small></div>
-
+            <small class="text-white-50 d-block text-center" style="position: absolute; bottom: 20px; left: 0; width: 100%;">
+                Made by <img src="img/eagle_blanco.svg" alt="Eagle Software" style="height: 24px; vertical-align: middle;"> <a href="https://www.agenciaeaglesoftware.com/" class="eagle-link-footer" target="_blank">Eagle Software</a> &copy; <?php echo date("Y"); ?>. <br>Todos los derechos reservados a <?php echo $empresa ?>.
+            </small>
+        </div>
         <div class="login-form">
             <h2 class="form-title">Iniciar sesión</h2>
             <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="post">
@@ -269,7 +288,7 @@ while ($empresaLog = mysqli_fetch_array($queryCompany)) {
     <script src="components/hooks/lineLogin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('togglePassword').addEventListener('click', function () {
+        document.getElementById('togglePassword').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             const icon = this.querySelector('i');
 

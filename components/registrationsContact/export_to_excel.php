@@ -129,6 +129,8 @@ function exportDataToExcel($conn)
                 $estadoAdmision = 'FORMADO';
             } elseif ($row['statusAdmin'] === '11') {
                 $estadoAdmision = 'NO VALIDO';
+            } elseif ($row['statusAdmin'] === '12') {
+                $estadoAdmision = 'PENDIENTE MINTIC';
             }
 
 
@@ -317,6 +319,8 @@ function exportDataToExcel($conn)
                 $estadoAdmision = 'FORMADO';
             } elseif ($row['statusAdmin'] === '11') {
                 $estadoAdmision = 'NO VALIDO';
+            } elseif ($row['statusAdmin'] === '12') {
+                $estadoAdmision = 'PENDIENTE MINTIC';
             }
 
             $sheet2->fromArray([

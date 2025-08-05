@@ -212,7 +212,6 @@ if ($result && $result->num_rows > 0) {
                         <label for="dateEnd" class="form-label">Fecha de Finalización</label>
                         <input type="date" class="form-control" id="dateEnd" name="dateEnd" required>
                     </div>
-
                     <div class="mb-3">
                         <label for="status" class="form-label">Estado</label>
                         <select class="form-select" id="status" required>
@@ -235,43 +234,43 @@ if ($result && $result->num_rows > 0) {
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Lunes</span>
-                                    <input type="number" class="form-control" id="monday_hours" name="monday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="monday_hours" name="monday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Martes</span>
-                                    <input type="number" class="form-control" id="tuesday_hours" name="tuesday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="tuesday_hours" name="tuesday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Miércoles</span>
-                                    <input type="number" class="form-control" id="wednesday_hours" name="wednesday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="wednesday_hours" name="wednesday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Jueves</span>
-                                    <input type="number" class="form-control" id="thursday_hours" name="thursday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="thursday_hours" name="thursday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Viernes</span>
-                                    <input type="number" class="form-control" id="friday_hours" name="friday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="friday_hours" name="friday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Sábado</span>
-                                    <input type="number" class="form-control" id="saturday_hours" name="saturday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="saturday_hours" name="saturday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Domingo</span>
-                                    <input type="number" class="form-control" id="sunday_hours" name="sunday_hours" min="0" max="8" step="1" value="0" required>
+                                    <input type="number" class="form-control" id="sunday_hours" name="sunday_hours" min="0" max="10" step="1" value="0" required>
                                 </div>
                             </div>
                         </div>

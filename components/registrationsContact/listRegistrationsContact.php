@@ -324,6 +324,10 @@ function obtenerSedes($conn)
                                 <option value="6">Certificado</option>
                                 <option value="7">Inactivo</option>
                                 <option value="8">Beneficiario contrapartida</option>
+                                <option value="9">Aplazado</option>
+                                <option value="10">Formado</option>
+                                <option value="11">No válido</option>
+                                <option value="12">Pendiente MINTIC</option>
                             </select>
                         </div>
                     </div>
@@ -722,6 +726,8 @@ function obtenerSedes($conn)
                                 echo '<button class="btn bg-cyan-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="FORMADO"><i class="bi bi-mortarboard-fill"></i></button>';
                             } elseif ($row['statusAdmin'] == '11') {
                                 echo '<button class="btn bg-red-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="NO VÁLIDO"><i class="bi bi-exclamation-triangle-fill"></i></button>';
+                            } elseif ($row['statusAdmin'] == '12') {
+                                echo '<button class="btn bg-indigo-light text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE MINTIC"><i class="bi bi-hourglass-top"></i></button>';
                             }
                             ?>
                         </td>
@@ -1160,8 +1166,7 @@ function obtenerSedes($conn)
 
                 if (data.existe) {
                     // Si existe en participantes, mostrar opción de Beneficiario para contrapartida
-                    opcionBeneficiario = `<option value="8">Beneficiario para contrapartida</option>
-                                          <option value="9">Pendiente MINTIC</option>`;
+                    opcionBeneficiario = `<option value="8">Beneficiario para contrapartida</option>`;
                 } else {
                     // Si no existe, mostrar opción regular de Beneficiario
                     opcionBeneficiario = '<option value="1">Beneficiario</option>';
@@ -1192,6 +1197,7 @@ function obtenerSedes($conn)
                                             <option value="9">Aplazado</option>
                                             <option value="10">Formado</option>
                                             <option value="11">No valido</option>
+                                            <option value="12">Pendiente MINTIC</option>
                                         </select>
                                     </div>
                                     <br>

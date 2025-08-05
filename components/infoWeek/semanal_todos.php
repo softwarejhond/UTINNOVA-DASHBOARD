@@ -482,6 +482,8 @@ function exportDataToExcel($conn)
                     '8' => 'BENEFICIARIO CONTRAPARTIDA',
                     '9' => 'APLAZADO',
                     '10' => 'FORMADO',
+                    '11' => 'NO VALIDO',
+                    '12' => 'PENDIENTE MINTIC',
                     default => ''
                 },
             ];
