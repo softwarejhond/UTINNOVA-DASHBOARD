@@ -157,26 +157,27 @@ if ($result->num_rows > 0) {
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="headquarters" class="form-label">Sede</label>
-                            <select class="form-control" id="headquarters" name="headquarters" required>
+                            <label for="headquarters<?php echo $schedule['id']; ?>" class="form-label">Sede</label>
+                            <select class="form-control" id="headquarters<?php echo $schedule['id']; ?>" name="headquarters" required>
                                 <option value="">Seleccionar sede</option>
                                 <?php
                                 $sql_headquarters = "SELECT * FROM headquarters ORDER BY name ASC";
                                 $result_headquarters = $conn->query($sql_headquarters);
                                 if ($result_headquarters->num_rows > 0) {
                                     while ($row = $result_headquarters->fetch_assoc()) {
-                                        echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                        $selected = ($schedule['headquarters'] == $row['name']) ? 'selected' : '';
+                                        echo '<option value="' . htmlspecialchars($row['name']) . '" ' . $selected . '>' . htmlspecialchars($row['name']) . '</option>';
                                     }
                                 }
                                 ?>
+                                <option value="No aplica" <?php echo ($schedule['headquarters'] == 'No aplica') ? 'selected' : ''; ?>>No aplica</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="department" class="form-label">Departamento</label>
-                            <select class="form-control" id="department" name="department" required>
-                                <option value="">Seleccionar departamento</option>
-                                <option value="BOGOTÁ, D.C.">BOGOTÁ, D.C.</option>
-                                <option value="No aplica">No aplica</option>
+                            <label for="department<?php echo $schedule['id']; ?>" class="form-label">Departamento</label>
+                            <select class="form-control" id="department<?php echo $schedule['id']; ?>" name="department" required>
+                                <option value="BOGOTÁ, D.C." <?php echo ($schedule['department'] == 'BOGOTÁ, D.C.') ? 'selected' : ''; ?>>BOGOTÁ, D.C.</option>
+                                <option value="No aplica" <?php echo ($schedule['department'] == 'No aplica') ? 'selected' : ''; ?>>No aplica</option>
                             </select>
                         </div>
                     </form>

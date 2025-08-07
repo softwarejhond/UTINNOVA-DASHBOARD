@@ -28,9 +28,9 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 <?php endif; ?>
 
                 <?php if ($rol === 'Administrador' || $rol === 'Empleabilidad' || $rol === 'Control maestro'): ?>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="encuestas.php">Empleabilidad</a>
-                    </li>
+                    </li> -->
 
                     <li class="nav-item">
                         <a class="nav-link" href="codigosQR.php">Generar QR</a>
