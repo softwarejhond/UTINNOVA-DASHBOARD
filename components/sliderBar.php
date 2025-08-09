@@ -137,7 +137,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
+                    <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Triangulo'): ?>
                         <div class="col-4">
                             <div class="checkbox"
                                 data-bs-toggle="popover"

@@ -28,7 +28,8 @@ function getRolText($rolNum) {
         11 => 'Superacademico',
         12 => 'Control maestro',
         13 => 'Interventoria',
-        14 => 'Permanencia'
+        14 => 'Permanencia',
+        15 => 'Triangulo'
     ];
     return isset($roles[$rolNum]) ? $roles[$rolNum] : 'Rol desconocido';
 }
@@ -169,6 +170,7 @@ function getRolText($rolNum) {
                                 <option value="12" <?php echo ($user['rol'] == 12) ? 'selected' : ''; ?>>Control maestro</option>
                                 <option value="13" <?php echo ($user['rol'] == 13) ? 'selected' : ''; ?>>Interventoria</option>
                                 <option value="14" <?php echo ($user['rol'] == 14) ? 'selected' : ''; ?>>Permanencia</option>
+                                <option value="15" <?php echo ($user['rol'] == 15) ? 'selected' : ''; ?>>Triangulo</option>
                             </select>
                         </div>
 

@@ -59,6 +59,8 @@ function rolUsuario($rol)
             return "Interventoría";
         case 14:
             return "Permanencia";
+        case 15:
+            return "Triangulo";
         default:
             return "Rol desconocido";
     }
