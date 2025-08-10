@@ -1,5 +1,3 @@
-
-
 <div class="container-fluid px-2">
     <div class="row mb-3">
         <div class="col">
@@ -15,8 +13,10 @@
                 <tr>
                     <th>ID</th>
                     <th>Nombre</th>
+                    <th>Dirección</th>
                     <th>Modalidad</th>
                     <th>Fecha Creación</th>
+                    <th>Fotografía</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -29,8 +29,18 @@
                     echo "<tr>";
                     echo "<td>".$row['id']."</td>";
                     echo "<td>".$row['name']."</td>";
+                    echo "<td>".(!empty($row['address']) ? $row['address'] : "<span class='text-muted'>Sin especificar</span>")."</td>";
                     echo "<td>".$row['mode']."</td>";
                     echo "<td>".$row['date_creation']."</td>";
+                    echo "<td>";
+                    if (!empty($row['photo'])) {
+                        echo "<button class='btn btn-sm bg-teal-dark text-white' onclick=\"verFotoSede('img/sedes/".$row['photo']."')\">
+                                <i class='bi bi-image'></i> Ver foto
+                              </button>";
+                    } else {
+                        echo "<span class='text-muted'>Sin foto</span>";
+                    }
+                    echo "</td>";
                     echo "<td>
                             <button class='btn btn-sm bg-indigo-dark mx-2 text-white' onclick='editarSede(".$row['id'].", `".$row['name']."`, `".$row['mode']."`)'>
                                 <i class='bi bi-pencil'></i>
@@ -62,15 +72,21 @@
                 <form id="formSede">
                     <input type="hidden" id="sede_id" name="sede_id">
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre de la Sede</label>
+                        <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" class="form-control" id="nombre" name="nombre" required>
                     </div>
                     <div class="mb-3">
                         <label for="modalidad" class="form-label">Modalidad</label>
-                        <select class="form-control" id="modalidad" name="modalidad" required>
-                            <option value="Presencial">Presencial</option>
-                            <option value="Virtual">Virtual</option>
-                        </select>
+                        <input type="text" class="form-control" id="modalidad" name="modalidad" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="address" name="address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="foto" class="form-label">Fotografía de la Sede</label>
+                        <input type="file" class="form-control" id="foto" name="foto" accept=".png,.jpg,.jpeg">
+                        <div id="previewFoto" class="mt-2"></div>
                     </div>
                 </form>
             </div>
@@ -94,8 +110,25 @@ $(document).ready(function() {
     });
 });
 
+document.getElementById('foto').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('previewFoto');
+    preview.innerHTML = '';
+    if (file && ['image/png','image/jpeg','image/jpg'].includes(file.type)) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:5px;">`;
+        }
+        reader.readAsDataURL(file);
+    } else if (file) {
+        preview.innerHTML = '<span class="text-danger">Formato no permitido</span>';
+        e.target.value = '';
+    }
+});
+
 function guardarSede() {
-    const formData = new FormData(document.getElementById('formSede'));
+    const form = document.getElementById('formSede');
+    const formData = new FormData(form);
     const url = formData.get('sede_id') ? 'components/headquarters/updateHeadquarter.php' : 'components/headquarters/saveHeadquarter.php';
 
     fetch(url, {
@@ -172,6 +205,15 @@ function eliminarSede(id) {
                 }
             });
         }
+    });
+}
+
+function verFotoSede(ruta) {
+    Swal.fire({
+        title: 'Fotografía de la Sede',
+        html: `<img src="${ruta}" style="width:100%;max-width:350px;object-fit:cover;border-radius:8px;">`,
+        showCloseButton: true,
+        showConfirmButton: false
     });
 }
 </script>
