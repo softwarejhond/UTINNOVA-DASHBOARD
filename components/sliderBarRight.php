@@ -238,6 +238,44 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                                 </a>
                             </div>
                         </div>
+
+                        <div class="col">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Administrar sedes con pre-registros">
+                                <a href="headquartersRegistrations.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-building-fill-gear icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">S. Registros</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Administrar horarios para pre-registros">
+                                <a href="schedulesPreRegis.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-alarm icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">H. Registros</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
                     <?php endif; ?>
 
                     <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Monitor'): ?>
