@@ -47,7 +47,7 @@
         <!-- Botón de exportación para tabla de ingreso -->
         <div class="d-flex justify-content-start mb-2 mt-3">
             <button id="exportEntryBtn" class="btn bg-teal-dark text-white">
-            <i class="bi bi-file-earmark-excel me-2"></i>Exportar a Excel
+                <i class="bi bi-file-earmark-excel me-2"></i>Exportar a Excel
             </button>
         </div>
         <!-- Tabla de Encuestas de ingreso -->
@@ -60,7 +60,9 @@
                         <th>Nombre completo</th>
                         <th>Email</th>
                         <th>Interés</th>
-                        <th>Fecha inicio formación</th>
+                        <th>Lote</th>
+                        <th>Cohorte</th>
+                        <th>Fecha inicio formación</th> <!-- Se actualizará -->
                         <th>Descripción personal</th>
                         <th>Localidad</th>
                         <th>Nivel educativo</th>
@@ -94,20 +96,48 @@
                                     $row['first_last'] . ' ' .
                                     $row['second_last']
                             );
+
+                            // Obtener lote
+                            $lote = '-';
+                            $number_id = $row['number_id'];
+                            $sqlLote = "SELECT lote FROM user_register WHERE number_id = '$number_id' LIMIT 1";
+                            $resLote = $conn->query($sqlLote);
+                            if ($resLote && $resLote->num_rows > 0) {
+                                $loteRow = $resLote->fetch_assoc();
+                                $lote = $loteRow['lote'];
+                            }
+
+                            // Obtener cohorte y fecha inicio formación
+                            $cohorte = '-';
+                            $fechaInicioFormacion = '';
+                            $sqlGroup = "SELECT id_bootcamp FROM groups WHERE number_id = '$number_id' LIMIT 1";
+                            $resGroup = $conn->query($sqlGroup);
+                            if ($resGroup && $resGroup->num_rows > 0) {
+                                $groupRow = $resGroup->fetch_assoc();
+                                $id_bootcamp = $groupRow['id_bootcamp'];
+                                $sqlCohorte = "SELECT cohort, start_date FROM course_periods WHERE bootcamp_code = '$id_bootcamp' LIMIT 1";
+                                $resCohorte = $conn->query($sqlCohorte);
+                                if ($resCohorte && $resCohorte->num_rows > 0) {
+                                    $cohorteRow = $resCohorte->fetch_assoc();
+                                    $cohorte = $cohorteRow['cohort'];
+                                    $fechaInicioFormacion = $cohorteRow['start_date'];
+                                }
+                            }
                     ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['typeID']); ?></td>
                                 <td><?php echo htmlspecialchars($row['number_id']); ?></td>
                                 <td><?php echo htmlspecialchars($nombreCompleto); ?></td>
-                                <td><?php echo htmlspecialchars($row['email']); ?></td>
-                                <td><?php echo htmlspecialchars($row['interest']); ?></td>
+                                <td><?php echo !empty($row['email']) ? htmlspecialchars($row['email']) : '-'; ?></td>
+                                <td><?php echo !empty($row['interest']) ? htmlspecialchars($row['interest']) : '-'; ?></td>
+                                <td><?php echo htmlspecialchars($lote); ?></td>
+                                <td><?php echo htmlspecialchars($cohorte); ?></td>
                                 <td>
                                     <?php
-                                    $fechaInicio = $row['start_training_date'];
-                                    if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio !== '0000-00-00 00:00:00') {
-                                        echo date('d/m/Y', strtotime($fechaInicio));
+                                    if ($fechaInicioFormacion && $fechaInicioFormacion !== '0000-00-00' && $fechaInicioFormacion !== '0000-00-00 00:00:00') {
+                                        echo date('d/m/Y', strtotime($fechaInicioFormacion));
                                     } else {
-                                        echo '';
+                                        echo '-';
                                     }
                                     ?>
                                 </td>
@@ -189,7 +219,7 @@
         <!-- Botón de exportación para tabla de cierre -->
         <div class="d-flex justify-content-start mb-2 mt-3">
             <button id="exportCloseBtn" class="btn bg-teal-dark text-white">
-            <i class="bi bi-file-earmark-excel me-2"></i>Exportar a Excel
+                <i class="bi bi-file-earmark-excel me-2"></i>Exportar a Excel
             </button>
         </div>
         <div class="table-responsive mt-3">
@@ -201,6 +231,8 @@
                         <th>Nombre completo</th>
                         <th>Email</th>
                         <th>Interés</th>
+                        <th>Lote</th> <!-- Nueva columna -->
+                        <th>Cohorte</th> <!-- Nueva columna -->
                         <th>Fecha inicio formación</th>
                         <th>Grupos poblacionales</th>
                         <th>Nivel educativo</th>
@@ -234,6 +266,33 @@
                                     $row['first_last'] . ' ' .
                                     $row['second_last']
                             );
+
+                            // Obtener lote
+                            $lote = '-';
+                            $number_id = $row['number_id'];
+                            $sqlLote = "SELECT lote FROM user_register WHERE number_id = '$number_id' LIMIT 1";
+                            $resLote = $conn->query($sqlLote);
+                            if ($resLote && $resLote->num_rows > 0) {
+                                $loteRow = $resLote->fetch_assoc();
+                                $lote = $loteRow['lote'];
+                            }
+
+                            // Obtener cohorte y fecha inicio formación
+                            $cohorte = '-';
+                            $fechaInicioFormacion = '';
+                            $sqlGroup = "SELECT id_bootcamp FROM groups WHERE number_id = '$number_id' LIMIT 1";
+                            $resGroup = $conn->query($sqlGroup);
+                            if ($resGroup && $resGroup->num_rows > 0) {
+                                $groupRow = $resGroup->fetch_assoc();
+                                $id_bootcamp = $groupRow['id_bootcamp'];
+                                $sqlCohorte = "SELECT cohort, start_date FROM course_periods WHERE bootcamp_code = '$id_bootcamp' LIMIT 1";
+                                $resCohorte = $conn->query($sqlCohorte);
+                                if ($resCohorte && $resCohorte->num_rows > 0) {
+                                    $cohorteRow = $resCohorte->fetch_assoc();
+                                    $cohorte = $cohorteRow['cohort'];
+                                    $fechaInicioFormacion = $cohorteRow['start_date'];
+                                }
+                            }
                     ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['typeID']); ?></td>
@@ -241,13 +300,14 @@
                                 <td><?php echo htmlspecialchars($nombreCompleto); ?></td>
                                 <td><?php echo htmlspecialchars($row['email']); ?></td>
                                 <td><?php echo htmlspecialchars($row['interest']); ?></td>
+                                <td><?php echo htmlspecialchars($lote); ?></td>
+                                <td><?php echo htmlspecialchars($cohorte); ?></td>
                                 <td>
                                     <?php
-                                    $fechaInicio = $row['start_training_date'];
-                                    if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio !== '0000-00-00 00:00:00') {
-                                        echo date('d/m/Y', strtotime($fechaInicio));
+                                    if ($fechaInicioFormacion && $fechaInicioFormacion !== '0000-00-00' && $fechaInicioFormacion !== '0000-00-00 00:00:00') {
+                                        echo date('d/m/Y', strtotime($fechaInicioFormacion));
                                     } else {
-                                        echo '';
+                                        echo '-';
                                     }
                                     ?>
                                 </td>
@@ -348,7 +408,7 @@
                 container: 'body'
             });
         });
-        
+
         // Manejar exportación a Excel para tabla de ingreso
         $('#exportEntryBtn').on('click', function() {
             Swal.fire({
@@ -361,14 +421,14 @@
                 allowEscapeKey: false,
                 allowEnterKey: false
             });
-            
+
             window.location.href = 'components/encuestas/export_employability.php';
-            
+
             setTimeout(function() {
                 Swal.close();
             }, 3000);
         });
-        
+
         // Manejar exportación a Excel para tabla de cierre
         $('#exportCloseBtn').on('click', function() {
             Swal.fire({
@@ -381,9 +441,9 @@
                 allowEscapeKey: false,
                 allowEnterKey: false
             });
-            
+
             window.location.href = 'components/encuestas/export_employability_close.php';
-            
+
             setTimeout(function() {
                 Swal.close();
             }, 3000);
