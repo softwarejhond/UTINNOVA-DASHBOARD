@@ -22,7 +22,7 @@ if (!$bootcamp) {
     exit;
 }
 
-// Copiar las funciones de buscar_aprovados.php (sin cambios)
+// Funciones de cálculo de horas (sin cambios)
 function calcularHorasAsistencia($conn, $studentId, $courseId) {
     if (empty($courseId)) return 0;
     
@@ -116,28 +116,247 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     return $totalHoras;
 }
 
-function obtenerNotaFinal($conn, $studentId, $courseCode) {
-    if (empty($courseCode)) return 0;
-    
-    $sql = "SELECT final_grade FROM student_grades 
-            WHERE student_number_id = ? AND course_code = ? 
-            ORDER BY updated_at DESC LIMIT 1";
-    
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        return 0;
+// Nueva función que obtiene las tres notas
+function obtenerNotas($conn, $studentId, $courseCode) {
+    if (empty($courseCode) || empty($studentId)) {
+        return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
     }
     
-    $stmt->bind_param("ss", $studentId, $courseCode);
-    if (!$stmt->execute()) {
-        return 0;
+    try {
+        // 1. Intentar obtener las notas desde course_approvals (tabla de notas finales/oficiales)
+        $sql_approvals = "SELECT final_grade, grade_1, grade_2 FROM course_approvals 
+                          WHERE student_number_id = ? AND course_code = ?";
+        
+        $stmt_approvals = $conn->prepare($sql_approvals);
+        if (!$stmt_approvals) {
+            error_log("Error preparando consulta de notas aprobadas: " . $conn->error);
+            // Continúa para intentar desde la otra tabla
+        } else {
+            $stmt_approvals->bind_param("ss", $studentId, $courseCode);
+            if ($stmt_approvals->execute()) {
+                $result_approvals = $stmt_approvals->get_result();
+                $row_approvals = $result_approvals->fetch_assoc();
+                $stmt_approvals->close();
+                
+                if ($row_approvals) {
+                    // Las notas en course_approvals ya están en escala 5.0
+                    $grade1 = floatval($row_approvals['grade_1']);
+                    $grade2 = floatval($row_approvals['grade_2']);
+                    
+                    // Calcular nota final - CORREGIDO: Aplicar ponderación 30%-70%
+                    $notaFinal = 0;
+                    if ($grade1 >= 0 && $grade2 >= 0) {
+                        // Aplicar ponderación: 30% primera nota + 70% segunda nota
+                        $notaFinal = ($grade1 * 0.30) + ($grade2 * 0.70);
+                    } else if ($grade1 >= 0 && $grade2 < 0) {
+                        // Solo primera nota disponible - sin ponderación
+                        $notaFinal = $grade1;
+                    } else if ($grade2 >= 0 && $grade1 < 0) {
+                        // Solo segunda nota disponible - sin ponderación
+                        $notaFinal = $grade2;
+                    } else {
+                        // Ambas notas son negativas o no válidas
+                        $notaFinal = 0;
+                    }
+                    
+                    return [
+                        'final' => round($notaFinal, 2),
+                        'grade1' => $grade1,
+                        'grade2' => $grade2
+                    ];
+                }
+            } else {
+                error_log("Error ejecutando consulta de notas aprobadas: " . $stmt_approvals->error);
+                $stmt_approvals->close();
+            }
+        }
+
+        // 2. Si no está en la tabla de aprobados, obtener desde notas_estudiantes
+        $sql_notas = "SELECT nota1, nota2 FROM notas_estudiantes WHERE number_id = ? AND code = ?";
+        $stmt_notas = $conn->prepare($sql_notas);
+
+        if (!$stmt_notas) {
+            error_log("Error preparando consulta de notas_estudiantes: " . $conn->error);
+            // Continuar con API de Moodle como fallback
+        } else {
+            $stmt_notas->bind_param("si", $studentId, $courseCode);
+            if ($stmt_notas->execute()) {
+                $result_notas = $stmt_notas->get_result();
+                $row_notas = $result_notas->fetch_assoc();
+                $stmt_notas->close();
+
+                if ($row_notas) {
+                    $grade1_raw = floatval($row_notas['nota1']);
+                    $grade2_raw = floatval($row_notas['nota2']);
+                    
+                    // Determinar si las notas están en escala 10
+                    // Si cualquiera de las dos notas es > 5.0, tratamos ambas como escala 10
+                    $enEscala10 = ($grade1_raw > 5.0 || $grade2_raw > 5.0);
+                    
+                    // Convertir ambas notas consistentemente
+                    if ($enEscala10) {
+                        // Ambas notas se convierten de escala 10 a escala 5.0
+                        $grade1_normalized = ($grade1_raw / 10.0) * 5.0;
+                        $grade2_normalized = ($grade2_raw / 10.0) * 5.0;
+                    } else {
+                        // Ambas notas ya están en escala 5.0
+                        $grade1_normalized = $grade1_raw;
+                        $grade2_normalized = $grade2_raw;
+                    }
+                    
+                    // Calcular nota final - CORREGIDO: Aplicar ponderación 30%-70%
+                    $notaFinal = 0;
+                    if ($grade1_normalized >= 0 && $grade2_normalized >= 0) {
+                        // Aplicar ponderación: 30% primera nota + 70% segunda nota
+                        $notaFinal = ($grade1_normalized * 0.30) + ($grade2_normalized * 0.70);
+                    } else if ($grade1_normalized >= 0 && $grade2_normalized < 0) {
+                        // Solo primera nota disponible - sin ponderación
+                        $notaFinal = $grade1_normalized;
+                    } else if ($grade2_normalized >= 0 && $grade1_normalized < 0) {
+                        // Solo segunda nota disponible - sin ponderación
+                        $notaFinal = $grade2_normalized;
+                    } else {
+                        // Ambas notas son negativas o no válidas
+                        $notaFinal = 0;
+                    }
+                    
+                    return [
+                        'final' => round($notaFinal, 2),
+                        'grade1' => round($grade1_normalized, 2),
+                        'grade2' => round($grade2_normalized, 2)
+                    ];
+                }
+            } else {
+                error_log("Error ejecutando consulta de notas_estudiantes: " . $stmt_notas->error);
+                $stmt_notas->close();
+            }
+        }
+
+        // 3. Si no está en ninguna tabla, obtener desde Moodle API como fallback
+        // Configuración básica para la API de Moodle
+        $apiUrl = 'https://talento-tech.uttalento.co/webservice/rest/server.php';
+        $token = '3f158134506350615397c83d861c2104';
+        $format = 'json';
+        
+        // Paso 1: Obtener el userid a partir del número de identificación (username)
+        $functionGetUser = 'core_user_get_users_by_field';
+        $paramsUser = [
+            'field' => 'username',
+            'values[0]' => $studentId
+        ];
+        
+        $postdataUser = http_build_query([
+            'wstoken' => $token,
+            'wsfunction' => $functionGetUser,
+            'moodlewsrestformat' => $format
+        ] + $paramsUser);
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdataUser);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        
+        $responseUser = curl_exec($ch);
+        $userData = json_decode($responseUser, true);
+        
+        if (empty($userData)) {
+            curl_close($ch);
+            return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+        }
+        
+        // Obtener el userid
+        $userid = $userData[0]['id'];
+        
+        // Paso 2: Obtener las notas usando el userid
+        $function = 'gradereport_user_get_grade_items';
+        $params = [
+            'courseid' => $courseCode,
+            'userid' => $userid
+        ];
+        
+        $postdata = http_build_query([
+            'wstoken' => $token,
+            'wsfunction' => $function,
+            'moodlewsrestformat' => $format
+        ] + $params);
+        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+        $response = curl_exec($ch);
+        
+        if ($response === false) {
+            curl_close($ch);
+            return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+        }
+        
+        $data = json_decode($response, true);
+        
+        if ($data === null) {
+            curl_close($ch);
+            return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+        }
+        
+        curl_close($ch);
+        
+        // Paso 3: Procesar las notas de la API de Moodle
+        if (isset($data['usergrades'][0])) {
+            $usergrade = $data['usergrades'][0];
+            $notas = [];
+            
+            if (isset($usergrade['gradeitems'])) {
+                foreach ($usergrade['gradeitems'] as $item) {
+                    // Solo tomar ítems de tipo 'course' o que tengan nota asignada
+                    if (
+                        (isset($item['itemtype']) && $item['itemtype'] === 'course') ||
+                        (isset($item['graderaw']) && $item['graderaw'] !== null)
+                    ) {
+                        $notaRaw = isset($item['graderaw']) ? $item['graderaw'] : null;
+                        $grademax = isset($item['grademax']) ? $item['grademax'] : 5.0;
+                        
+                        if ($notaRaw !== null && $grademax > 0) {
+                            // Convertir la nota a escala 5.0 estándar
+                            $notaNormalizada = ($notaRaw / $grademax) * 5.0;
+                            $notas[] = $notaNormalizada;
+                        }
+                    }
+                    if (count($notas) == 2) break; // Solo las dos primeras notas
+                }
+            }
+            
+            // Asignar valores de notas
+            $grade1 = isset($notas[0]) ? $notas[0] : 0;
+            $grade2 = isset($notas[1]) ? $notas[1] : 0;
+            
+            // Calcular nota final - CORREGIDO: Aplicar ponderación 30%-70%
+            $notaFinal = 0;
+            if ($grade1 >= 0 && $grade2 >= 0) {
+                // Aplicar ponderación: 30% primera nota + 70% segunda nota
+                $notaFinal = ($grade1 * 0.30) + ($grade2 * 0.70);
+            } else if ($grade1 >= 0 && $grade2 < 0) {
+                // Solo primera nota disponible - sin ponderación
+                $notaFinal = $grade1;
+            } else if ($grade2 >= 0 && $grade1 < 0) {
+                // Solo segunda nota disponible - sin ponderación
+                $notaFinal = $grade2;
+            } else {
+                // Ambas notas son negativas o no válidas
+                $notaFinal = 0;
+            }
+            
+            return [
+                'final' => round($notaFinal, 2),
+                'grade1' => round($grade1, 2),
+                'grade2' => round($grade2, 2)
+            ];
+        }
+        
+        return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+        
+    } catch (Exception $e) {
+        error_log("Excepción en obtenerNotas para estudiante $studentId: " . $e->getMessage());
+        return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
     }
-    
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stmt->close();
-    
-    return $row ? floatval($row['final_grade']) : 0;
 }
 
 function estaAprobado($conn, $studentId, $courseCode) {
@@ -188,6 +407,8 @@ $horasRequeridas = 159; // 120 Técnico + 24 English Code + 15 Habilidades
 try {
     // Crear nueva hoja de cálculo
     $spreadsheet = new Spreadsheet();
+    
+    // PRIMERA HOJA - ESTUDIANTES APROBADOS
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Estudiantes Aprobados');
 
@@ -201,9 +422,11 @@ try {
     $sheet->setCellValue('G1', 'Sede');
     $sheet->setCellValue('H1', 'Horas Asistidas');
     $sheet->setCellValue('I1', 'Porcentaje Asistencia');
-    $sheet->setCellValue('J1', 'Nota Final');
-    $sheet->setCellValue('K1', 'Estado');
-    $sheet->setCellValue('L1', 'Fecha Exportación');
+    $sheet->setCellValue('J1', 'Nota 1');
+    $sheet->setCellValue('K1', 'Nota 2');
+    $sheet->setCellValue('L1', 'Nota Final');
+    $sheet->setCellValue('M1', 'Estado');
+    $sheet->setCellValue('N1', 'Fecha Exportación');
 
     // Estilo del encabezado
     $headerStyle = [
@@ -226,10 +449,10 @@ try {
         ]
     ];
 
-    $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
+    $sheet->getStyle('A1:N1')->applyFromArray($headerStyle);
 
-    // Consultar TODOS los estudiantes del curso bootcamp (sin filtrar por modalidad ni sede)
-    $sql = "SELECT g.*, c.real_hours, c.name as course_name
+    // Consultar TODOS los estudiantes del curso bootcamp
+    $sql = "SELECT g.*, c.real_hours, c.name as course_name, UPPER(g.full_name) as full_name_upper
             FROM groups g
             LEFT JOIN courses c ON g.id_bootcamp = c.code
             WHERE g.id_bootcamp = ?
@@ -254,9 +477,13 @@ try {
     $row = 2;
     $contador = 1;
     $estudiantesExportados = 0;
-    $courseInfo = null; // Para obtener info del primer estudiante
+    $courseInfo = null;
+    $allStudents = []; // Para almacenar todos los estudiantes
 
     while ($data = mysqli_fetch_assoc($result)) {
+        // Guardar todos los estudiantes para la segunda hoja
+        $allStudents[] = $data;
+        
         // Obtener información del curso del primer estudiante
         if ($courseInfo === null && !empty($data['mode']) && !empty($data['headquarters'])) {
             $courseInfo = [
@@ -267,45 +494,50 @@ try {
         }
 
         // Calcular horas totales
-        $horasAsistidas = calcularHorasTotalesEstudiante($conn, $data['number_id']);
-        $porcentajeAsistencia = ($horasAsistidas / $horasRequeridas) * 100;
+        $horasAsistidas = min(calcularHorasTotalesEstudiante($conn, $data['number_id']), $horasRequeridas);
+        $porcentajeAsistencia = min(($horasAsistidas / $horasRequeridas) * 100, 100);
         
-        // Obtener nota final
-        $notaFinal = obtenerNotaFinal($conn, $data['number_id'], $bootcamp);
+        // Obtener las tres notas
+        $notasData = obtenerNotas($conn, $data['number_id'], $bootcamp);
+        $notaFinal = $notasData['final'];
+        $nota1 = $notasData['grade1'];
+        $nota2 = $notasData['grade2'];
         
         // Verificar criterios
-        $cumpleAsistencia = $porcentajeAsistencia >= 70;
+        $cumpleAsistencia = $porcentajeAsistencia >= 75;
         $cumpleNota = $notaFinal >= 3.0;
         $cumpleCriterios = $cumpleAsistencia && $cumpleNota;
         
         // Verificar si está aprobado
         $yaAprobado = estaAprobado($conn, $data['number_id'], $bootcamp);
         
-        // Solo exportar estudiantes que cumplan criterios
+        // Solo exportar estudiantes que cumplan criterios en la primera hoja
         if ($cumpleCriterios) {
             $nombrePrograma = obtenerNombrePrograma($conn, $courseType, $bootcamp);
             $estado = $yaAprobado ? 'Aprobado' : 'Apto';
             
             $sheet->setCellValue('A' . $row, $contador);
             $sheet->setCellValue('B' . $row, $data['number_id']);
-            $sheet->setCellValue('C' . $row, $data['full_name']);
+            $sheet->setCellValue('C' . $row, $data['full_name_upper']);
             $sheet->setCellValue('D' . $row, $data['institutional_email']);
             $sheet->setCellValue('E' . $row, $nombrePrograma);
             $sheet->setCellValue('F' . $row, $data['mode']);
             $sheet->setCellValue('G' . $row, $data['headquarters']);
             $sheet->setCellValue('H' . $row, $horasAsistidas . '/' . $horasRequeridas);
             $sheet->setCellValue('I' . $row, number_format($porcentajeAsistencia, 1) . '%');
-            $sheet->setCellValue('J' . $row, number_format($notaFinal, 1));
-            $sheet->setCellValue('K' . $row, $estado);
-            $sheet->setCellValue('L' . $row, date('Y-m-d H:i:s'));
+            $sheet->setCellValue('J' . $row, number_format($nota1, 1));
+            $sheet->setCellValue('K' . $row, number_format($nota2, 1));
+            $sheet->setCellValue('L' . $row, number_format($notaFinal, 1));
+            $sheet->setCellValue('M' . $row, $estado);
+            $sheet->setCellValue('N' . $row, date('Y-m-d H:i:s'));
             
             // Aplicar color según el estado
             if ($yaAprobado) {
-                $sheet->getStyle('K' . $row)->getFill()
+                $sheet->getStyle('M' . $row)->getFill()
                       ->setFillType(Fill::FILL_SOLID)
                       ->getStartColor()->setARGB('FFFFD700'); // Dorado
             } else {
-                $sheet->getStyle('K' . $row)->getFill()
+                $sheet->getStyle('M' . $row)->getFill()
                       ->setFillType(Fill::FILL_SOLID)
                       ->getStartColor()->setARGB('FF66CC00'); // Verde
             }
@@ -317,19 +549,119 @@ try {
     }
 
     if ($estudiantesExportados === 0) {
-        $sheet->setCellValue('A2', 'No hay estudiantes que cumplan los criterios (70% asistencia de 159 horas totales y nota ≥ 3.0)');
-        $sheet->mergeCells('A2:L2');
+        $sheet->setCellValue('A2', 'No hay estudiantes que cumplan los criterios (75% asistencia de 159 horas totales y nota ≥ 3.0)'); // CORREGIDO: Cambié de 70% a 75%
+        $sheet->mergeCells('A2:N2');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
     // Auto-ajustar columnas
-    foreach(range('A','L') as $columnID) {
+    foreach(range('A','N') as $columnID) {
         $sheet->getColumnDimension($columnID)->setAutoSize(true);
     }
 
     // Aplicar bordes a toda la tabla
     $totalRows = $row - 1;
-    $sheet->getStyle('A1:L' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    if ($totalRows >= 1) {
+        $sheet->getStyle('A1:N' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    }
+
+    // SEGUNDA HOJA - GRUPO COMPLETO
+    $spreadsheet->createSheet();
+    $spreadsheet->setActiveSheetIndex(1);
+    $completeSheet = $spreadsheet->getActiveSheet();
+    $completeSheet->setTitle('Grupo Completo');
+
+    // Establecer los mismos encabezados en la segunda hoja
+    $completeSheet->setCellValue('A1', 'ID');
+    $completeSheet->setCellValue('B1', 'Número de Identificación');
+    $completeSheet->setCellValue('C1', 'Nombre Completo');
+    $completeSheet->setCellValue('D1', 'Correo Institucional');
+    $completeSheet->setCellValue('E1', 'Programa');
+    $completeSheet->setCellValue('F1', 'Modalidad');
+    $completeSheet->setCellValue('G1', 'Sede');
+    $completeSheet->setCellValue('H1', 'Horas Asistidas');
+    $completeSheet->setCellValue('I1', 'Porcentaje Asistencia');
+    $completeSheet->setCellValue('J1', 'Nota 1');
+    $completeSheet->setCellValue('K1', 'Nota 2');
+    $completeSheet->setCellValue('L1', 'Nota Final');
+    $completeSheet->setCellValue('M1', 'Estado');
+    $completeSheet->setCellValue('N1', 'Fecha Exportación');
+
+    // Aplicar estilo de encabezado
+    $completeSheet->getStyle('A1:N1')->applyFromArray($headerStyle);
+
+    // Llenar con TODOS los estudiantes
+    $row = 2;
+    $contador = 1;
+    
+    foreach ($allStudents as $data) {
+        // Calcular horas totales
+        $horasAsistidas = min(calcularHorasTotalesEstudiante($conn, $data['number_id']), $horasRequeridas);
+        $porcentajeAsistencia = min(($horasAsistidas / $horasRequeridas) * 100, 100);
+        
+        // Obtener las tres notas
+        $notasData = obtenerNotas($conn, $data['number_id'], $bootcamp);
+        $notaFinal = $notasData['final'];
+        $nota1 = $notasData['grade1'];
+        $nota2 = $notasData['grade2'];
+        
+        // Verificar criterios para determinar estado
+        $cumpleAsistencia = $porcentajeAsistencia >= 75; // CORREGIDO: Cambié de 70 a 75
+        $cumpleNota = $notaFinal >= 3.0;
+        $cumpleCriterios = $cumpleAsistencia && $cumpleNota;
+        $yaAprobado = estaAprobado($conn, $data['number_id'], $bootcamp);
+        
+        // Determinar estado
+        if ($yaAprobado) {
+            $estado = 'Aprobado';
+            $colorEstado = 'FFFFD700'; // Dorado
+        } elseif ($cumpleCriterios) {
+            $estado = 'Apto';
+            $colorEstado = 'FF66CC00'; // Verde
+        } else {
+            $estado = 'No Apto';
+            $colorEstado = 'FFFF0000'; // Rojo
+        }
+        
+        $nombrePrograma = obtenerNombrePrograma($conn, $courseType, $bootcamp);
+        
+        $completeSheet->setCellValue('A' . $row, $contador);
+        $completeSheet->setCellValue('B' . $row, $data['number_id']);
+        $completeSheet->setCellValue('C' . $row, $data['full_name_upper']);
+        $completeSheet->setCellValue('D' . $row, $data['institutional_email']);
+        $completeSheet->setCellValue('E' . $row, $nombrePrograma);
+        $completeSheet->setCellValue('F' . $row, $data['mode']);
+        $completeSheet->setCellValue('G' . $row, $data['headquarters']);
+        $completeSheet->setCellValue('H' . $row, $horasAsistidas . '/' . $horasRequeridas);
+        $completeSheet->setCellValue('I' . $row, number_format($porcentajeAsistencia, 1) . '%');
+        $completeSheet->setCellValue('J' . $row, number_format($nota1, 1));
+        $completeSheet->setCellValue('K' . $row, number_format($nota2, 1));
+        $completeSheet->setCellValue('L' . $row, number_format($notaFinal, 1));
+        $completeSheet->setCellValue('M' . $row, $estado);
+        $completeSheet->setCellValue('N' . $row, date('Y-m-d H:i:s'));
+        
+        // Aplicar color según el estado
+        $completeSheet->getStyle('M' . $row)->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB($colorEstado);
+        
+        $row++;
+        $contador++;
+    }
+
+    // Auto-ajustar columnas en la segunda hoja
+    foreach(range('A','N') as $columnID) {
+        $completeSheet->getColumnDimension($columnID)->setAutoSize(true);
+    }
+
+    // Aplicar bordes a toda la tabla en la segunda hoja
+    $totalRows = count($allStudents) + 1;
+    if ($totalRows > 1) {
+        $completeSheet->getStyle('A1:N' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    }
+
+    // Activar la primera hoja antes de enviar
+    $spreadsheet->setActiveSheetIndex(0);
 
     // Generar nombre del archivo usando la información del curso
     $fechaHora = date('Y-m-d_H-i-s');

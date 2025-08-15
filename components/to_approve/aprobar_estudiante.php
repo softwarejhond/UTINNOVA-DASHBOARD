@@ -25,6 +25,120 @@ if (!$studentId || !$courseCode) {
     exit;
 }
 
+// Función para obtener las notas desde Moodle (copia de obtenerNotaFinal de buscar_aprovados.php)
+function obtenerNotasEstudiante($conn, $studentId, $courseCode) {
+    // Configuración básica para la API de Moodle
+    $apiUrl = 'https://talento-tech.uttalento.co/webservice/rest/server.php';
+    $token = '3f158134506350615397c83d861c2104';
+    $format = 'json';
+    
+    // Paso 1: Obtener el userid a partir del número de identificación (username)
+    $functionGetUser = 'core_user_get_users_by_field';
+    
+    // Parámetros para buscar usuario
+    $paramsUser = [
+        'field' => 'username',
+        'values[0]' => $studentId
+    ];
+    
+    $postdataUser = http_build_query([
+        'wstoken' => $token,
+        'wsfunction' => $functionGetUser,
+        'moodlewsrestformat' => $format
+    ] + $paramsUser);
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $apiUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postdataUser);
+    
+    $responseUser = curl_exec($ch);
+    $userData = json_decode($responseUser, true);
+    
+    if (empty($userData)) {
+        curl_close($ch);
+        return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+    }
+    
+    // Obtener el userid del primer usuario encontrado
+    $userid = $userData[0]['id'];
+    
+    // Paso 2: Obtener las notas usando el userid encontrado
+    $function = 'gradereport_user_get_grade_items';
+    
+    $params = [
+        'courseid' => $courseCode,
+        'userid' => $userid
+    ];
+    
+    $postdata = http_build_query([
+        'wstoken' => $token,
+        'wsfunction' => $function,
+        'moodlewsrestformat' => $format
+    ] + $params);
+    
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+    
+    $response = curl_exec($ch);
+    
+    if ($response === false) {
+        curl_close($ch);
+        return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+    }
+    
+    $data = json_decode($response, true);
+    
+    if ($data === null) {
+        curl_close($ch);
+        return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+    }
+    
+    curl_close($ch);
+    
+    // Procesar las notas
+    if (isset($data['usergrades'][0])) {
+        $usergrade = $data['usergrades'][0];
+        $notas = [];
+        $sumaNotas = 0;
+        
+        if (isset($usergrade['gradeitems'])) {
+            foreach ($usergrade['gradeitems'] as $item) {
+                if (
+                    (isset($item['itemtype']) && $item['itemtype'] === 'course') ||
+                    (isset($item['graderaw']) && $item['graderaw'] !== null)
+                ) {
+                    $notaRaw = isset($item['graderaw']) ? $item['graderaw'] : null;
+                    $grademax = isset($item['grademax']) ? $item['grademax'] : 5.0;
+                    
+                    if ($notaRaw !== null && $grademax > 0) {
+                        // Convertir la nota a escala 5.0 estándar
+                        $notaNormalizada = ($notaRaw / $grademax) * 5.0;
+                        $notas[] = $notaNormalizada;
+                        $sumaNotas += $notaNormalizada;
+                    }
+                }
+                if (count($notas) == 2) break; // Solo las dos primeras notas
+            }
+        }
+        
+        // Asegurarnos de tener los valores de las notas (incluso si faltan)
+        $grade1 = isset($notas[0]) ? $notas[0] : 0;
+        $grade2 = isset($notas[1]) ? $notas[1] : 0;
+        
+        // CAMBIO AQUÍ: Siempre dividir por 2, sin importar cuántas notas haya
+        $notaFinal = round(($grade1 + $grade2) / 2, 2);
+        
+        return [
+            'final' => $notaFinal,
+            'grade1' => $grade1,
+            'grade2' => $grade2
+        ];
+    }
+    
+    return ['final' => 0, 'grade1' => 0, 'grade2' => 0];
+}
+
 try {
     // Iniciar transacción para asegurar consistencia
     $conn->autocommit(false);
@@ -45,15 +159,22 @@ try {
     }
     $checkStmt->close();
     
-    // Insertar la nueva aprobación
-    $insertSql = "INSERT INTO course_approvals (course_code, student_number_id, approved_by, created_at) VALUES (?, ?, ?, NOW())";
+    // Obtener las notas del estudiante
+    $notasData = obtenerNotasEstudiante($conn, $studentId, $courseCode);
+    $notaFinal = $notasData['final'];
+    $nota1 = $notasData['grade1'];
+    $nota2 = $notasData['grade2'];
+    
+    // Insertar la nueva aprobación incluyendo las notas
+    $insertSql = "INSERT INTO course_approvals (course_code, student_number_id, approved_by, created_at, final_grade, grade_1, grade_2) 
+                  VALUES (?, ?, ?, NOW(), ?, ?, ?)";
     $insertStmt = $conn->prepare($insertSql);
     
     if (!$insertStmt) {
         throw new Exception('Error en la preparación de inserción: ' . $conn->error);
     }
     
-    $insertStmt->bind_param("sss", $courseCode, $studentId, $approvedBy);
+    $insertStmt->bind_param("sssddd", $courseCode, $studentId, $approvedBy, $notaFinal, $nota1, $nota2);
     
     if (!$insertStmt->execute()) {
         throw new Exception('Error al aprobar estudiante: ' . $insertStmt->error);
@@ -94,7 +215,12 @@ try {
         'approved_by' => $approvedBy,
         'timestamp' => date('Y-m-d H:i:s'),
         'status_updated' => $affectedRows > 0 ? true : false,
-        'affected_rows' => $affectedRows
+        'affected_rows' => $affectedRows,
+        'grades' => [
+            'final' => $notaFinal,
+            'grade1' => $nota1,
+            'grade2' => $nota2
+        ]
     ]);
     
 } catch (Exception $e) {

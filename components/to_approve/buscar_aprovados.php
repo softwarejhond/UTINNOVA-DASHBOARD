@@ -9,21 +9,21 @@ if (!$bootcamp) {
     exit;
 }
 
-// Función para calcular horas basadas en asistencia (igual que exportHours.php)
-function calcularHorasAsistencia($conn, $studentId, $courseId) {
+// Función actualizada para calcular horas con límite (igual que exportHours.php)
+function calcularHorasAsistencia($conn, $studentId, $courseId, $horasMaximas = null) {
     if (empty($courseId)) return 0;
     
     $sql = "SELECT ar.class_date, 
                    CASE 
                       WHEN ar.attendance_status = 'presente' THEN 
                           CASE DAYOFWEEK(ar.class_date)
-                              WHEN 2 THEN c.monday_hours    -- Lunes
-                              WHEN 3 THEN c.tuesday_hours   -- Martes
-                              WHEN 4 THEN c.wednesday_hours -- Miércoles
-                              WHEN 5 THEN c.thursday_hours  -- Jueves
-                              WHEN 6 THEN c.friday_hours    -- Viernes
-                              WHEN 7 THEN c.saturday_hours  -- Sábado
-                              WHEN 1 THEN c.sunday_hours    -- Domingo
+                              WHEN 2 THEN c.monday_hours
+                              WHEN 3 THEN c.tuesday_hours
+                              WHEN 4 THEN c.wednesday_hours
+                              WHEN 5 THEN c.thursday_hours
+                              WHEN 6 THEN c.friday_hours
+                              WHEN 7 THEN c.saturday_hours
+                              WHEN 1 THEN c.sunday_hours
                               ELSE 0
                           END
                       WHEN ar.attendance_status = 'tarde' THEN ar.recorded_hours
@@ -53,7 +53,6 @@ function calcularHorasAsistencia($conn, $studentId, $courseId) {
     
     while($asistencia = $result->fetch_assoc()) {
         $fecha = $asistencia['class_date'];
-        
         if (!in_array($fecha, $fechasContadas)) {
             $totalHoras += $asistencia['horas'];
             $fechasContadas[] = $fecha;
@@ -61,14 +60,27 @@ function calcularHorasAsistencia($conn, $studentId, $courseId) {
     }
     
     $stmt->close();
+    
+    // Aplicar límite si se proporciona (NUEVA FUNCIONALIDAD)
+    if ($horasMaximas !== null && $totalHoras > $horasMaximas) {
+        return $horasMaximas;
+    }
+    
     return $totalHoras;
 }
 
-// Función para calcular horas totales de todos los cursos de un estudiante
+// Función corregida para calcular horas totales con límites individuales
 function calcularHorasTotalesEstudiante($conn, $studentId) {
-    // Obtener todos los cursos del estudiante (excluyendo leveling_english)
-    $sql = "SELECT id_bootcamp, id_english_code, id_skills 
-            FROM groups WHERE number_id = ?";
+    // Obtener todos los cursos del estudiante
+    $sql = "SELECT g.id_bootcamp, g.id_english_code, g.id_skills,
+                   b.real_hours as bootcamp_hours,
+                   e.real_hours as english_hours,
+                   s.real_hours as skills_hours
+            FROM groups g
+            LEFT JOIN courses b ON g.id_bootcamp = b.code
+            LEFT JOIN courses e ON g.id_english_code = e.code
+            LEFT JOIN courses s ON g.id_skills = s.code
+            WHERE g.number_id = ?";
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
@@ -90,19 +102,24 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     
     $totalHoras = 0;
     
-    // Calcular horas de Técnico (Bootcamp) - 120 horas
+    // Obtener horas reales de cada curso
+    $horasTecnico = isset($row['bootcamp_hours']) ? intval($row['bootcamp_hours']) : 120;
+    $horasIngles = isset($row['english_hours']) ? intval($row['english_hours']) : 24;
+    $horasHabilidades = isset($row['skills_hours']) ? intval($row['skills_hours']) : 15;
+    
+    // Calcular horas de Técnico (Bootcamp) - con límite
     if (!empty($row['id_bootcamp'])) {
-        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_bootcamp']);
+        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_bootcamp'], $horasTecnico);
     }
     
-    // Calcular horas de English Code - 24 horas
+    // Calcular horas de English Code - con límite
     if (!empty($row['id_english_code'])) {
-        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_english_code']);
+        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_english_code'], $horasIngles);
     }
     
-    // Calcular horas de Habilidades - 15 horas
+    // Calcular horas de Habilidades - con límite
     if (!empty($row['id_skills'])) {
-        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_skills']);
+        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_skills'], $horasHabilidades);
     }
     
     // NO incluir leveling_english en el cálculo
@@ -110,29 +127,138 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     return $totalHoras;
 }
 
-// Función para obtener nota final
+// Cambia la función obtenerNotaFinal para que devuelva también las notas individuales
 function obtenerNotaFinal($conn, $studentId, $courseCode) {
-    if (empty($courseCode)) return 0;
+    if (empty($courseCode) || empty($studentId)) return ['final' => 0, 'items' => []];
     
-    $sql = "SELECT final_grade FROM student_grades 
-            WHERE student_number_id = ? AND course_code = ? 
-            ORDER BY updated_at DESC LIMIT 1";
+    // Configuración básica para la API de Moodle
+    $apiUrl = 'https://talento-tech.uttalento.co/webservice/rest/server.php';
+    $token = '3f158134506350615397c83d861c2104';
+    $format = 'json';
     
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        return 0;
+    // Paso 1: Obtener el userid a partir del número de identificación (username)
+    $functionGetUser = 'core_user_get_users_by_field';
+    
+    // Parámetros para buscar usuario
+    $paramsUser = [
+        'field' => 'username',
+        'values[0]' => $studentId
+    ];
+    
+    $postdataUser = http_build_query([
+        'wstoken' => $token,
+        'wsfunction' => $functionGetUser,
+        'moodlewsrestformat' => $format
+    ] + $paramsUser);
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $apiUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postdataUser);
+    
+    $responseUser = curl_exec($ch);
+    $userData = json_decode($responseUser, true);
+    
+    if (empty($userData)) {
+        // No se encontró el usuario
+        curl_close($ch);
+        return ['final' => 0, 'items' => []];
     }
     
-    $stmt->bind_param("ss", $studentId, $courseCode);
-    if (!$stmt->execute()) {
-        return 0;
+    // Obtener el userid del primer usuario encontrado
+    $userid = $userData[0]['id'];
+    
+    // Paso 2: Obtener las notas usando el userid encontrado
+    $function = 'gradereport_user_get_grade_items';
+    
+    $params = [
+        'courseid' => $courseCode, // El ID del curso en Moodle
+        'userid' => $userid
+    ];
+    
+    $postdata = http_build_query([
+        'wstoken' => $token,
+        'wsfunction' => $function,
+        'moodlewsrestformat' => $format
+    ] + $params);
+    
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+    
+    $response = curl_exec($ch);
+    
+    if ($response === false) {
+        curl_close($ch);
+        return ['final' => 0, 'items' => []];
     }
     
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stmt->close();
+    $data = json_decode($response, true);
     
-    return $row ? floatval($row['final_grade']) : 0;
+    if ($data === null) {
+        curl_close($ch);
+        return ['final' => 0, 'items' => []];
+    }
+    
+    curl_close($ch);
+    
+    // Paso 3: Procesar las notas y calcular el promedio ponderado
+    if (isset($data['usergrades'][0])) {
+        $usergrade = $data['usergrades'][0];
+        $notas = [];
+        
+        if (isset($usergrade['gradeitems'])) {
+            foreach ($usergrade['gradeitems'] as $item) {
+                // Solo tomar ítems de tipo 'course' o que tengan nota asignada
+                if (
+                    (isset($item['itemtype']) && $item['itemtype'] === 'course') ||
+                    (isset($item['graderaw']) && $item['graderaw'] !== null)
+                ) {
+                    $notaRaw = isset($item['graderaw']) ? $item['graderaw'] : null;
+                    $notaFormatted = isset($item['gradeformatted']) ? $item['gradeformatted'] : null;
+                    $itemname = isset($item['itemname']) ? $item['itemname'] : 'Nota';
+                    $grademax = isset($item['grademax']) ? $item['grademax'] : 5.0;
+                    
+                    if ($notaRaw !== null && $grademax > 0) {
+                        // Convertir la nota a escala 5.0 estándar
+                        $notaNormalizada = ($notaRaw / $grademax) * 5.0;
+                        
+                        $notas[] = [
+                            'raw' => $notaRaw,
+                            'normalizada' => $notaNormalizada,
+                            'max' => $grademax,
+                            'nota' => $notaFormatted,
+                            'nombre' => $itemname
+                        ];
+                    }
+                }
+                if (count($notas) == 2) break; // Solo las dos primeras notas encontradas
+            }
+        }
+        
+        // Calcular nota final con ponderación: 30% primera nota + 70% segunda nota
+        if (count($notas) >= 2) {
+            $nota1 = $notas[0]['normalizada']; // Primera nota (30%)
+            $nota2 = $notas[1]['normalizada']; // Segunda nota (70%)
+            
+            // Aplicar ponderación: 30% + 70%
+            $notaFinal = round(($nota1 * 0.30) + ($nota2 * 0.70), 2);
+            
+            return [
+                'final' => $notaFinal,
+                'items' => $notas
+            ];
+        } else if (count($notas) == 1) {
+            // Si solo hay una nota, usar esa nota como final
+            $notaFinal = round($notas[0]['normalizada'], 2);
+            
+            return [
+                'final' => $notaFinal,
+                'items' => $notas
+            ];
+        }
+    }
+    
+    return ['final' => 0, 'items' => []];
 }
 
 // Función para verificar si el estudiante ya está aprobado
@@ -238,14 +364,16 @@ try {
     
     foreach ($estudiantesData as $row) {
         // Calcular horas TOTALES de todos los cursos del estudiante
-        $horasAsistidas = calcularHorasTotalesEstudiante($conn, $row['number_id']);
-        $porcentajeAsistencia = ($horasAsistidas / $horasRequeridas) * 100;
+        $horasAsistidas = min(calcularHorasTotalesEstudiante($conn, $row['number_id']), $horasRequeridas);
+        $porcentajeAsistencia = min(($horasAsistidas / $horasRequeridas) * 100, 100);
         
         // Obtener nota final
-        $notaFinal = obtenerNotaFinal($conn, $row['number_id'], $bootcamp);
+        $resultadoNotas = obtenerNotaFinal($conn, $row['number_id'], $bootcamp);
+        $notaFinal = $resultadoNotas['final'];
+        $notasItems = $resultadoNotas['items'];
         
-        // Verificar si cumple los criterios (70% asistencia de las 159 horas y nota >= 3.0)
-        $cumpleAsistencia = $porcentajeAsistencia >= 70;
+        // Verificar si cumple los criterios (75% asistencia de las 159 horas y nota >= 3.0)
+        $cumpleAsistencia = $porcentajeAsistencia >= 75;
         $cumpleNota = $notaFinal >= 3.0;
         $cumpleCriterios = $cumpleAsistencia && $cumpleNota;
         
@@ -282,7 +410,20 @@ try {
             
             // Nota final
             $colorNota = $notaFinal >= 4.0 ? 'success' : ($notaFinal >= 3.0 ? 'warning' : 'danger');
-            $tableContent .= '<td class="text-center"><span class="badge badge-' . $colorNota . ' text-black">' . number_format($notaFinal, 1) . '</span></td>';
+            $tableContent .= '<td class="text-center"><span class="badge badge-' . $colorNota . ' text-black">' . number_format($notaFinal, 1) . '</span>';
+            
+            // Añadir detalles de notas
+            $tableContent .= '<br><small class="text-muted">';
+            if (count($notasItems) > 0) {
+                foreach ($notasItems as $i => $n) {
+                    $tableContent .= "N" . ($i+1) . ": " . (isset($n['nota']) ? $n['nota'] : 'N/A');
+                    if ($i < count($notasItems)-1) $tableContent .= " | ";
+                }
+            } else {
+                $tableContent .= "Sin notas";
+            }
+            $tableContent .= '</small>';
+            $tableContent .= '</td>';
             
             // Estado - diferente si ya está aprobado
             $tableContent .= '<td class="text-center">';
@@ -329,7 +470,7 @@ try {
     }
     
     if (empty($tableContent)) {
-        $tableContent = '<tr><td colspan="11" class="text-center">No hay estudiantes que cumplan los criterios (70% asistencia de 159 horas totales y nota ≥ 3.0)</td></tr>';
+        $tableContent = '<tr><td colspan="11" class="text-center">No hay estudiantes que cumplan los criterios (75% asistencia de 159 horas totales y nota ≥ 3.0)</td></tr>';
     }
 
     echo json_encode([

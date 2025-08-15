@@ -40,6 +40,9 @@ $courses_data = getCourses();
 
 ?>
 
+<!-- CDN de Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <style>
     /* Layout principal */
@@ -74,6 +77,40 @@ $courses_data = getCourses();
         font-weight: 600;
         color: #495057;
         margin-bottom: 8px;
+    }
+
+    /* Select2 estilos mínimos */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+        padding-left: 12px;
+        color: #495057;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+        right: 10px;
+    }
+
+    .select2-dropdown {
+        border-radius: 0.375rem;
+        border-color: #ced4da;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 8px 12px;
+    }
+
+    .select2-results__options {
+        max-height: 300px;
+        overflow-y: auto;
     }
 
     /* Panel derecho de tabla */
@@ -302,7 +339,6 @@ $courses_data = getCourses();
 </style>
 
 
-
 <div class="container-fluid mt-4">
     <div class="main-container">
         <!-- Panel izquierdo de filtros -->
@@ -315,7 +351,7 @@ $courses_data = getCourses();
                 <select id="bootcamp" class="form-select course-select">
                     <option value="">Seleccione un curso</option>
                     <?php foreach ($courses_data as $course): ?>
-                        <?php if (in_array($course['categoryid'], [19, 21, 24, 26, 27, 35, 20, 22, 23, 25, 28, 36])): ?>
+                        <?php if (in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 34, 35])): ?>
                             <option value="<?= htmlspecialchars($course['id']) ?>">
                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                             </option>
@@ -394,6 +430,24 @@ $courses_data = getCourses();
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function() {
+        // Inicializar Select2 para el selector de cursos
+        $('#bootcamp').select2({
+            placeholder: "Buscar y seleccionar un curso...",
+            allowClear: true,
+            width: '100%',
+            language: {
+                noResults: function() {
+                    return "No se encontraron cursos";
+                },
+                searching: function() {
+                    return "Buscando...";
+                },
+                loadingMore: function() {
+                    return "Cargando más resultados...";
+                }
+            }
+        });
+
         // Variable para almacenar estudiantes aptos
         let estudiantesAptos = [];
 

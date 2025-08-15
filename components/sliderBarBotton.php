@@ -203,6 +203,25 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                 </div>
             <?php endif; ?>
 
+             <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                <div class="checkbox me-3 text-center"
+                    data-bs-toggle="popover"
+                    data-bs-trigger="hover focus"
+                    data-bs-placement="bottom"
+                    data-bs-content="Cambiar contraseña a campista">
+                    <a href="changePassword.php">
+                        <label class="checkbox-wrapper">
+                            <span class="checkbox-tile">
+                                <span class="checkbox-icon icono text-indigo-dark">
+                                    <i class="fa-solid fa-key icono text-indigo-dark"></i>
+                                </span>
+                                <span class="checkbox-label">Contraseña</span>
+                            </span>
+                        </label>
+                    </a>
+                </div>
+            <?php endif; ?>
+
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                 <div class="checkbox me-3 text-center"
                     data-bs-toggle="popover"
