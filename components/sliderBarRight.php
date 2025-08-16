@@ -320,7 +320,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                         </div>
                     <?php endif; ?>
 
-                     <?php if ($rol === 'Control maestro' || $rol === 'Administrador'): ?>
+                    <?php if ($rol === 'Control maestro' || $rol === 'Administrador'): ?>
                         <div class="col">
                             <div class="checkbox"
                                 data-bs-toggle="popover"
@@ -334,6 +334,27 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                                                 <i class="fa-solid fa-table-list icono"></i>
                                             </span>
                                             <span class="checkbox-label" style="font-size: 11px;">Proyecciones</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Monitor'): ?>
+                        <div class="col">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Cambiar contraseña a campista">
+                                <a href="changePassword.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="fa-solid fa-key icono"></i>
+                                            </span>
+                                            <span class="checkbox-label" style="font-size: 11px;">Contraseña</span>
                                         </span>
                                     </label>
                                 </a>

@@ -1,4 +1,4 @@
-<div class="container py-4">
+<div class="py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-12">
             <!-- Tarjeta de búsqueda (siempre visible) -->
