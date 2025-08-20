@@ -362,6 +362,26 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
+                        <div class="col">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Gestionar reportes de campista">
+                                <a href="gestionarReportes.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-flag-fill icono"></i>
+                                            </span>
+                                            <span class="checkbox-label" style="font-size: 11px;">Gestionar</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     <?php if ($rol === 'Control maestro'): ?>
                         <!-- <div class="checkbox" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Registro de seguimiento de asistencias por grupos">
                             <a href="directMessage.php"> <label class="checkbox-wrapper">

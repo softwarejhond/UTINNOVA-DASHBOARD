@@ -303,6 +303,27 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <?php if ($rol === 'Administrador' || $rol === 'Monitor'): ?>
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Incidencias y novedades con campistas">
+                                <a href="studentReport.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-flag icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Reportar</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </fieldset>
 
