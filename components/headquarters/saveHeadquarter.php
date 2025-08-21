@@ -14,6 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nombre = mysqli_real_escape_string($conn, $_POST['nombre']);
         $modalidad = mysqli_real_escape_string($conn, $_POST['modalidad']);
         $address = mysqli_real_escape_string($conn, $_POST['address']);
+        $password = mysqli_real_escape_string($conn, $_POST['password']);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         
         // Obtener el username de la sesión
         $created_by = isset($_SESSION['username']) ? mysqli_real_escape_string($conn, $_SESSION['username']) : 'sistema';
@@ -32,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $query = "INSERT INTO headquarters (name, mode, address, date_creation, photo) VALUES (?, ?, ?, NOW(), ?)";
+        $query = "INSERT INTO headquarters (name, mode, address, password, date_creation, photo) VALUES (?, ?, ?, ?, NOW(), ?)";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("ssss", $nombre, $modalidad, $address, $photoName);
+        $stmt->bind_param("sssss", $nombre, $modalidad, $address, $hashedPassword, $photoName);
 
         if($stmt->execute()) {
             echo json_encode([

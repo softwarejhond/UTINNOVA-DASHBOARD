@@ -89,7 +89,7 @@ $rol = $infoUsuario['rol'];
         $('#listaInscritos').DataTable({
             responsive: true,
             language: {
-                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+                url: "controller/datatable_esp.json"
             },
             pagingType: "simple"
         });

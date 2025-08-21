@@ -215,7 +215,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                                 <span class="checkbox-icon">
                                     <i class="bi bi-exclamation-diamond-fill icono text-indigo-dark"></i>
                                 </span>
-                                <span class="checkbox-label">Desmatricular</span>
+                                <span class="checkbox-label" style="font-size:11px;">Desmatricular</span>
                             </span>
                         </label>
                     </a>

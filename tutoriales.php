@@ -52,11 +52,11 @@ $rol = $infoUsuario['rol'];
 
         <div id="dashboard">
             <div class="position-relative bg-transparent">
-                <h2 class="position-absolute top-4 start-0"><i class="bi bi-building-fill-gear"></i> Administrar sedes</h2>
+                <h2 class="position-absolute top-4 start-0"><i class="bi bi-youtube"></i> Guía de la plataforma</h2>
             </div>
             <br><br>
             <hr>
-            <?php include("components/headquarters/listHeadquarters.php"); ?>
+            <?php include("components/tutorials/listTutorials.php"); ?>
             <div class="row">
                 <div class="col-sm-12 col-md-12 col-lg-12">
                     <?php //include("components/aceptUsers/updateStatus.php"); 
@@ -82,18 +82,18 @@ $rol = $infoUsuario['rol'];
 <script src="js/dataTables.js?v=0.2"></script>
 
 <script>
-    $(document).ready(function() {
-        $('#link-dashboard').addClass('pagina-activa');
+    // $(document).ready(function() {
+    //     $('#link-dashboard').addClass('pagina-activa');
 
-        // Inicialización de DataTable
-        $('#listaInscritos').DataTable({
-            responsive: true,
-            language: {
-                url: "controller/datatable_esp.json"
-            },
-            pagingType: "simple"
-        });
-    });
+    //     // Inicialización de DataTable
+    //     $('#listaInscritos').DataTable({
+    //         responsive: true,
+    //         language: {
+    //             url: "controller/datatable_esp.json"
+    //         },
+    //         pagingType: "simple"
+    //     });
+    // });
 </script>
 
 </body>

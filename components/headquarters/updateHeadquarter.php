@@ -12,6 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nombre = mysqli_real_escape_string($conn, $_POST['nombre']);
         $modalidad = mysqli_real_escape_string($conn, $_POST['modalidad']);
         $address = mysqli_real_escape_string($conn, $_POST['address']);
+        $password = isset($_POST['password']) ? mysqli_real_escape_string($conn, $_POST['password']) : null;
+        $hashedPassword = $password ? password_hash($password, PASSWORD_DEFAULT) : null;
 
         // Iniciar transacción
         mysqli_autocommit($conn, false);
@@ -46,11 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Error al actualizar user_register: " . mysqli_error($conn));
         }
 
-        // Actualizar headquarters
+        // Construir la consulta de actualización
+        $setPassword = $hashedPassword ? ", password = '$hashedPassword'" : "";
         if ($photoName) {
-            $query = "UPDATE headquarters SET name = '$nombre', mode = '$modalidad', address = '$address', photo = '$photoName' WHERE id = $id";
+            $query = "UPDATE headquarters SET name = '$nombre', mode = '$modalidad', address = '$address', photo = '$photoName' $setPassword WHERE id = $id";
         } else {
-            $query = "UPDATE headquarters SET name = '$nombre', mode = '$modalidad', address = '$address' WHERE id = $id";
+            $query = "UPDATE headquarters SET name = '$nombre', mode = '$modalidad', address = '$address' $setPassword WHERE id = $id";
         }
 
         if (!mysqli_query($conn, $query)) {

@@ -42,7 +42,7 @@
                     }
                     echo "</td>";
                     echo "<td>
-                            <button class='btn btn-sm bg-indigo-dark mx-2 text-white' onclick='editarSede(".$row['id'].", `".$row['name']."`, `".$row['mode']."`)'>
+                            <button class='btn btn-sm bg-indigo-dark mx-2 text-white' onclick='editarSede(".$row['id'].", `".$row['name']."`, `".$row['mode']."`, `".$row['address']."`)'>
                                 <i class='bi bi-pencil'></i>
                             </button>";
                     // Mostrar botón eliminar solo para Control maestro        
@@ -88,6 +88,10 @@
                         <input type="file" class="form-control" id="foto" name="foto" accept=".png,.jpg,.jpeg">
                         <div id="previewFoto" class="mt-2"></div>
                     </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -104,7 +108,7 @@
 $(document).ready(function() {
     $('#tablaSedes').DataTable({
         language: {
-            url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+            url: "controller/datatable_esp.json"
         },
         responsive: true
     });
@@ -129,6 +133,17 @@ document.getElementById('foto').addEventListener('change', function(e) {
 function guardarSede() {
     const form = document.getElementById('formSede');
     const formData = new FormData(form);
+    const password = formData.get('password');
+    // Validación: alfanumérica, al menos una mayúscula y un caracter especial
+    const regex = /^(?=.*[A-Z])(?=.*[a-zA-Z0-9])(?=.*[\W_]).+$/;
+    if (password && !regex.test(password)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Contraseña inválida',
+            text: 'La contraseña debe ser alfanumérica, contener al menos una mayúscula y un caracter especial.'
+        });
+        return;
+    }
     const url = formData.get('sede_id') ? 'components/headquarters/updateHeadquarter.php' : 'components/headquarters/saveHeadquarter.php';
 
     fetch(url, {
@@ -157,10 +172,11 @@ function guardarSede() {
     });
 }
 
-function editarSede(id, nombre, modalidad) {
+function editarSede(id, nombre, modalidad, address) {
     document.getElementById('sede_id').value = id;
     document.getElementById('nombre').value = nombre;
     document.getElementById('modalidad').value = modalidad;
+    document.getElementById('address').value = address;
     document.getElementById('modalTitle').textContent = 'Editar Sede';
     new bootstrap.Modal(document.getElementById('modalSede')).show();
 }

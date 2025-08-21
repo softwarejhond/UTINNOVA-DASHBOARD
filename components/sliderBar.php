@@ -324,6 +324,25 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <div class="col-4">
+                        <div class="checkbox"
+                            data-bs-toggle="popover"
+                            data-bs-trigger="hover focus"
+                            data-bs-placement="bottom"
+                            data-bs-content="Tutoriales de uso de la plataforma">
+                            <a href="tutoriales.php">
+                                <label class="checkbox-wrapper">
+                                    <span class="checkbox-tile">
+                                        <span class="checkbox-icon">
+                                            <i class="bi bi-youtube icono"></i>
+                                        </span>
+                                        <span class="checkbox-label">Tutoriales</span>
+                                    </span>
+                                </label>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </fieldset>
 
