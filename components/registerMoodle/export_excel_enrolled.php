@@ -33,11 +33,19 @@ $sheet->setCellValue('O1', 'ID English Code');
 $sheet->setCellValue('P1', 'English Code');
 $sheet->setCellValue('Q1', 'ID Habilidades');
 $sheet->setCellValue('R1', 'Habilidades');
+// Agrega el encabezado para Cohorte
+$sheet->setCellValue('S1', 'Cohorte');
 
 // Query to get data
-$query = "SELECT g.*, ur.first_phone, ur.lote 
+// Cambia la consulta para incluir el LEFT JOIN con course_periods y obtener el cohort
+$query = "SELECT 
+            g.*, 
+            ur.first_phone, 
+            ur.lote, 
+            cp.cohort AS course_cohort
           FROM groups g 
-          LEFT JOIN user_register ur ON g.number_id = ur.number_id";
+          LEFT JOIN user_register ur ON g.number_id = ur.number_id
+          LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code";
 $stmt = $conn->query($query);
 $row = 2;
 
@@ -60,18 +68,20 @@ while ($data = mysqli_fetch_assoc($stmt)) {
     $sheet->setCellValue('P' . $row, $data['english_code_name']);
     $sheet->setCellValue('Q' . $row, $data['id_skills']);
     $sheet->setCellValue('R' . $row, $data['skills_name']);
+    // Nueva columna para Cohorte
+    $sheet->setCellValue('S' . $row, $data['course_cohort']);
     $row++;
 }
 
 // Auto size columns
-foreach(range('A','R') as $columnID) {
+foreach(range('A','S') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
 }
 
 // Set background color for header
-$sheet->getStyle('A1:R1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF808080');
+$sheet->getStyle('A1:S1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF808080');
 // Set border for all cells
-$sheet->getStyle('A1:R' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+$sheet->getStyle('A1:S' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
 // Set header for download
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

@@ -1,8 +1,14 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 
-$sql = "SELECT g.*, ur.*, g.password AS group_password FROM groups g 
-    LEFT JOIN user_register ur ON g.number_id = ur.number_id";
+$sql = "SELECT 
+            g.*, 
+            ur.*, 
+            g.password AS group_password, 
+            cp.cohort AS course_cohort 
+        FROM groups g 
+        LEFT JOIN user_register ur ON g.number_id = ur.number_id
+        LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code";
 $result = $conn->query($sql);
 $data = [];
 
@@ -141,6 +147,7 @@ sort($modalidades);
                     <th>Departamento</th>
                     <th>Sede</th>
                     <th>Modalidad</th>
+                    <th>Cohorte</th>
                     <th>Bootcamp</th>
                     <th>Ingles Nivelatorio</th>
                     <th>English Code</th>
@@ -180,6 +187,7 @@ sort($modalidades);
                         </td>
                         <td><b class="text-center"><?php echo htmlspecialchars($row['headquarters']); ?></b></td>
                         <td><?php echo htmlspecialchars($row['mode']); ?></td>
+                        <td><?php echo isset($row['course_cohort']) && $row['course_cohort'] !== null ? htmlspecialchars($row['course_cohort']) : '-'; ?></td>
                         <td><?php echo htmlspecialchars($row['id_bootcamp'] . ' - ' . $row['bootcamp_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['id_leveling_english'] . ' - ' . $row['leveling_english_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['id_english_code'] . ' - ' . $row['english_code_name']); ?></td>

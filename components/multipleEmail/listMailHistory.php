@@ -18,6 +18,7 @@
                     <th>Asunto</th>
                     <th>Enviado por</th>
                     <th>Desde</th>
+                    <th>Destinarario</th>
                     <th>Total</th>
                     <th>Exitosos</th>
                     <th>Fallidos</th>
@@ -26,16 +27,40 @@
             </thead>
             <tbody>
                 <?php
-                $sql = "SELECT * FROM email_history ORDER BY created_at DESC";
+                $sql = "SELECT eh.*, 
+                               GROUP_CONCAT(er.recipient_email SEPARATOR ', ') as recipients_emails,
+                               GROUP_CONCAT(er.recipient_name SEPARATOR ', ') as recipients_names
+                        FROM email_history eh 
+                        LEFT JOIN email_recipients er ON eh.id = er.email_id 
+                        GROUP BY eh.id 
+                        ORDER BY eh.created_at DESC";
                 $result = mysqli_query($conn, $sql);
 
                 while ($row = mysqli_fetch_assoc($result)) {
                     $sentFrom = $row['sent_from'] === 'float' ? 'Editor Flotante' : 'Página Principal';
+                    
+                    // Procesar destinatarios para mostrar solo emails
+                    $recipients = '';
+                    if (!empty($row['recipients_emails'])) {
+                        $emails = explode(', ', $row['recipients_emails']);
+                        
+                        $recipientsList = [];
+                        for ($i = 0; $i < count($emails) && $i < 3; $i++) { // Mostrar máximo 3
+                            $recipientsList[] = $emails[$i];
+                        }
+                        
+                        $recipients = implode(', ', $recipientsList);
+                        if (count($emails) > 3) {
+                            $recipients .= ' y ' . (count($emails) - 3) . ' más...';
+                        }
+                    }
+                    
                     echo "<tr>";
                     echo "<td>" . date('d/m/Y H:i', strtotime($row['created_at'])) . "</td>";
                     echo "<td>" . htmlspecialchars($row['subject']) . "</td>";
                     echo "<td>" . htmlspecialchars($row['sent_by']) . "</td>";
                     echo "<td>" . $sentFrom . "</td>";
+                    echo "<td>" . htmlspecialchars($recipients) . "</td>";
                     echo "<td>" . $row['recipients_count'] . "</td>";
                     echo "<td class='text-success'>" . $row['successful_count'] . "</td>";
                     echo "<td class='text-danger'>" . $row['failed_count'] . "</td>";

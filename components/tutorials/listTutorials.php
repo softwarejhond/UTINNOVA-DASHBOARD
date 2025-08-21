@@ -17,7 +17,7 @@
     }
 
     .btn-agregar {
-        background: #00796b;
+        background: #ec008c;
         color: #fff;
         border: none;
         border-radius: 8px;
@@ -30,7 +30,7 @@
     }
 
     .btn-agregar:hover {
-        background: #004d40;
+        background: #f5a6c2;
         color: #fff;
     }
 
@@ -57,13 +57,18 @@
         padding-right: 4px;
     }
 
+    .video-item-container {
+        display: flex;
+        align-items: center;
+    }
+
     .btn-video {
         border: 1.5px solid #d1d5db;
         border-radius: 8px;
         background: #fff;
         font-family: 'Segoe UI', Arial, sans-serif;
         font-size: 1rem;
-        margin-bottom: 14px;
+        margin-bottom: 0 !important; /* Anula el margin-bottom anterior */
         width: 100%;
         text-align: left;
         padding: 12px 18px;
@@ -79,6 +84,20 @@
         background: #e0f2f1;
         border-color: #00796b;
         color: #00796b;
+    }
+
+    .video-actions {
+        flex-shrink: 0;
+        width: 40px;
+    }
+
+    .video-actions .btn {
+        width: 32px;
+        height: 32px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     ::-webkit-scrollbar {
@@ -107,67 +126,111 @@
         border-color: #b8006a !important;
         color: #fff;
     }
+
+    #tutorialVideoArea {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 
-<div class="container-fluid">
+<?php
+$rol = $infoUsuario['rol']; // Obtener el rol del usuario
+
+// Obtener los tutoriales ordenados alfabéticamente por título
+$tutoriales = [];
+$sql = "SELECT id, titulo, modulo, link, descripcion FROM tutoriales ORDER BY titulo ASC";
+$result = $conn->query($sql);
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $tutoriales[] = $row;
+    }
+}
+?>
+
+<div class="p-4">
     <div class="row">
         <!-- Sidebar fija y scrolleable -->
-        <div class="col-12 col-md-4 col-lg-3 mb-3 mb-md-0">
+        <div class="col-sm-12 col-md-4 col-lg-4 mb-3 mb-md-0">
             <div class="sidebar-tutorial">
-                <button class="btn btn-agregar w-100 mb-3" onclick="openAddVideoModal()">
-                    <i class="bi bi-plus-circle me-2"></i>Agregar video
-                </button>
-                <input type="text" class="input-buscar" placeholder="Buscar video" />
-                <div class="video-list-scroll">
-                    <button class="btn btn-video" onclick="showVideo('https://www.youtube.com/embed/dQw4w9WgXcQ', 0, this)">Video 1</button>
-                    <button class="btn btn-video" onclick="showVideo('https://www.youtube.com/embed/ysz5S6PUM-U', 1, this)">Video 2</button>
-                    <button class="btn btn-video" onclick="showVideo('https://www.youtube.com/embed/tgbNymZ7vqY', 2, this)">Video 3</button>
-                    <button class="btn btn-video" onclick="showVideo('https://www.youtube.com/embed/ScMzIvxBSi4', 3, this)">Video 4</button>
-                    <button class="btn btn-video" onclick="showVideo('https://www.youtube.com/embed/9bZkp7q19f0', 4, this)">Video 5</button>
-                    <button class="btn btn-video" onclick="showVideo('https://www.youtube.com/embed/3JZ_D3ELwOQ', 5, this)">Video 6</button>
+                <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
+                    <button class="btn btn-agregar w-100 mb-3" onclick="openAddVideoModal()">
+                        <i class="bi bi-plus-circle me-2"></i>Agregar video
+                    </button>
+                <?php endif; ?>
+
+                <input type="text" class="input-buscar" placeholder="Buscar video" id="buscarVideo" onkeyup="filtrarVideos()" />
+                <div class="video-list-scroll" id="videoList">
+                    <?php foreach ($tutoriales as $i => $tutorial): ?>
+                        <div class="video-item-container mb-2 d-flex align-items-center">
+                            <button
+                                class="btn btn-video flex-grow-1 me-2"
+                                onclick="showVideo(`<?php echo htmlspecialchars($tutorial['link'], ENT_QUOTES); ?>`, <?php echo $i; ?>, this)"
+                                data-titulo="<?php echo htmlspecialchars($tutorial['titulo']); ?>"
+                                data-modulo="<?php echo htmlspecialchars($tutorial['modulo']); ?>"
+                                data-id="<?php echo $tutorial['id']; ?>">
+                                <?php echo htmlspecialchars($tutorial['titulo']); ?><br>
+                                <small class="text-secondary"><?php echo htmlspecialchars($tutorial['modulo']); ?></small>
+                            </button>
+                            <?php if ($rol === 'Control maestro'): ?>
+                                <div class="video-actions d-flex flex-column">
+                                    <button class="btn btn-sm btn-warning mb-1" onclick="editarVideo(<?php echo $tutorial['id']; ?>, '<?php echo htmlspecialchars($tutorial['titulo'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($tutorial['modulo'], ENT_QUOTES); ?>', `<?php echo htmlspecialchars($tutorial['link'], ENT_QUOTES); ?>`, `<?php echo htmlspecialchars($tutorial['descripcion'], ENT_QUOTES); ?>`)">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="eliminarVideo(<?php echo $tutorial['id']; ?>, '<?php echo htmlspecialchars($tutorial['titulo'], ENT_QUOTES); ?>')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
         <!-- Área de video -->
-        <div class="col-12 col-md-8 col-lg-9 d-flex flex-column justify-content-center align-items-center" style="min-height: 500px;">
-            <iframe id="tutorialVideo" width="80%" height="500" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
-            <!-- <button class="btn bg-magenta-dark text-white mt-3" onclick="showDescriptionSwal()">
-                Ver descripción del video
-            </button> -->
+        <div class="col-md-4 col-lg-4 col-sm-12 d-flex flex-column justify-content-center align-items-center pl-4">
+            <div id="tutorialVideoArea" class="w-100">
+                <?php
+                // Muestra el título del primer video por defecto
+                if (isset($tutoriales[0])) {
+                    echo '<h3 id="videoTitle" class="mb-4 text-center text-teal-dark">' . htmlspecialchars($tutoriales[0]['titulo']) . '</h3>';
+                    echo $tutoriales[0]['link'];
+                }
+                ?>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-4 col-sm-12 d-flex flex-column justify-content-center align-items-center" >
+            <div id="videoDescriptionArea" style="max-height:500px; overflow-y:auto;width:100%;margin-top:20px;text-align:left;padding:16px;background:#f8f9fa;border-radius:10px;border:1px solid #d1d5db;">
+                <?php
+                // Muestra la descripción del primer video por defecto
+                if (isset($tutoriales[0])) {
+                    echo nl2br(htmlspecialchars($tutoriales[0]['descripcion']));
+                }
+                ?>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Descripciones con HTML y links de ejemplo
+    // Array de descripciones generado desde PHP
     const videoDescriptions = [
-        `Descripción del Video 1. <br>Visita <a href="https://www.utinnova.edu.co" target="_blank">UTINNOVA</a> para más información.`,
-        `Descripción del Video 2. <br>Revisa el <a href="https://www.google.com" target="_blank">enlace aquí</a>.`,
-        `Descripción del Video 3. <br>Este video explica los conceptos básicos.`,
-        `Descripción del Video 4. <br>Consulta la <a href="https://www.youtube.com" target="_blank">documentación oficial</a>.`,
-        `Descripción del Video 5. <br>Incluye recursos adicionales.`,
-        `Descripción del Video 6. <br>Para soporte, visita <a href="https://support.example.com" target="_blank">este enlace</a>.`
+        <?php foreach ($tutoriales as $tutorial): ?> `<?php echo nl2br(htmlspecialchars($tutorial['descripcion'])); ?>`,
+        <?php endforeach; ?>
     ];
 
     let currentDescriptionIndex = 0;
 
-    function showVideo(url, descriptionIndex, btn) {
-        document.getElementById('tutorialVideo').src = url;
+    function showVideo(embedHtml, descriptionIndex, btn) {
+        // Actualiza el video y el título (título encima del video)
+        document.getElementById('tutorialVideoArea').innerHTML =
+            `<h2 id="videoTitle" class="mb-4 text-center text-teal-dark">${btn.getAttribute('data-titulo')}</h2>` + embedHtml;
         currentDescriptionIndex = descriptionIndex;
-        // Marcar botón activo
         document.querySelectorAll('.btn-video').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-    }
-
-    function showDescriptionSwal() {
-        Swal.fire({
-            title: 'Descripción del Video',
-            html: `<div style="max-height:300px;overflow-y:auto;text-align:left;">${videoDescriptions[currentDescriptionIndex]}</div>`,
-            width: 600,
-            showCloseButton: true,
-            confirmButtonText: 'Cerrar',
-            scrollbarPadding: false
-        });
+        // Mostrar la descripción en el div scrolleable
+        document.getElementById('videoDescriptionArea').innerHTML = videoDescriptions[descriptionIndex];
     }
 
     // Modal para agregar video
@@ -185,8 +248,8 @@
                         <input type="text" class="form-control" id="moduloVideo" required>
                     </div>
                     <div class="mb-3 text-start">
-                        <label for="linkVideo" class="form-label">Link del video</label>
-                        <input type="url" class="form-control" id="linkVideo" placeholder="https://..." required>
+                        <label for="linkVideo" class="form-label">Código embed de YouTube</label>
+                        <textarea class="form-control" id="linkVideo" placeholder='<iframe src="..."></iframe>' rows="3" required></textarea>
                     </div>
                     <div class="mb-3 text-start">
                         <label for="descripcionVideo" class="form-label">Descripción del video</label>
@@ -213,22 +276,24 @@
                 }
                 // AJAX para guardar
                 return fetch('components/tutorials/guardarTutorial.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `titulo=${encodeURIComponent(titulo)}&modulo=${encodeURIComponent(modulo)}&link=${encodeURIComponent(link)}&descripcion=${encodeURIComponent(descripcion)}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        Swal.showValidationMessage(data.error || 'Error al guardar');
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `titulo=${encodeURIComponent(titulo)}&modulo=${encodeURIComponent(modulo)}&link=${encodeURIComponent(link)}&descripcion=${encodeURIComponent(descripcion)}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            Swal.showValidationMessage(data.error || 'Error al guardar');
+                            return false;
+                        }
+                        return true;
+                    })
+                    .catch(() => {
+                        Swal.showValidationMessage('Error de conexión');
                         return false;
-                    }
-                    return true;
-                })
-                .catch(() => {
-                    Swal.showValidationMessage('Error de conexión');
-                    return false;
-                });
+                    });
             }
         }).then((result) => {
             if (result.isConfirmed && result.value) {
@@ -238,9 +303,149 @@
                     text: 'El video ha sido agregado correctamente.',
                     timer: 1800,
                     showConfirmButton: false
+                }).then(() => {
+                    location.reload(); // Recarga para mostrar el nuevo video
                 });
-                // Aquí puedes agregar el video dinámicamente a la lista si lo deseas
             }
+        });
+    }
+
+    // Función para editar video
+    function editarVideo(id, titulo, modulo, link, descripcion) {
+        Swal.fire({
+            title: 'Editar video',
+            html: `
+                <form id="formEditVideo" onsubmit="return false;">
+                    <div class="mb-3 text-start">
+                        <label for="editTituloVideo" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="editTituloVideo" value="${titulo}" required>
+                    </div>
+                    <div class="mb-3 text-start">
+                        <label for="editModuloVideo" class="form-label">Nombre del módulo</label>
+                        <input type="text" class="form-control" id="editModuloVideo" value="${modulo}" required>
+                    </div>
+                    <div class="mb-3 text-start">
+                        <label for="editLinkVideo" class="form-label">Código embed de YouTube</label>
+                        <textarea class="form-control" id="editLinkVideo" rows="3" required>${link}</textarea>
+                    </div>
+                    <div class="mb-3 text-start">
+                        <label for="editDescripcionVideo" class="form-label">Descripción del video</label>
+                        <textarea class="form-control" id="editDescripcionVideo" rows="4" style="resize:vertical;max-height:150px;min-height:80px;overflow-y:auto;" required>${descripcion}</textarea>
+                    </div>
+                </form>
+            `,
+            width: 600,
+            showCancelButton: true,
+            confirmButtonText: 'Actualizar',
+            cancelButtonText: 'Cancelar',
+            focusConfirm: false,
+            customClass: {
+                confirmButton: 'swal-btn-ec008c'
+            },
+            preConfirm: () => {
+                const nuevoTitulo = document.getElementById('editTituloVideo').value.trim();
+                const nuevoModulo = document.getElementById('editModuloVideo').value.trim();
+                const nuevoLink = document.getElementById('editLinkVideo').value.trim();
+                const nuevaDescripcion = document.getElementById('editDescripcionVideo').value.trim();
+                if (!nuevoTitulo || !nuevoModulo || !nuevoLink || !nuevaDescripcion) {
+                    Swal.showValidationMessage('Todos los campos son obligatorios');
+                    return false;
+                }
+                // AJAX para actualizar
+                return fetch('components/tutorials/editarTutorial.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `id=${id}&titulo=${encodeURIComponent(nuevoTitulo)}&modulo=${encodeURIComponent(nuevoModulo)}&link=${encodeURIComponent(nuevoLink)}&descripcion=${encodeURIComponent(nuevaDescripcion)}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            Swal.showValidationMessage(data.error || 'Error al actualizar');
+                            return false;
+                        }
+                        return true;
+                    })
+                    .catch(() => {
+                        Swal.showValidationMessage('Error de conexión');
+                        return false;
+                    });
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Video actualizado!',
+                    text: 'El video ha sido actualizado correctamente.',
+                    timer: 1800,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        });
+    }
+
+    // Función para eliminar video
+    function eliminarVideo(id, titulo) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `¿Deseas eliminar el video "${titulo}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                confirmButton: 'swal-btn-ec008c'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('components/tutorials/eliminarTutorial.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `id=${id}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: 'El video ha sido eliminado correctamente.',
+                                timer: 1800,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.error || 'No se pudo eliminar el video'
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error de conexión'
+                        });
+                    });
+            }
+        });
+    }
+
+    // Filtro de búsqueda en la lista de videos
+    function filtrarVideos() {
+        const input = document.getElementById('buscarVideo').value.toLowerCase();
+        document.querySelectorAll('#videoList .btn-video').forEach(btn => {
+            const titulo = btn.getAttribute('data-titulo').toLowerCase();
+            const modulo = btn.getAttribute('data-modulo').toLowerCase();
+            btn.style.display = (titulo.includes(input) || modulo.includes(input)) ? '' : 'none';
         });
     }
 </script>
