@@ -31,123 +31,182 @@ LEFT JOIN users u ON sr.responsable = u.username
 ORDER BY sr.fecha_registro DESC
 ";
 $result = $conn->query($sql);
+
+// Contadores de estados
+$contadores = [
+    'PENDIENTE' => 0,
+    'EN PROCESO' => 0,
+    'REALIZADO' => 0,
+    'TOTAL' => 0
+];
+$reportes = [];
+while ($row = $result->fetch_assoc()) {
+    $contadores['TOTAL']++;
+    if (isset($contadores[$row['status']])) {
+        $contadores[$row['status']]++;
+    }
+    $reportes[] = $row;
+}
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-    #listaReportes {
-        width: auto !important;
-        min-width: 1500px;
-        white-space: nowrap;
+    .estado-panel {
+        min-width: 220px;
+        max-width: 250px;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        padding: 28px 10px 10px 10px; /* Más padding arriba */
+        margin-right: 20px;
+        height: fit-content;
     }
-
-    #listaReportes th,
-    #listaReportes td {
-        white-space: nowrap;
+    .estado-panel h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        margin-left: 8px;
+        color: #222;
+    }
+    .estado-btn {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 14px;
+        border: none;
+        background: white;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        transition: background 0.2s;
+        border-radius: 8px;
+        padding: 1.1rem 1rem 1.1rem 1.3rem; /* Más alto y texto más separado del borde izquierdo */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        border-left-width: 5px;
+        border-left-style: solid;
+    }
+    .estado-btn.active, .estado-btn:hover {
+        background: #f2f2f2;
+        border-radius: 8px;
+    }
+    .estado-badge {
+        min-width: 32px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 999px;
+        background: #f5f5f5;
+        color: #333;
         text-align: center;
-        vertical-align: middle;
+        margin-left: auto;
     }
+    .estado-color-pendiente { border-left-color: #dc3545; }
+    .estado-color-proceso   { border-left-color: #ffc107; }
+    .estado-color-realizado { border-left-color: #198754; }
+    .estado-color-todos     { border-left-color: #222; }
 </style>
 
-<!-- Botón de exportar -->
-<div class="mb-3">
-    <button id="btn-exportar-reportes" class="btn btn-success">
-        <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
-    </button>
-</div>
+<div class="d-flex">
+    <!-- Panel lateral de estados -->
+    <div class="estado-panel">
+        <h3>Estados Reporte</h3>
+        <button class="estado-btn estado-color-todos active" data-estado="">
+            <span>Todos</span>
+            <span class="estado-badge"><?= $contadores['TOTAL'] ?></span>
+        </button>
+        <button class="estado-btn estado-color-pendiente" data-estado="PENDIENTE">
+            <span>Pendiente</span>
+            <span class="estado-badge"><?= $contadores['PENDIENTE'] ?></span>
+        </button>
+        <button class="estado-btn estado-color-proceso" data-estado="EN PROCESO">
+            <span>En Proceso</span>
+            <span class="estado-badge"><?= $contadores['EN PROCESO'] ?></span>
+        </button>
+        <button class="estado-btn estado-color-realizado" data-estado="REALIZADO">
+            <span>Realizado</span>
+            <span class="estado-badge"><?= $contadores['REALIZADO'] ?></span>
+        </button>
+    </div>
 
-<!-- Selector de filtro por estado centrado en una card -->
-<div class="d-flex justify-content-center mb-3">
-    <div class="card shadow-sm">
-        <div class="card-body w-100 justify-content-center align-items-center">
-            <div class="row w-100 justify-content-center align-items-center">
-                <div class="col-12 text-center">
-                    <label for="filtroEstado" class="form-label fw-bold mb-2 d-block">
-                        <i class="bi bi-filter"></i> Filtrar por estado:
-                    </label>
-                </div>
-                <div class="col-12">
-                    <select id="filtroEstado" class="form-select w-100 mx-auto" style="max-width:400px;">
-                        <option value="">Todos</option>
-                        <option value="PENDIENTE">PENDIENTE</option>
-                        <option value="EN PROCESO">EN PROCESO</option>
-                        <option value="REALIZADO">REALIZADO</option>
-                    </select>
-                </div>
-            </div>
+    <!-- Tabla y exportar -->
+    <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div></div>
+            <button id="btn-exportar-reportes" class="btn btn-success mb-2">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle" id="listaReportes">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Número ID</th>
+                        <th>Nombre</th>
+                        <th>Código Curso</th>
+                        <th>Grupo</th>
+                        <th>Gestión</th>
+                        <th>Estado</th>
+                        <th>Responsable</th>
+                        <th>Fecha registro</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($reportes as $row): ?>
+                        <tr>
+                            <td><?= $row['id'] ?></td>
+                            <td><?= $row['number_id'] ?></td>
+                            <td><?= str_replace('ñ', 'Ñ', mb_strtoupper(iconv('UTF-8', 'ASCII//TRANSLIT', $row['nombre_completo']))) ?></td>
+                            <td><?= htmlspecialchars($row['code']) ?></td>
+                            <td><?= htmlspecialchars($row['grupo']) ?></td>
+                            <td>
+                                <button
+                                    class="btn btn-sm bg-teal-dark text-white btn-ver-gestion"
+                                    data-gestion="<?= htmlspecialchars($row['gestion'], ENT_QUOTES) ?>"
+                                    title="Ver gestión">
+                                    <i class="bi bi-eye"></i> Ver
+                                </button>
+                            </td>
+                            <td>
+                                <?php
+                                $status = htmlspecialchars($row['status']);
+                                if ($status === 'PENDIENTE') {
+                                    echo '<span class="badge bg-danger">' . $status . '</span>';
+                                } elseif ($status === 'EN PROCESO') {
+                                    echo '<span class="badge bg-warning text-dark">' . $status . '</span>';
+                                } elseif ($status === 'REALIZADO') {
+                                    echo '<span class="badge bg-teal-dark text-white">' . $status . '</span>';
+                                } else {
+                                    echo '<span class="badge bg-secondary">' . $status . '</span>';
+                                }
+                                ?>
+                            </td>
+                            <td><?= htmlspecialchars($row['nombre_responsable']) ?></td>
+                            <td>
+                                <?php
+                                $fecha = new DateTime($row['fecha_registro']);
+                                echo $fecha->format('d/m/Y H:i:s');
+                                ?>
+                            </td>
+                            <td>
+                                <button
+                                    class="btn btn-sm bg-indigo-dark text-white btn-gestionar-reporte"
+                                    data-id="<?= $row['id'] ?>"
+                                    data-gestion="<?= htmlspecialchars($row['gestion'], ENT_QUOTES) ?>"
+                                    data-status="<?= htmlspecialchars($row['status'], ENT_QUOTES) ?>"
+                                    title="Gestionar">
+                                    <i class="bi bi-gear"></i> Gestionar
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle" id="listaReportes">
-        <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Número ID</th>
-                <th>Nombre</th>
-                <th>Código Curso</th>
-                <th>Grupo</th>
-                <th>Gestión</th>
-                <th>Estado</th>
-                <th>Responsable</th>
-                <th>Fecha registro</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <tr>
-                    <td><?= $row['id'] ?></td>
-                    <td><?= $row['number_id'] ?></td>
-                    <td><?= str_replace('ñ', 'Ñ', mb_strtoupper(iconv('UTF-8', 'ASCII//TRANSLIT', $row['nombre_completo']))) ?></td>
-                    <td><?= htmlspecialchars($row['code']) ?></td>
-                    <td><?= htmlspecialchars($row['grupo']) ?></td>
-                    <td>
-                        <button
-                            class="btn btn-sm bg-teal-dark text-white btn-ver-gestion"
-                            data-gestion="<?= htmlspecialchars($row['gestion'], ENT_QUOTES) ?>"
-                            title="Ver gestión">
-                            <i class="bi bi-eye"></i> Ver
-                        </button>
-                    </td>
-                    <td>
-                        <?php
-                        $status = htmlspecialchars($row['status']);
-                        if ($status === 'PENDIENTE') {
-                            echo '<span class="badge bg-danger">' . $status . '</span>';
-                        } elseif ($status === 'EN PROCESO') {
-                            echo '<span class="badge bg-warning text-dark">' . $status . '</span>';
-                        } elseif ($status === 'REALIZADO') {
-                            echo '<span class="badge bg-teal-dark text-white">' . $status . '</span>';
-                        } else {
-                            echo '<span class="badge bg-secondary">' . $status . '</span>';
-                        }
-                        ?>
-                    </td>
-                    <td><?= htmlspecialchars($row['nombre_responsable']) ?></td>
-                    <td>
-                        <?php
-                        $fecha = new DateTime($row['fecha_registro']);
-                        echo $fecha->format('d/m/Y H:i:s');
-                        ?>
-                    </td>
-                    <td>
-                        <button
-                            class="btn btn-sm bg-indigo-dark text-white btn-gestionar-reporte"
-                            data-id="<?= $row['id'] ?>"
-                            data-gestion="<?= htmlspecialchars($row['gestion'], ENT_QUOTES) ?>"
-                            data-status="<?= htmlspecialchars($row['status'], ENT_QUOTES) ?>"
-                            title="Gestionar">
-                            <i class="bi bi-gear"></i> Gestionar
-                        </button>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
 </div>
 
 <!-- Modal Bootstrap para gestionar reporte -->
@@ -308,6 +367,29 @@ $result = $conn->query($sql);
                 .catch(() => {
                     Swal.fire('Error', 'No se pudo generar el archivo.', 'error');
                 });
+        });
+
+        // DataTable
+        const table = $('#listaReportes').DataTable({
+            responsive: true,
+            language: {
+                url: "controller/datatable_esp.json"
+            },
+            pagingType: "simple"
+        });
+
+        // Filtro por estado con panel lateral
+        document.querySelectorAll('.estado-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const estado = this.getAttribute('data-estado');
+                if (estado) {
+                    table.column(6).search('^' + estado + '$', true, false).draw();
+                } else {
+                    table.column(6).search('').draw();
+                }
+            });
         });
     });
 </script>

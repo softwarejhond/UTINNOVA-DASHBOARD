@@ -351,7 +351,13 @@ $courses_data = getCourses();
                 <select id="bootcamp" class="form-select course-select">
                     <option value="">Seleccione un curso</option>
                     <?php foreach ($courses_data as $course): ?>
-                        <?php if (in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 34, 35])): ?>
+                        <?php 
+                            // Excluir cursos cuyo nombre contenga la palabra 'Copiar'
+                            if (
+                                in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 34, 35]) &&
+                                stripos($course['fullname'], 'Copiar') === false
+                            ): 
+                        ?>
                             <option value="<?= htmlspecialchars($course['id']) ?>">
                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                             </option>

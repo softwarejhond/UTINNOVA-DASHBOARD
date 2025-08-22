@@ -83,28 +83,28 @@ $rol = $infoUsuario['rol'];
 <script src="node_modules/sortablejs/Sortable.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-        $('#link-dashboard').addClass('pagina-activa');
+    // $(document).ready(function() {
+    //     $('#link-dashboard').addClass('pagina-activa');
 
-        // Inicialización de DataTable
-        var table = $('#listaReportes').DataTable({
-            responsive: true,
-            language: {
-                url: "controller/datatable_esp.json"
-            },
-            pagingType: "simple"
-        });
+    //     // Inicialización de DataTable
+    //     var table = $('#listaReportes').DataTable({
+    //         responsive: true,
+    //         language: {
+    //             url: "controller/datatable_esp.json"
+    //         },
+    //         pagingType: "simple"
+    //     });
 
-        // Filtro por estado
-        $('#filtroEstado').on('change', function() {
-            var estado = $(this).val();
-            if (estado) {
-                table.column(6).search('^' + estado + '$', true, false).draw(); // Columna 6 = Estado
-            } else {
-                table.column(6).search('').draw();
-            }
-        });
-    });
+    //     // Filtro por estado
+    //     $('#filtroEstado').on('change', function() {
+    //         var estado = $(this).val();
+    //         if (estado) {
+    //             table.column(6).search('^' + estado + '$', true, false).draw(); // Columna 6 = Estado
+    //         } else {
+    //             table.column(6).search('').draw();
+    //         }
+    //     });
+    // });
 </script>
 
 </body>

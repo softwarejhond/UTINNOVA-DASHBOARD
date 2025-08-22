@@ -35,7 +35,10 @@ function getStatusText($statusAdmin) {
         '6' => 'Culminó proceso',
         '7' => 'Inactivo',
         '8' => 'Beneficiario contrapartida',
-        '10' => 'Formado'
+        '9' => 'Aplazado',
+        '10' => 'Formado',
+        '11' => 'No valido',
+        '12' => 'No aprobado' 
     ];
     
     return $statusMap[(string)$statusAdmin] ?? 'Estado desconocido';
