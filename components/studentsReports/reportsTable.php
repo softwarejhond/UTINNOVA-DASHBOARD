@@ -240,6 +240,10 @@ while ($row = $result->fetch_assoc()) {
                             <option value="REALIZADO">REALIZADO</option>
                         </select>
                     </div>
+                    <button type="button" class="btn bg-magenta-dark text-white mb-3" id="btn-ver-gestiones-anteriores">
+                        <i class="bi bi-clock-history"></i> Ver gestiones anteriores
+                    </button>
+                    <div id="tabla-gestiones-anteriores" style="display:none;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -390,6 +394,53 @@ while ($row = $result->fetch_assoc()) {
                     table.column(6).search('').draw();
                 }
             });
+        });
+
+        // Mostrar gestiones anteriores
+        document.getElementById('btn-ver-gestiones-anteriores').addEventListener('click', function() {
+            const idReporte = document.getElementById('reporte_id').value;
+            const tablaDiv = document.getElementById('tabla-gestiones-anteriores');
+            tablaDiv.innerHTML = '<div class="text-center my-2">Cargando...</div>';
+            tablaDiv.style.display = 'block';
+
+            fetch('components/studentsReports/todasGestiones.php?id_reporte=' + idReporte)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.gestiones.length > 0) {
+                        let html = `<table class="table table-sm table-bordered mt-2">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Responsable</th>
+                                    <th>Gestión</th>
+                                    <th>Resultado</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                        data.gestiones.forEach(g => {
+                            html += `<tr>
+                                <td>${g.fecha_gestion}</td>
+                                <td>${g.responsable}</td>
+                                <td>${g.gestion_a_realizar.replace(/\n/g, '<br>')}</td>
+                                <td>${g.resultado_gestion.replace(/\n/g, '<br>')}</td>
+                                <td>${g.status}</td>
+                            </tr>`;
+                        });
+                        html += '</tbody></table>';
+                        tablaDiv.innerHTML = html;
+                    } else {
+                        tablaDiv.innerHTML = '<div class="alert alert-info mt-2">No hay gestiones anteriores.</div>';
+                    }
+                })
+                .catch(() => {
+                    tablaDiv.innerHTML = '<div class="alert alert-danger mt-2">Error al cargar las gestiones.</div>';
+                });
+        });
+
+        // Al abrir el modal, ocultar la tabla de gestiones anteriores
+        document.getElementById('modalGestionReporte').addEventListener('show.bs.modal', function () {
+            document.getElementById('tabla-gestiones-anteriores').style.display = 'none';
         });
     });
 </script>

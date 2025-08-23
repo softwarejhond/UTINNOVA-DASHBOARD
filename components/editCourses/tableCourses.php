@@ -151,7 +151,7 @@ if ($result_users->num_rows > 0) {
                                     <option value="">Seleccione un mentor</option>
                                     <?php
                                     foreach ($users as $user) {
-                                        if ($user['rol'] == 8) {
+                                        if ($user['rol'] == 8 || $user['rol_informativo'] == 8) {
                                             $selected = ($user['username'] == $course['mentor']) ? 'selected' : '';
                                             echo "<option value='{$user['username']}' {$selected}>{$user['nombre']}</option>";
                                         }
@@ -168,7 +168,7 @@ if ($result_users->num_rows > 0) {
                                     <option value="">Seleccione un monitor</option>
                                     <?php
                                     foreach ($users as $user) {
-                                        if ($user['rol'] == 7) {
+                                        if ($user['rol'] == 7 || $user['rol_informativo'] == 7) {
                                             $selected = ($user['username'] == $course['monitor']) ? 'selected' : '';
                                             echo "<option value='{$user['username']}' {$selected}>{$user['nombre']}</option>";
                                         }
@@ -393,7 +393,7 @@ if ($result_users->num_rows > 0) {
         // Validar datos antes de enviar
         const startDate = $(`#dateStart${courseCode}`).val();
         const endDate = $(`#dateEnd${courseCode}`).val();
-        
+
         // Validación de fechas
         if (!startDate) {
             Swal.fire({
@@ -403,7 +403,7 @@ if ($result_users->num_rows > 0) {
             });
             return;
         }
-        
+
         if (!endDate) {
             Swal.fire({
                 icon: 'error',
@@ -412,6 +412,7 @@ if ($result_users->num_rows > 0) {
             });
             return;
         }
+
         // Mostrar cargando
         Swal.fire({
             title: 'Actualizando...',
@@ -472,7 +473,7 @@ if ($result_users->num_rows > 0) {
             error: function(xhr, status, error) {
                 console.error("Error en la petición AJAX:", error);
                 console.error("Respuesta del servidor:", xhr.responseText);
-                
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',

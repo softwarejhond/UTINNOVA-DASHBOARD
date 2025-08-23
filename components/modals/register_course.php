@@ -182,7 +182,7 @@ if ($result && $result->num_rows > 0) {
                             <option value="">Seleccione un mentor</option>
                             <?php
                             foreach ($data as $user) {
-                                if ($user['rol'] == 8) {
+                                if ($user['rol'] == 8 || $user['rol_informativo'] == 8) {
                                     echo "<option value='{$user['username']}'>{$user['nombre']}</option>";
                                 }
                             }
@@ -195,7 +195,7 @@ if ($result && $result->num_rows > 0) {
                             <option value="">Seleccione un monitor</option>
                             <?php
                             foreach ($data as $user) {
-                                if ($user['rol'] == 7) {
+                                if ($user['rol'] == 7 || $user['rol_informativo'] == 7) {
                                     echo "<option value='{$user['username']}'>{$user['nombre']}</option>";
                                 }
                             }
@@ -212,6 +212,7 @@ if ($result && $result->num_rows > 0) {
                         <label for="dateEnd" class="form-label">Fecha de Finalización</label>
                         <input type="date" class="form-control" id="dateEnd" name="dateEnd" required>
                     </div>
+
                     <div class="mb-3">
                         <label for="status" class="form-label">Estado</label>
                         <select class="form-select" id="status" required>
@@ -219,6 +220,12 @@ if ($result && $result->num_rows > 0) {
                             <option value="0">Inactivo</option>
                             <option value="1">Activo</option>
                         </select>
+                    </div>
+
+                    <!-- Nuevo campo para Cohorte -->
+                    <div class="mb-3">
+                        <label for="cohort" class="form-label">Cohorte</label>
+                        <input type="number" class="form-control" id="cohort" name="cohort" min="1" step="1" required>
                     </div>
 
                     <!-- Nuevo campo para horas reales -->
@@ -587,6 +594,7 @@ if ($result && $result->num_rows > 0) {
             date_start: $('#dateStart').val(),
             date_end: $('#dateEnd').val(),
             status: $('#status').val(),
+            cohort: $('#cohort').val(),
             real_hours: $('#realHours').val(),
             monday_hours: $('#monday_hours').val(),
             tuesday_hours: $('#tuesday_hours').val(),

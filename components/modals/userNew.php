@@ -4,13 +4,14 @@ ini_set('display_errors', 1);
 // Inicializa el mensaje vacío
 $mensaje = '';
 $tipo_mensaje = ''; // Para determinar el tipo de mensaje (success, error, etc.)
-
+$rol = $infoUsuario['rol']; // Obtener el rol del usuario
 if (isset($_POST['crearUsuario'])) {
     $nombre = trim($_POST['nombre']);
     $usuario = trim($_POST['usuario']);
     $password = $_POST['password'];
     $confirmPassword = $_POST['confirmPassword'];
     $rol = $_POST['rol'];
+    $rol_informativo = !empty($_POST['rol_informativo']) ? $_POST['rol_informativo'] : null;
     $foto = '';
 
     // Validar que las contraseñas coincidan
@@ -52,9 +53,10 @@ if (isset($_POST['crearUsuario'])) {
             // Insertar el nuevo usuario si no hay error
             if (empty($mensaje)) {
                 $passwordHashed = password_hash($password, PASSWORD_DEFAULT);
-                $query = "INSERT INTO users (username, password, nombre, rol, foto) VALUES (?, ?, ?, ?, ?)";
+                $orden = 1; // Valor por defecto
+                $query = "INSERT INTO users (username, password, nombre, rol, rol_informativo, foto, orden) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 $stmt = mysqli_prepare($conn, $query);
-                mysqli_stmt_bind_param($stmt, 'sssis', $usuario, $passwordHashed, $nombre, $rol, $foto);
+                mysqli_stmt_bind_param($stmt, 'sssissi', $usuario, $passwordHashed, $nombre, $rol, $rol_informativo, $foto, $orden);
 
                 if (mysqli_stmt_execute($stmt)) {
                     $mensaje = "Usuario creado correctamente";
@@ -109,11 +111,25 @@ if (isset($_POST['crearUsuario'])) {
                                     <option value="7">Monitor</option>
                                     <option value="8">Mentor</option>
                                     <option value="10">Empleabilidad</option>
-                                    <option value="11">Superacademico</option>
-                                    <option value="12">Controlmaestro</option>
-                                    <option value="13">Interventoria</option>
-                                    <option value="14">Permanencia</option>
-                                    <option value="15">Triangulo</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <select class="form-select" name="rol_informativo">
+                                    <option value="">Sin rol informativo</option>
+                                    <?php if ($rol === 'Control maestro'): ?>
+                                        <option value="1">Administrador</option>
+                                        <option value="11">Superacademico</option>
+                                        <option value="12">Controlmaestro</option>
+                                        <option value="13">Interventoria</option>
+                                    <?php endif; ?>
+                                    <option value="2">Editor</option>
+                                    <option value="3">Asesor</option>
+                                    <option value="4">Visualizador</option>
+                                    <option value="5">Docente</option>
+                                    <option value="6">Académico</option>
+                                    <option value="7">Monitor</option>
+                                    <option value="8">Mentor</option>
+                                    <option value="10">Empleabilidad</option>
                                 </select>
                             </div>
                             <div class="mb-3">

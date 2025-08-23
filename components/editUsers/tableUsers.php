@@ -1,7 +1,7 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario actual
 
-// Consulta para obtener todos los usuarios (incluir extra_rol y orden)
+// Consulta para obtener todos los usuarios (incluir orden)
 $sql = "SELECT * FROM users ORDER BY id ASC";
 $result = $conn->query($sql);
 $users = [];
@@ -13,7 +13,8 @@ if ($result->num_rows > 0) {
 }
 
 // Función para convertir el número de rol a texto
-function getRolText($rolNum) {
+function getRolText($rolNum)
+{
     $roles = [
         1 => 'Administrador',
         2 => 'Editor',
@@ -35,6 +36,14 @@ function getRolText($rolNum) {
 }
 ?>
 
+<style>
+    #listaUsuarios th,
+    #listaUsuarios td {
+        width: auto;
+        white-space: nowrap;
+    }
+</style>
+
 <div class="container-fluid">
     <div class="table-responsive">
         <table id="listaUsuarios" class="table table-hover table-bordered">
@@ -43,6 +52,7 @@ function getRolText($rolNum) {
                     <th>Usuario</th>
                     <th>Nombre</th>
                     <th>Rol</th>
+                    <th>Rol Informativo</th>
                     <th>Rol Extra</th>
                     <th>Estado</th>
                     <th>Email</th>
@@ -55,10 +65,13 @@ function getRolText($rolNum) {
             </thead>
             <tbody>
                 <?php foreach ($users as $user) { ?>
-                    <tr class="<?php echo (isset($user['orden']) && $user['orden'] == 0) ? 'table-secondary' : ''; ?>">
+                    <tr>
                         <td><?php echo !empty($user['username']) ? htmlspecialchars($user['username']) : '--'; ?></td>
                         <td><?php echo !empty($user['nombre']) ? htmlspecialchars($user['nombre']) : '--'; ?></td>
                         <td><?php echo !empty($user['rol']) ? htmlspecialchars(getRolText($user['rol'])) : '--'; ?></td>
+                        <td>
+                            <?php echo !empty($user['rol_informativo']) ? htmlspecialchars(getRolText($user['rol_informativo'])) : '<span class="text-muted">--</span>'; ?>
+                        </td>
                         <td class="text-center">
                             <?php if (isset($user['extra_rol']) && $user['extra_rol'] == 1): ?>
                                 <span class="badge bg-success">
@@ -88,16 +101,16 @@ function getRolText($rolNum) {
                         <td><?php echo !empty($user['edad']) ? htmlspecialchars($user['edad']) : '--'; ?></td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button class="btn bg-indigo-dark btn-sm text-white" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#editModal<?php echo $user['id']; ?>"
-                                        title="Editar usuario">
+                                <button class="btn bg-indigo-dark btn-sm text-white"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal<?php echo $user['id']; ?>"
+                                    title="Editar usuario">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
-                                <button class="btn btn-danger btn-sm" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#deleteModal<?php echo $user['id']; ?>"
-                                        title="Eliminar usuario">
+                                <button class="btn btn-danger btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal<?php echo $user['id']; ?>"
+                                    title="Eliminar usuario">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -123,31 +136,7 @@ function getRolText($rolNum) {
                 <div class="modal-body">
                     <form id="updateForm<?php echo $user['id']; ?>">
                         <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
-                        
-                        <!-- Campo Estado del Usuario -->
-                        <div class="mb-3">
-                            <label class="form-label">Estado del Usuario</label>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" 
-                                       type="checkbox" 
-                                       role="switch" 
-                                       id="estadoUsuarioSwitch<?php echo $user['id']; ?>" 
-                                       name="orden" 
-                                       value="1"
-                                       <?php echo (isset($user['orden']) && $user['orden'] == 1) ? 'checked' : ''; ?>
-                                       style="border: 2px solid #30336B; width: 3em; height: 1.5em;">
-                                <label class="form-check-label" for="estadoUsuarioSwitch<?php echo $user['id']; ?>">
-                                    <span id="estadoUsuarioLabel<?php echo $user['id']; ?>">
-                                        <?php echo (isset($user['orden']) && $user['orden'] == 1) ? 'Habilitado' : 'Deshabilitado'; ?>
-                                    </span>
-                                </label>
-                            </div>
-                            <small class="form-text text-muted">
-                                <i class="bi bi-info-circle"></i> 
-                                Los usuarios deshabilitados no podrán iniciar sesión en el sistema
-                            </small>
-                        </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Nombre completo</label>
                             <input type="text" class="form-control" name="nombre" value="<?php echo htmlspecialchars($user['nombre']); ?>" required>
@@ -168,9 +157,6 @@ function getRolText($rolNum) {
                                 <option value="10" <?php echo ($user['rol'] == 10) ? 'selected' : ''; ?>>Empleabilidad</option>
                                 <option value="11" <?php echo ($user['rol'] == 11) ? 'selected' : ''; ?>>Superacademico</option>
                                 <option value="12" <?php echo ($user['rol'] == 12) ? 'selected' : ''; ?>>Control maestro</option>
-                                <option value="13" <?php echo ($user['rol'] == 13) ? 'selected' : ''; ?>>Interventoria</option>
-                                <option value="14" <?php echo ($user['rol'] == 14) ? 'selected' : ''; ?>>Permanencia</option>
-                                <option value="15" <?php echo ($user['rol'] == 15) ? 'selected' : ''; ?>>Triangulo</option>
                             </select>
                         </div>
 
@@ -178,14 +164,14 @@ function getRolText($rolNum) {
                         <div class="mb-3">
                             <label class="form-label">Rol Extra</label>
                             <div class="form-check form-switch">
-                                <input class="form-check-input" 
-                                       type="checkbox" 
-                                       role="switch" 
-                                       id="extraRolSwitch<?php echo $user['id']; ?>" 
-                                       name="extra_rol" 
-                                       value="1"
-                                       <?php echo (isset($user['extra_rol']) && $user['extra_rol'] == 1) ? 'checked' : ''; ?>
-                                       style="border: 2px solid #30336B; width: 3em; height: 1.5em;">
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="extraRolSwitch<?php echo $user['id']; ?>"
+                                    name="extra_rol"
+                                    value="1"
+                                    <?php echo (isset($user['extra_rol']) && $user['extra_rol'] == 1) ? 'checked' : ''; ?>
+                                    style="border: 2px solid #30336B; width: 3em; height: 1.5em;">
                                 <label class="form-check-label" for="extraRolSwitch<?php echo $user['id']; ?>">
                                     <span id="extraRolLabel<?php echo $user['id']; ?>">
                                         <?php echo (isset($user['extra_rol']) && $user['extra_rol'] == 1) ? 'Activo' : 'Inactivo'; ?>
@@ -193,11 +179,36 @@ function getRolText($rolNum) {
                                 </label>
                             </div>
                             <small class="form-text text-muted">
-                                <i class="bi bi-info-circle"></i> 
+                                <i class="bi bi-info-circle"></i>
                                 Activa para otorgar acceso adicional a áreas especiales del sistema
                             </small>
                         </div>
 
+                        <!-- NUEVO CAMPO: Estado del Usuario -->
+                        <div class="mb-3">
+                            <label class="form-label">Estado del Usuario</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    role="switch"
+                                    id="estadoSwitch<?php echo $user['id']; ?>"
+                                    name="orden"
+                                    value="1"
+                                    <?php echo (isset($user['orden']) && $user['orden'] == 1) ? 'checked' : ''; ?>
+                                    style="border: 2px solid #30336B; width: 3em; height: 1.5em;">
+                                <label class="form-check-label" for="estadoSwitch<?php echo $user['id']; ?>">
+                                    <span id="estadoLabel<?php echo $user['id']; ?>">
+                                        <?php echo (isset($user['orden']) && $user['orden'] == 1) ? 'Habilitado' : 'Deshabilitado'; ?>
+                                    </span>
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Los usuarios deshabilitados no podrán iniciar sesión en el sistema
+                            </small>
+                        </div>
+
+                        <!-- Resto de campos... -->
                         <div class="mb-3">
                             <label class="form-label">Email</label>
                             <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
@@ -246,6 +257,26 @@ function getRolText($rolNum) {
                                 <label class="form-label">Confirmar contraseña</label>
                                 <input type="password" class="form-control" name="confirmPassword" id="confirmPassword<?php echo $user['id']; ?>">
                             </div>
+                        </div>
+
+                        <!-- NUEVO CAMPO: Rol Informativo -->
+                        <div class="mb-3">
+                            <label class="form-label">Rol Informativo</label>
+                            <select class="form-select" name="rol_informativo">
+                                <option value="">Sin rol informativo</option>
+                                <option value="1" <?php echo ($user['rol_informativo'] == 1) ? 'selected' : ''; ?>>Administrador</option>
+                                <option value="2" <?php echo ($user['rol_informativo'] == 2) ? 'selected' : ''; ?>>Editor</option>
+                                <option value="3" <?php echo ($user['rol_informativo'] == 3) ? 'selected' : ''; ?>>Asesor</option>
+                                <option value="4" <?php echo ($user['rol_informativo'] == 4) ? 'selected' : ''; ?>>Visualizador</option>
+                                <option value="5" <?php echo ($user['rol_informativo'] == 5) ? 'selected' : ''; ?>>Docente</option>
+                                <option value="6" <?php echo ($user['rol_informativo'] == 6) ? 'selected' : ''; ?>>Académico</option>
+                                <option value="7" <?php echo ($user['rol_informativo'] == 7) ? 'selected' : ''; ?>>Monitor</option>
+                                <option value="8" <?php echo ($user['rol_informativo'] == 8) ? 'selected' : ''; ?>>Mentor</option>
+                                <option value="9" <?php echo ($user['rol_informativo'] == 9) ? 'selected' : ''; ?>>Supervisor</option>
+                                <option value="10" <?php echo ($user['rol_informativo'] == 10) ? 'selected' : ''; ?>>Empleabilidad</option>
+                                <option value="11" <?php echo ($user['rol_informativo'] == 11) ? 'selected' : ''; ?>>Superacademico</option>
+                                <option value="12" <?php echo ($user['rol_informativo'] == 12) ? 'selected' : ''; ?>>Control maestro</option>
+                            </select>
                         </div>
                     </form>
                 </div>
@@ -300,248 +331,252 @@ function getRolText($rolNum) {
 <?php } ?>
 
 <script>
-$(document).ready(function() {
-    // Inicializar DataTable
-    $('#listaUsuarios').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
-        },
-        "order": [[1, "asc"]]
+    $(document).ready(function() {
+        // Inicializar DataTable
+        $('#listaUsuarios').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+            },
+            "order": [
+                [1, "asc"]
+            ]
+        });
+
+        // Inicializar los modales de eliminación
+        <?php foreach ($users as $user) { ?>
+            initDeleteModal(<?php echo $user['id']; ?>);
+
+            // Inicializar el switch de rol extra
+            initExtraRolSwitch(<?php echo $user['id']; ?>);
+
+            // Inicializar el switch de estado
+            initEstadoSwitch(<?php echo $user['id']; ?>);
+        <?php } ?>
     });
 
-    // Inicializar los modales de eliminación
-    <?php foreach ($users as $user) { ?>
-        initDeleteModal(<?php echo $user['id']; ?>);
-        
-        // Inicializar el switch de rol extra
-        initExtraRolSwitch(<?php echo $user['id']; ?>);
-        
-        // Inicializar el switch de estado de usuario
-        initEstadoUsuarioSwitch(<?php echo $user['id']; ?>);
-    <?php } ?>
-});
+    // Función para manejar el switch de rol extra
+    function initExtraRolSwitch(userId) {
+        const switchElement = document.getElementById('extraRolSwitch' + userId);
+        const labelElement = document.getElementById('extraRolLabel' + userId);
 
-// Nueva función para manejar el switch de estado de usuario
-function initEstadoUsuarioSwitch(userId) {
-    const switchElement = document.getElementById('estadoUsuarioSwitch' + userId);
-    const labelElement = document.getElementById('estadoUsuarioLabel' + userId);
-    
-    switchElement.addEventListener('change', function() {
-        if (this.checked) {
-            labelElement.textContent = 'Habilitado';
-            labelElement.className = 'text-success fw-bold';
-        } else {
-            labelElement.textContent = 'Deshabilitado';
-            labelElement.className = 'text-danger fw-bold';
-        }
-    });
-}
-
-// Función para manejar el switch de rol extra
-function initExtraRolSwitch(userId) {
-    const switchElement = document.getElementById('extraRolSwitch' + userId);
-    const labelElement = document.getElementById('extraRolLabel' + userId);
-    
-    switchElement.addEventListener('change', function() {
-        if (this.checked) {
-            labelElement.textContent = 'Activo';
-            labelElement.className = 'text-success fw-bold';
-        } else {
-            labelElement.textContent = 'Inactivo';
-            labelElement.className = 'text-muted';
-        }
-    });
-}
-
-function togglePasswordFields(userId) {
-    const passwordFields = document.getElementById('passwordFields' + userId);
-    passwordFields.style.display = document.getElementById('changePassword' + userId).checked ? 'block' : 'none';
-}
-
-function updateUser(userId) {
-    const form = document.getElementById('updateForm' + userId);
-    const formData = new FormData(form);
-    
-    // Validar contraseñas si se va a cambiar
-    if (document.getElementById('changePassword' + userId).checked) {
-        const password = document.getElementById('password' + userId).value;
-        const confirmPassword = document.getElementById('confirmPassword' + userId).value;
-        
-        if (password !== confirmPassword) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Las contraseñas no coinciden'
-            });
-            return;
-        }
-    }
-
-    // Agregar valor del extra_rol al FormData
-    const extraRolSwitch = document.getElementById('extraRolSwitch' + userId);
-    if (!extraRolSwitch.checked) {
-        formData.append('extra_rol', '0');
-    }
-
-    // Agregar valor del orden (estado de usuario) al FormData
-    const estadoUsuarioSwitch = document.getElementById('estadoUsuarioSwitch' + userId);
-    if (!estadoUsuarioSwitch.checked) {
-        formData.append('orden', '0');
-    }
-
-    Swal.fire({
-        title: 'Actualizando...',
-        text: 'Por favor espere',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        willOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    $.ajax({
-        url: 'components/editUsers/update_user.php',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: 'Usuario actualizado correctamente',
-                    showConfirmButton: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        location.reload();
-                    }
-                });
+        switchElement.addEventListener('change', function() {
+            if (this.checked) {
+                labelElement.textContent = 'Activo';
+                labelElement.className = 'text-success fw-bold';
             } else {
+                labelElement.textContent = 'Inactivo';
+                labelElement.className = 'text-muted';
+            }
+        });
+    }
+
+    // Nueva función para manejar el switch de estado
+    function initEstadoSwitch(userId) {
+        const switchElement = document.getElementById('estadoSwitch' + userId);
+        const labelElement = document.getElementById('estadoLabel' + userId);
+
+        switchElement.addEventListener('change', function() {
+            if (this.checked) {
+                labelElement.textContent = 'Habilitado';
+                labelElement.className = 'text-success fw-bold';
+            } else {
+                labelElement.textContent = 'Deshabilitado';
+                labelElement.className = 'text-danger fw-bold';
+            }
+        });
+    }
+
+    function togglePasswordFields(userId) {
+        const passwordFields = document.getElementById('passwordFields' + userId);
+        passwordFields.style.display = document.getElementById('changePassword' + userId).checked ? 'block' : 'none';
+    }
+
+    function updateUser(userId) {
+        const form = document.getElementById('updateForm' + userId);
+        const formData = new FormData(form);
+
+        // Validar contraseñas si se va a cambiar
+        if (document.getElementById('changePassword' + userId).checked) {
+            const password = document.getElementById('password' + userId).value;
+            const confirmPassword = document.getElementById('confirmPassword' + userId).value;
+
+            if (password !== confirmPassword) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Error al actualizar el usuario: ' + response.message
+                    text: 'Las contraseñas no coinciden'
                 });
+                return;
             }
-        },
-        error: function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Error en la conexión'
-            });
         }
-    });
-}
 
-// Resto de funciones sin cambios...
-function initDeleteModal(userId) {
-    let securityCode = '';
-    let timer = 15;
-    let interval;
-
-    function generateCode() {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        let result = '';
-        for (let i = 0; i < 6; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        // Agregar valor del extra_rol al FormData
+        const extraRolSwitch = document.getElementById('extraRolSwitch' + userId);
+        if (!extraRolSwitch.checked) {
+            formData.append('extra_rol', '0');
         }
-        return result;
-    }
 
-    function updateTimer() {
-        timer--;
-        $("#codeTimer" + userId).text(timer);
-
-        if (timer <= 0) {
-            timer = 15;
-            securityCode = generateCode();
-            $("#securityCode" + userId).val(securityCode);
+        // Agregar valor del orden al FormData
+        const estadoSwitch = document.getElementById('estadoSwitch' + userId);
+        if (!estadoSwitch.checked) {
+            formData.append('orden', '0');
         }
-    }
 
-    $("#deleteModal" + userId).on('shown.bs.modal', function() {
-        securityCode = generateCode();
-        $("#securityCode" + userId).val(securityCode);
-        timer = 15;
-        $("#codeTimer" + userId).text(timer);
-        clearInterval(interval);
-        interval = setInterval(updateTimer, 1000);
-    });
-
-    $("#deleteModal" + userId).on('hidden.bs.modal', function() {
-        clearInterval(interval);
-        $("#confirmCode" + userId).val('');
-        $("#deleteBtn" + userId).prop('disabled', true);
-    });
-
-    $("#confirmCode" + userId).on('input', function() {
-        $("#deleteBtn" + userId).prop('disabled', $(this).val() !== securityCode);
-    });
-
-    $("#deleteBtn" + userId).click(function() {
         Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Esta acción no se puede deshacer",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: 'components/editUsers/delete_user.php',
-                    type: 'POST',
-                    data: { id: userId },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '¡Eliminado!',
-                                text: 'El usuario ha sido eliminado correctamente',
-                                showConfirmButton: true
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: response.message
-                            });
+            title: 'Actualizando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: 'components/editUsers/update_user.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Usuario actualizado correctamente',
+                        showConfirmButton: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
                         }
-                    },
-                    error: function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Error en la conexión'
-                        });
-                    }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al actualizar el usuario: ' + response.message
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la conexión'
                 });
             }
         });
-    });
-}
+    }
 
-function copiarCodigo(id) {
-    const codigoInput = document.getElementById('securityCode' + id);
-    navigator.clipboard.writeText(codigoInput.value).then(() => {
-        const copyBtn = document.getElementById('copyBtn' + id);
-        const originalContent = copyBtn.innerHTML;
-        copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copiado';
-        copyBtn.classList.add('btn-success');
-        setTimeout(function() {
-            copyBtn.innerHTML = originalContent;
-            copyBtn.classList.remove('btn-success');
-        }, 1500);
-    }).catch(err => {
-        console.error('Error al copiar: ', err);
-    });
-}
+    // Resto de funciones existentes...
+    function initDeleteModal(userId) {
+        let securityCode = '';
+        let timer = 15;
+        let interval;
+
+        function generateCode() {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function updateTimer() {
+            timer--;
+            $("#codeTimer" + userId).text(timer);
+
+            if (timer <= 0) {
+                timer = 15;
+                securityCode = generateCode();
+                $("#securityCode" + userId).val(securityCode);
+            }
+        }
+
+        $("#deleteModal" + userId).on('shown.bs.modal', function() {
+            securityCode = generateCode();
+            $("#securityCode" + userId).val(securityCode);
+            timer = 15;
+            $("#codeTimer" + userId).text(timer);
+            clearInterval(interval);
+            interval = setInterval(updateTimer, 1000);
+        });
+
+        $("#deleteModal" + userId).on('hidden.bs.modal', function() {
+            clearInterval(interval);
+            $("#confirmCode" + userId).val('');
+            $("#deleteBtn" + userId).prop('disabled', true);
+        });
+
+        $("#confirmCode" + userId).on('input', function() {
+            $("#deleteBtn" + userId).prop('disabled', $(this).val() !== securityCode);
+        });
+
+        $("#deleteBtn" + userId).click(function() {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción no se puede deshacer",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: 'components/editUsers/delete_user.php',
+                        type: 'POST',
+                        data: {
+                            id: userId
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Eliminado!',
+                                    text: 'El usuario ha sido eliminado correctamente',
+                                    showConfirmButton: true
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error en la conexión'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function copiarCodigo(id) {
+        const codigoInput = document.getElementById('securityCode' + id);
+        navigator.clipboard.writeText(codigoInput.value).then(() => {
+            const copyBtn = document.getElementById('copyBtn' + id);
+            const originalContent = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copiado';
+            copyBtn.classList.add('btn-success');
+            setTimeout(function() {
+                copyBtn.innerHTML = originalContent;
+                copyBtn.classList.remove('btn-success');
+            }, 1500);
+        }).catch(err => {
+            console.error('Error al copiar: ', err);
+        });
+    }
 </script>

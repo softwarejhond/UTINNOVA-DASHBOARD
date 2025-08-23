@@ -274,7 +274,7 @@
                                 <div class="card-header d-flex align-items-center justify-content-between pb-3">
                                     <h5 class="card-title mb-0 d-flex align-items-center">
                                         <i class="bi-geo-alt card-icon me-2" style="color: #dc3545;"></i>
-                                        Ubicación
+                                        Registro y Ubicación
                                     </h5>
                                     <div class="dropdown">
                                         <button class="btn btn-sm dropdown-toggle"
@@ -305,6 +305,12 @@
                                         <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                             <span class="text-muted">Dirección:</span>
                                             <span class="text-end"><?= htmlspecialchars($row['address']) ?></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                            <span class="text-muted">Fecha de registro:</span>
+                                            <span class="text-end">
+                                                <?= !empty($row['creationDate']) ? date('d/m/Y H:i:s', strtotime($row['creationDate'])) : 'No especificada' ?>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -355,16 +361,17 @@
                                                     <span class="text-end"><?= htmlspecialchars($row['lote']) ?></span>
                                                 </div>
 
+                                                <div class="d-flex justify-content-between align-items-center w-100">
+                                                    <span class="text-muted">Programa:</span>
+                                                    <span class="text-end"><?= htmlspecialchars($row['program']) ?></span>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <!-- Segunda columna -->
                                         <div class="col-md-6">
                                             <div class="d-flex flex-column gap-2 w-100">
-                                                <div class="d-flex justify-content-between align-items-center w-100">
-                                                    <span class="text-muted">Programa:</span>
-                                                    <span class="text-end"><?= htmlspecialchars($row['program']) ?></span>
-                                                </div>
+
                                                 <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                                     <span class="text-muted">Nivel de preferencia:</span>
                                                     <span class="text-end"><?= htmlspecialchars($row['level']) ?></span>
@@ -390,6 +397,37 @@
                                                             title="Horarios seleccionados">
                                                             <i class="bi bi-clock"></i> Ver horarios
                                                         </button>
+                                                    </span>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                                    <span class="text-muted">Registró otra certificación:</span>
+                                                    <span class="text-end">
+                                                        <?php
+                                                        // Consulta para obtener datos de certificación previa
+                                                        $certQuery = "SELECT has_certification, program_certified FROM certification_previous WHERE number_id = ?";
+                                                        $stmtCert = $conn->prepare($certQuery);
+                                                        $stmtCert->bind_param("s", $row['number_id']);
+                                                        $stmtCert->execute();
+                                                        $resultCert = $stmtCert->get_result();
+                                                        $certData = $resultCert->fetch_assoc();
+
+                                                        // Badge para has_certification
+                                                        if ($certData && $certData['has_certification'] == 1) {
+                                                            echo '<span class="badge bg-success me-2">Sí</span>';
+                                                        } elseif ($certData && $certData['has_certification'] == 'NO') {
+                                                            echo '<span class="badge bg-secondary me-2">No</span>';
+                                                        } else {
+                                                            echo '<span class="badge bg-teal-dark me-2">Sí</span>';
+                                                        }
+
+                                                        // Badge para program_certified
+                                                        if ($certData && !empty($certData['program_certified'])) {
+                                                            echo '<span class="badge bg-orange-dark text-black">' . htmlspecialchars($certData['program_certified']) . '</span>';
+                                                        } else {
+                                                            echo '<span class="badge bg-secondary">Sin programa</span>';
+                                                        }
+                                                        ?>
                                                     </span>
                                                 </div>
                                             </div>
