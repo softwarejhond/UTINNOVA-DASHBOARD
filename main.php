@@ -69,12 +69,17 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
 </body>
 <div style="margin-top: 50px;">
     <div class="mt-3">
-
         <div id="dashboard">
-            <div class="position-relative bg-transparent">
-                <h2 class="position-absolute top-4 start-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+            <div class="d-flex align-items-center justify-content-between">
+                <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+                <div class="loader">
+                    <div class="slider" style="--i:0"></div>
+                    <div class="slider" style="--i:1"></div>
+                    <div class="slider" style="--i:2"></div>
+                    <div class="slider" style="--i:3"></div>
+                    <div class="slider" style="--i:4"></div>
+                </div>
             </div>
-            <br><br>
             <hr>
             <?php include("components/cardContadores/contadoresCards.php"); ?>
 
@@ -160,6 +165,58 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
 <style>
     .swal-wide {
         width: 600px !important;
+    }
+
+    /* From Uiverse.io by Nawsome */
+    .loader {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        transform: scale(0.5);
+    }
+
+    .slider {
+        overflow: hidden;
+        background-color: white;
+        margin: 0 15px;
+        height: 80px;
+        width: 20px;
+        border-radius: 30px;
+        box-shadow: 15px 15px 20px rgba(0, 0, 0, 0.1), -15px -15px 30px #fff,
+            inset -5px -5px 10px rgba(0, 0, 255, 0.1),
+            inset 5px 5px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .slider::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 20px;
+        width: 20px;
+        border-radius: 100%;
+        box-shadow: inset 0px 0px 0px rgba(0, 0, 0, 0.3), 0px 420px 0 400px #66cc00,
+            inset 0px 0px 0px rgba(0, 0, 0, 0.1);
+        animation: animate_2 5s ease-in-out infinite;
+        animation-delay: calc(-1s * var(--i));
+    }
+
+    @keyframes animate_2 {
+        0% {
+            transform: translateY(250px);
+            filter: hue-rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(0);
+        }
+
+        100% {
+            transform: translateY(250px);
+            filter: hue-rotate(180deg);
+        }
     }
 </style>
 

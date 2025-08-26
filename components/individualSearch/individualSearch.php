@@ -405,7 +405,7 @@
                                                     <span class="text-end">
                                                         <?php
                                                         // Consulta para obtener datos de certificación previa
-                                                        $certQuery = "SELECT has_certification, program_certified FROM certification_previous WHERE number_id = ?";
+                                                        $certQuery = "SELECT has_certification, program_certified, anio_certificacion FROM certification_previous WHERE number_id = ?";
                                                         $stmtCert = $conn->prepare($certQuery);
                                                         $stmtCert->bind_param("s", $row['number_id']);
                                                         $stmtCert->execute();
@@ -427,7 +427,16 @@
                                                         } else {
                                                             echo '<span class="badge bg-secondary">Sin programa</span>';
                                                         }
+
+                                                        // Badge para anio_certificacion
+                                                        if ($certData && !empty($certData['anio_certificacion'])) {
+                                                            echo '<span class="badge bg-teal-dark text-white">' . htmlspecialchars($certData['anio_certificacion']) . '</span>';
+                                                        } else {
+                                                            echo '<span class="badge bg-secondary">Sin especificar</span>';
+                                                        }
                                                         ?>
+
+                                                        
                                                     </span>
                                                 </div>
                                             </div>

@@ -87,33 +87,33 @@ $rol = $infoUsuario['rol'];
         var table = $('#listaInscritos').DataTable({
             responsive: true,
             language: {
-                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+                url: "controller/datatable_esp.json"
             },
             pagingType: "simple"
         });
 
-        $('#filterDepartment, #filterHeadquarters, #filterProgram, #filterMode').on('change', function() {
+        $('#filterBootcamp, #filterHeadquarters, #filterProgram, #filterMode').on('change', function() {
             table.draw();
         });
 
         $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-            var selectedDepartment = $('#filterDepartment').val();
+            var selectedBootcamp = $('#filterBootcamp').val();
             var selectedHeadquarters = $('#filterHeadquarters').val();
             var selectedProgram = $('#filterProgram').val();
             var selectedMode = $('#filterMode').val();
 
             var row = table.row(dataIndex).node();
-            var rowDepartment = $(row).data('department');
+            var rowBootcamp = $(row).data('bootcamp');
             var rowHeadquarters = $(row).data('headquarters');
             var rowProgram = $(row).data('program');
             var rowMode = $(row).data('mode');
 
-            var departmentMatch = !selectedDepartment || rowDepartment === selectedDepartment;
+            var bootcampMatch = !selectedBootcamp || rowBootcamp === selectedBootcamp;
             var headquartersMatch = !selectedHeadquarters || rowHeadquarters === selectedHeadquarters;
             var programMatch = !selectedProgram || rowProgram === selectedProgram;
             var modeMatch = !selectedMode || rowMode === selectedMode;
 
-            return departmentMatch && headquartersMatch && programMatch && modeMatch;
+            return bootcampMatch && headquartersMatch && programMatch && modeMatch;
         });
     });
 </script>

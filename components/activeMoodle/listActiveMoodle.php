@@ -22,11 +22,31 @@ if ($result->num_rows > 0) {
 // Reiniciar el puntero del resultado para usarlo después en la tabla
 $result = $conn->query($sql);
 
+// Función para obtener los niveles de los usuarios 
+function obtenerNivelesUsuarios($conn)
+{
+    $sql = "SELECT cedula, nivel FROM usuarios";
+    $result = $conn->query($sql);
+
+    $niveles = array();
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $niveles[$row['cedula']] = $row['nivel'];
+        }
+    }
+
+    return $niveles;
+}
+
+// Obtener los niveles de usuarios
+$nivelesUsuarios = obtenerNivelesUsuarios($conn);
+
 // Obtener datos únicos para los filtros
 $departamentos = ['BOGOTÁ, D.C.'];
 $programas = [];
 $modalidades = [];
 $sedes = [];
+$bootcamps = []; // Nuevo array para bootcamps
 
 foreach ($data as $row) {
     $sede = $row['headquarters'];
@@ -39,12 +59,18 @@ foreach ($data as $row) {
     if (!in_array($row['mode'], $modalidades)) {
         $modalidades[] = $row['mode'];
     }
+    // Agregar bootcamps únicos
+    $bootcamp = $row['id_bootcamp'] . ' - ' . $row['bootcamp_name'];
+    if (!in_array($bootcamp, $bootcamps)) {
+        $bootcamps[] = $bootcamp;
+    }
 }
 
 // Ordenar los arrays para mejor visualización
 sort($sedes);
 sort($programas);
 sort($modalidades);
+sort($bootcamps); // Ordenar bootcamps
 
 ?>
 
@@ -73,18 +99,6 @@ sort($modalidades);
 
 <div class="row p-3 mb-1">
     <b class="text-left mb-1"><i class="bi bi-filter-circle"></i> Filtrar beneficiario</b>
-
-    <div class="col-md-6 col-sm-12 col-lg-3">
-        <div class="filter-title"><i class="bi bi-map"></i> Departamento</div>
-        <div class="card filter-card card-department" data-icon="📍">
-            <div class="card-body">
-                <select id="filterDepartment" class="form-select">
-                    <option value="">Todos los departamentos</option>
-                    <option value="BOGOTÁ, D.C.">BOGOTÁ, D.C.</option>
-                </select>
-            </div>
-        </div>
-    </div>
 
     <div class="col-md-6 col-sm-12 col-lg-3">
         <div class="filter-title"><i class="bi bi-building"></i> Sede</div>
@@ -126,6 +140,20 @@ sort($modalidades);
             </div>
         </div>
     </div>
+
+    <div class="col-md-6 col-sm-12 col-lg-3">
+        <div class="filter-title"><i class="bi bi-laptop"></i> Bootcamp</div>
+        <div class="card filter-card card-bootcamp" data-icon="💻">
+            <div class="card-body">
+                <select id="filterBootcamp" class="form-select">
+                    <option value="">Todos los bootcamps</option>
+                    <?php foreach ($bootcamps as $bootcamp): ?>
+                        <option value="<?= htmlspecialchars($bootcamp) ?>"><?= htmlspecialchars($bootcamp) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="container-fluid">
@@ -152,17 +180,19 @@ sort($modalidades);
                     <th>Ingles Nivelatorio</th>
                     <th>English Code</th>
                     <th>Habilidades</th>
+                    <th>Nivel elegido</th>
+                    <th>Puntaje de prueba</th>
+                    <th>Nivel obtenido</th>
                     <th>Fecha de matricula</th>
                     <th>Desmatricular</th>
                 </tr>
             </thead>
             <tbody>
                 <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <tr data-department="<?= htmlspecialchars($row['department']) ?>"
+                    <tr data-bootcamp="<?= htmlspecialchars($row['id_bootcamp'] . ' - ' . $row['bootcamp_name']) ?>"
                         data-headquarters="<?= htmlspecialchars($row['headquarters']) ?>"
                         data-program="<?= htmlspecialchars($row['program']) ?>"
                         data-mode="<?= htmlspecialchars($row['mode']) ?>">
-
 
                         <td><?php echo htmlspecialchars($row['type_id']); ?></td>
                         <td><?php echo htmlspecialchars($row['number_id']); ?></td>
@@ -192,19 +222,56 @@ sort($modalidades);
                         <td><?php echo htmlspecialchars($row['id_leveling_english'] . ' - ' . $row['leveling_english_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['id_english_code'] . ' - ' . $row['english_code_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['id_skills'] . ' - ' . $row['skills_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['level']); ?></td>
                         <td>
                             <?php
-                                $fecha = $row['creation_date'];
-                                if ($fecha) {
-                                    echo date('d/m/Y', strtotime($fecha));
-                                } else {
-                                    echo '';
+                            if (isset($nivelesUsuarios[$row['number_id']])) {
+                                $puntaje = $nivelesUsuarios[$row['number_id']];
+                                if ($puntaje >= 0 && $puntaje <= 5) {
+                                    echo '<button class="btn bg-magenta-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
+                                } elseif ($puntaje >= 6 && $puntaje <= 10) {
+                                    echo '<button class="btn bg-orange-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
+                                } elseif ($puntaje >= 11 && $puntaje <= 15) {
+                                    echo '<button class="btn bg-teal-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
                                 }
+                            } else {
+                                echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba">
+                                    <i class="bi bi-ban"></i>
+                                </a>';
+                            }
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                            if (isset($nivelesUsuarios[$row['number_id']])) {
+                                $puntaje = $nivelesUsuarios[$row['number_id']];
+                                if ($puntaje >= 0 && $puntaje <= 5) {
+                                    echo '<button class="btn bg-magenta-dark w-100" role="alert">Básico</button>';
+                                } elseif ($puntaje >= 6 && $puntaje <= 10) {
+                                    echo '<button class="btn bg-orange-dark w-100" role="alert">Intermedio</button>';
+                                } elseif ($puntaje >= 11 && $puntaje <= 15) {
+                                    echo '<button class="btn bg-teal-dark w-100" role="alert">Avanzado</button>';
+                                }
+                            } else {
+                                echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba">
+                                    <i class="bi bi-ban"></i>
+                                </a>';
+                            }
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                            $fecha = $row['creation_date'];
+                            if ($fecha) {
+                                echo date('d/m/Y', strtotime($fecha));
+                            } else {
+                                echo '';
+                            }
                             ?>
                         </td>
                         <td class="text-center">
                             <?php
-                            switch($rol) {
+                            switch ($rol) {
                                 case 'Academico':
                                 case 'Administrador':
                                 case 'Control maestro':

@@ -11,7 +11,7 @@ if (isset($_POST['crearUsuario'])) {
     $password = $_POST['password'];
     $confirmPassword = $_POST['confirmPassword'];
     $rol = $_POST['rol'];
-    $rol_informativo = !empty($_POST['rol_informativo']) ? $_POST['rol_informativo'] : null;
+    $rol_informativo = isset($_POST['rol_informativo']) && $_POST['rol_informativo'] !== '' ? $_POST['rol_informativo'] : '0';
     $foto = '';
 
     // Validar que las contraseñas coincidan

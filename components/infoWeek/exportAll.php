@@ -308,7 +308,7 @@ function exportDataToExcel($conn)
 
                 'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']), // Cambio: simplificar lógica
 
-                'Campesino' => '',
+                'Campesino' => ($row['country_person'] === 'Sí') ? 'SI' : (($row['country_person'] === 'No') ? 'NO' : $row['country_person']),
 
                 'Estrato' => ($row['stratum'] == '0' ? 'Sin estratificar' : ($row['residence_area'] == 'Rural' ? '1' : $row['stratum'])),
 

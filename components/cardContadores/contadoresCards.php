@@ -1,11 +1,4 @@
 <!-- Barra de progreso global -->
-<div class="progress mt-3">
-    <div id="progress-bar-global" class="progress-bar progress-bar-striped progress-bar-animated bg-indigo-dark" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-</div>
-<div class="text-center">
-    <small id="countdown-timer" class="text-muted">Actualización en tiempo real</small>
-</div>
-
 <style>
     .text-muted {
         color: #7987a1 !important;
@@ -649,7 +642,7 @@
     }
 </style>
 
-<div class="scale-container">
+<div class="scale-container" style="margin-top: -30px;">
     <!-- Página 1 -->
     <?php include_once 'page1.php'; ?>
     <!-- Página 2 -->
@@ -664,10 +657,10 @@
                     </a>
                 </li>
                 <li class="page-item active" id="page-btn-1">
-                    <a class="page-link" href="#">1</a>
+                    <a class="page-link" href="#">Lote 1</a>
                 </li>
                 <li class="page-item" id="page-btn-2">
-                    <a class="page-link" href="#">2</a>
+                    <a class="page-link" href="#">Lote 2</a>
                 </li>
                 <li class="page-item" id="next-page">
                     <a class="page-link " href="#" aria-label="Siguiente">
@@ -790,6 +783,23 @@
                     $('#progress-bar-lote2')
                         .css('width', porcentajeLote2 + '%')
                         .attr('aria-valuenow', porcentajeLote2);
+
+                    // Nuevas líneas para contadores por lote
+                    $('#usuers_registrados_lote1').text(data.total_registrados_lote1);
+                    $('#usuers_registrados_lote2').text(data.total_registrados_lote2);
+
+                    // También puedes agregar los porcentajes si los necesitas:
+                    const porcentajeLote1Registrados = data.total_registrados_lote1 > 0 ? 100 : 0;
+                    const porcentajeLote2Registrados = data.total_registrados_lote2 > 0 ? 100 : 0;
+
+                    $('#progress-bar-lote1-registrados')
+                        .css('width', porcentajeLote1Registrados + '%')
+                        .attr('aria-valuenow', porcentajeLote1Registrados);
+
+                    $('#progress-bar-lote2-registrados')
+                        .css('width', porcentajeLote2Registrados + '%')
+                        .attr('aria-valuenow', porcentajeLote2Registrados);
+
                     // Actualizar select de instituciones
                     var select = $('#institucionSelect');
                     select.empty();
@@ -798,6 +808,53 @@
                     data.instituciones.forEach(function(inst) {
                         select.append(`<option value="${inst.total}">${inst.nombre}</option>`);
                     });
+
+                    // Usuarios aceptados por lote
+                    $('#total_usuarios_aceptados_lote1').text(data.total_usuarios_aceptados_lote1);
+                    $('#porc_usuarios_aceptados_lote1').text(data.porc_usuarios_aceptados_lote1);
+                    $('#total_usuarios_aceptados_lote2').text(data.total_usuarios_aceptados_lote2);
+                    $('#porc_usuarios_aceptados_lote2').text(data.porc_usuarios_aceptados_lote2);
+
+                    // Usuarios rechazados por lote
+                    $('#total_rechazados_lote1').text(data.total_rechazados_lote1);
+                    $('#porc_rechazados_lote1').text(data.porc_rechazados_lote1);
+                    $('#total_rechazados_lote2').text(data.total_rechazados_lote2);
+                    $('#porc_rechazados_lote2').text(data.porc_rechazados_lote2);
+
+                    // Usuarios por verificar por lote
+                    $('#total_sinVerificar_lote1').text(data.total_sinVerificar_lote1);
+                    $('#porc_sinVerificar_lote1').text(data.porc_sinVerificar_lote1);
+                    $('#total_sinVerificar_lote2').text(data.total_sinVerificar_lote2);
+                    $('#porc_sinVerificar_lote2').text(data.porc_sinVerificar_lote2);
+
+                    // Actualizar barras de progreso
+                    $('#progress-bar-sin-verificar-lote1')
+                        .css('width', (data.porc_sinVerificar_lote1 || 0) + '%')
+                        .attr('aria-valuenow', data.porc_sinVerificar_lote1 || 0);
+
+                    $('#progress-bar-sin-verificar-lote2')
+                        .css('width', (data.porc_sinVerificar_lote2 || 0) + '%')
+                        .attr('aria-valuenow', data.porc_sinVerificar_lote2 || 0);
+
+                    // Contacto a beneficiarios por lote
+                    $('#total_contacto_si_lote1').text(data.total_contacto_si_lote1);
+                    $('#porc_contacto_si_lote1').text(data.porc_contacto_si_lote1);
+                    $('#total_contacto_no_lote1').text(data.total_contacto_no_lote1);
+                    $('#porc_contacto_no_lote1').text(data.porc_contacto_no_lote1);
+
+                    $('#total_contacto_si_lote2').text(data.total_contacto_si_lote2);
+                    $('#porc_contacto_si_lote2').text(data.porc_contacto_si_lote2);
+                    $('#total_contacto_no_lote2').text(data.total_contacto_no_lote2);
+                    $('#porc_contacto_no_lote2').text(data.porc_contacto_no_lote2);
+
+                    // Actualizar barras de progreso (usando porcentaje de contactos SÍ)
+                    $('#progress-bar-contacto-lote1')
+                        .css('width', (data.porc_contacto_si_lote1 || 0) + '%')
+                        .attr('aria-valuenow', data.porc_contacto_si_lote1 || 0);
+
+                    $('#progress-bar-contacto-lote2')
+                        .css('width', (data.porc_contacto_si_lote2 || 0) + '%')
+                        .attr('aria-valuenow', data.porc_contacto_si_lote2 || 0);
                 },
                 error: function(error) {
                     console.error('Error al obtener los datos:', error);

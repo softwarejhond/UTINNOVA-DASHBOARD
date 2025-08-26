@@ -6,12 +6,21 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
     $fecha = isset($_GET['date']) ? $_GET['date'] : null;
+    $lote = isset($_GET['lote']) ? $_GET['lote'] : null; // Agregar parámetro lote
 
     // Consulta para obtener registros hasta la fecha seleccionada
     if ($fecha) {
-        $sql_registros_por_fecha = "SELECT COUNT(*) AS total_registrados FROM user_register WHERE DATE(creationDate) <= ?";
-        $stmt = $conn->prepare($sql_registros_por_fecha);
-        $stmt->bind_param("s", $fecha);
+        if ($lote) {
+            // Filtrar por fecha Y lote específico
+            $sql_registros_por_fecha = "SELECT COUNT(*) AS total_registrados FROM user_register WHERE DATE(creationDate) <= ? AND lote = ?";
+            $stmt = $conn->prepare($sql_registros_por_fecha);
+            $stmt->bind_param("si", $fecha, $lote);
+        } else {
+            // Solo filtrar por fecha (comportamiento anterior)
+            $sql_registros_por_fecha = "SELECT COUNT(*) AS total_registrados FROM user_register WHERE DATE(creationDate) <= ?";
+            $stmt = $conn->prepare($sql_registros_por_fecha);
+            $stmt->bind_param("s", $fecha);
+        }
         $stmt->execute();
         $result = $stmt->get_result();
         $total_registrados_por_fecha = $result->fetch_assoc()['total_registrados'];
@@ -217,6 +226,106 @@ try {
     $total_lote2 = mysqli_fetch_assoc($result_lote2)['total_lote2'];
     $porc_lote2 = ($total_registrados > 0) ? round(($total_lote2 / $total_registrados) * 100, 2) : 0;
 
+    // Obtener total de géneros por lote 1
+    $queryGenerosLote1 = "SELECT gender, COUNT(*) as cantidadGender FROM user_register WHERE lote = 1 GROUP BY gender";
+    $resultadoGenerosLote1 = $conn->query($queryGenerosLote1);
+    $generosLote1 = [];
+    while ($row = $resultadoGenerosLote1->fetch_assoc()) {
+        $generosLote1[] = [
+            'gener' => $row['gender'],
+            'cantidad' => $row['cantidadGender']
+        ];
+    }
+
+    // Obtener total de géneros por lote 2
+    $queryGenerosLote2 = "SELECT gender, COUNT(*) as cantidadGender FROM user_register WHERE lote = 2 GROUP BY gender";
+    $resultadoGenerosLote2 = $conn->query($queryGenerosLote2);
+    $generosLote2 = [];
+    while ($row = $resultadoGenerosLote2->fetch_assoc()) {
+        $generosLote2[] = [
+            'gener' => $row['gender'],
+            'cantidad' => $row['cantidadGender']
+        ];
+    }
+
+    // Total registrados Lote 1
+$sql_total_registrados_lote1 = "SELECT COUNT(*) AS total_registrados_lote1 FROM user_register WHERE lote = 1";
+$result_total_registrados_lote1 = mysqli_query($conn, $sql_total_registrados_lote1);
+$total_registrados_lote1 = mysqli_fetch_assoc($result_total_registrados_lote1)['total_registrados_lote1'];
+
+// Total registrados Lote 2
+$sql_total_registrados_lote2 = "SELECT COUNT(*) AS total_registrados_lote2 FROM user_register WHERE lote = 2";
+$result_total_registrados_lote2 = mysqli_query($conn, $sql_total_registrados_lote2);
+$total_registrados_lote2 = mysqli_fetch_assoc($result_total_registrados_lote2)['total_registrados_lote2'];
+
+// Obtener total de usuarios aceptados LOTE 1
+$sql_usuarios_aceptados_lote1 = "SELECT COUNT(*) AS total FROM user_register WHERE status = '1' AND statusAdmin = '1' AND lote = 1";
+$result_usuarios_aceptados_lote1 = mysqli_query($conn, $sql_usuarios_aceptados_lote1);
+$total_usuarios_aceptados_lote1 = mysqli_fetch_assoc($result_usuarios_aceptados_lote1)['total'];
+$porc_usuarios_aceptados_lote1 = ($total_registrados_lote1 > 0) ? round(($total_usuarios_aceptados_lote1 / $total_registrados_lote1) * 100, 2) : 0;
+
+// Obtener total de usuarios aceptados LOTE 2
+$sql_usuarios_aceptados_lote2 = "SELECT COUNT(*) AS total FROM user_register WHERE status = '1' AND statusAdmin = '1' AND lote = 2";
+$result_usuarios_aceptados_lote2 = mysqli_query($conn, $sql_usuarios_aceptados_lote2);
+$total_usuarios_aceptados_lote2 = mysqli_fetch_assoc($result_usuarios_aceptados_lote2)['total'];
+$porc_usuarios_aceptados_lote2 = ($total_registrados_lote2 > 0) ? round(($total_usuarios_aceptados_lote2 / $total_registrados_lote2) * 100, 2) : 0;
+
+// Obtener total de usuarios rechazados LOTE 1
+$sql_rechazados_lote1 = "SELECT COUNT(*) AS total_rechazados FROM user_register WHERE statusAdmin = 2 AND lote = 1";
+$result_rechazados_lote1 = mysqli_query($conn, $sql_rechazados_lote1);
+$total_rechazados_lote1 = mysqli_fetch_assoc($result_rechazados_lote1)['total_rechazados'];
+$porc_rechazados_lote1 = ($total_registrados_lote1 > 0) ? round(($total_rechazados_lote1 / $total_registrados_lote1) * 100, 2) : 0;
+
+// Obtener total de usuarios rechazados LOTE 2
+$sql_rechazados_lote2 = "SELECT COUNT(*) AS total_rechazados FROM user_register WHERE statusAdmin = 2 AND lote = 2";
+$result_rechazados_lote2 = mysqli_query($conn, $sql_rechazados_lote2);
+$total_rechazados_lote2 = mysqli_fetch_assoc($result_rechazados_lote2)['total_rechazados'];
+$porc_rechazados_lote2 = ($total_registrados_lote2 > 0) ? round(($total_rechazados_lote2 / $total_registrados_lote2) * 100, 2) : 0;
+
+    // Obtener total de usuarios sin verificar LOTE 1
+    $sql_sin_verificar_lote1 = "SELECT COUNT(*) AS total_sinVerificar FROM user_register WHERE status = '1' AND (statusAdmin = '0' OR statusAdmin NOT IN ('1', '3')) AND lote = 1";
+    $result_sinVerificar_lote1 = mysqli_query($conn, $sql_sin_verificar_lote1);
+    $total_sinVerificar_lote1 = mysqli_fetch_assoc($result_sinVerificar_lote1)['total_sinVerificar'];
+    $porc_sinVerificar_lote1 = ($total_registrados_lote1 > 0) ? round(($total_sinVerificar_lote1 / $total_registrados_lote1) * 100, 2) : 0;
+
+    // Obtener total de usuarios sin verificar LOTE 2
+    $sql_sin_verificar_lote2 = "SELECT COUNT(*) AS total_sinVerificar FROM user_register WHERE status = '1' AND (statusAdmin = '0' OR statusAdmin NOT IN ('1', '3')) AND lote = 2";
+    $result_sinVerificar_lote2 = mysqli_query($conn, $sql_sin_verificar_lote2);
+    $total_sinVerificar_lote2 = mysqli_fetch_assoc($result_sinVerificar_lote2)['total_sinVerificar'];
+    $porc_sinVerificar_lote2 = ($total_registrados_lote2 > 0) ? round(($total_sinVerificar_lote2 / $total_registrados_lote2) * 100, 2) : 0;
+
+    // Obtener total de contactos establecidos (Sí) LOTE 1
+$sql_contacto_si_lote1 = "SELECT 
+                            COUNT(DISTINCT cl.number_id) AS total_contactos,
+                            (COUNT(DISTINCT cl.number_id) / (SELECT COUNT(*) FROM user_register WHERE lote = 1) * 100) AS porcentaje
+                        FROM contact_log cl
+                        JOIN user_register ur ON cl.number_id = ur.number_id
+                        WHERE cl.contact_established = 1 AND ur.lote = 1";
+$result_contacto_si_lote1 = mysqli_query($conn, $sql_contacto_si_lote1);
+$contacto_si_data_lote1 = mysqli_fetch_assoc($result_contacto_si_lote1);
+$total_contacto_si_lote1 = $contacto_si_data_lote1['total_contactos'];
+$porc_contacto_si_lote1 = round($contacto_si_data_lote1['porcentaje'], 2);
+
+// Obtener total de contactos NO establecidos LOTE 1
+$total_contacto_no_lote1 = $total_registrados_lote1 - $total_contacto_si_lote1;
+$porc_contacto_no_lote1 = ($total_registrados_lote1 > 0) ? round(($total_contacto_no_lote1 / $total_registrados_lote1) * 100, 2) : 0;
+
+// Obtener total de contactos establecidos (Sí) LOTE 2
+$sql_contacto_si_lote2 = "SELECT 
+                            COUNT(DISTINCT cl.number_id) AS total_contactos,
+                            (COUNT(DISTINCT cl.number_id) / (SELECT COUNT(*) FROM user_register WHERE lote = 2) * 100) AS porcentaje
+                        FROM contact_log cl
+                        JOIN user_register ur ON cl.number_id = ur.number_id
+                        WHERE cl.contact_established = 1 AND ur.lote = 2";
+$result_contacto_si_lote2 = mysqli_query($conn, $sql_contacto_si_lote2);
+$contacto_si_data_lote2 = mysqli_fetch_assoc($result_contacto_si_lote2);
+$total_contacto_si_lote2 = $contacto_si_data_lote2['total_contactos'];
+$porc_contacto_si_lote2 = round($contacto_si_data_lote2['porcentaje'], 2);
+
+// Obtener total de contactos NO establecidos LOTE 2
+$total_contacto_no_lote2 = $total_registrados_lote2 - $total_contacto_si_lote2;
+$porc_contacto_no_lote2 = ($total_registrados_lote2 > 0) ? round(($total_contacto_no_lote2 / $total_registrados_lote2) * 100, 2) : 0;
+
     // Devolver los datos en formato JSON
     header('Content-Type: application/json');
     echo json_encode([
@@ -268,7 +377,31 @@ try {
         "total_certificados_1" => $total_certificados_1,
         "porc_certificados_1" => $porc_certificados_1,
         "total_certificados_2" => $total_certificados_2,
-        "porc_certificados_2" => $porc_certificados_2
+        "porc_certificados_2" => $porc_certificados_2,
+        "generosLote1" => $generosLote1,
+        "generosLote2" => $generosLote2,
+        "total_registrados_lote1" => $total_registrados_lote1,
+        "total_registrados_lote2" => $total_registrados_lote2,
+        "total_usuarios_aceptados_lote1" => $total_usuarios_aceptados_lote1,
+        "porc_usuarios_aceptados_lote1" => $porc_usuarios_aceptados_lote1,
+        "total_usuarios_aceptados_lote2" => $total_usuarios_aceptados_lote2,
+        "porc_usuarios_aceptados_lote2" => $porc_usuarios_aceptados_lote2,
+        "total_rechazados_lote1" => $total_rechazados_lote1,
+        "porc_rechazados_lote1" => $porc_rechazados_lote1,
+        "total_rechazados_lote2" => $total_rechazados_lote2,
+        "porc_rechazados_lote2" => $porc_rechazados_lote2,
+        "total_sinVerificar_lote1" => $total_sinVerificar_lote1,
+        "porc_sinVerificar_lote1" => $porc_sinVerificar_lote1,
+        "total_sinVerificar_lote2" => $total_sinVerificar_lote2,
+        "porc_sinVerificar_lote2" => $porc_sinVerificar_lote2,
+        "total_contacto_si_lote1" => $total_contacto_si_lote1,
+        "porc_contacto_si_lote1" => $porc_contacto_si_lote1,
+        "total_contacto_no_lote1" => $total_contacto_no_lote1,
+        "porc_contacto_no_lote1" => $porc_contacto_no_lote1,
+        "total_contacto_si_lote2" => $total_contacto_si_lote2,
+        "porc_contacto_si_lote2" => $porc_contacto_si_lote2,
+        "total_contacto_no_lote2" => $total_contacto_no_lote2,
+        "porc_contacto_no_lote2" => $porc_contacto_no_lote2
     ]);
 } catch (Exception $e) {
     // Manejo de errores

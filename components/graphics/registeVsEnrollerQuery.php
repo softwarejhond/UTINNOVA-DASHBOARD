@@ -17,7 +17,11 @@ $sql_total_user_register_1 = "SELECT COUNT(*) as total_user_register FROM user_r
 $result_user_register_1 = $conn->query($sql_total_user_register_1);
 $total_user_register_1 = $result_user_register_1->fetch_assoc()['total_user_register'];
 
-$sql_total_groups_1 = "SELECT COUNT(*) as total_groups FROM user_register WHERE statusAdmin = 3 AND lote = 1";
+// Matriculados Lote 1: usuarios que están en groups Y tienen lote = 1 en user_register
+$sql_total_groups_1 = "SELECT COUNT(DISTINCT g.number_id) as total_groups 
+                       FROM groups g 
+                       INNER JOIN user_register ur ON g.number_id = ur.number_id 
+                       WHERE ur.lote = 1";
 $result_groups_1 = $conn->query($sql_total_groups_1);
 $total_groups_1 = $result_groups_1->fetch_assoc()['total_groups'];
 
@@ -31,7 +35,11 @@ $sql_total_user_register_2 = "SELECT COUNT(*) as total_user_register FROM user_r
 $result_user_register_2 = $conn->query($sql_total_user_register_2);
 $total_user_register_2 = $result_user_register_2->fetch_assoc()['total_user_register'];
 
-$sql_total_groups_2 = "SELECT COUNT(*) as total_groups FROM user_register WHERE statusAdmin = 3 AND lote = 2";
+// Matriculados Lote 2: usuarios que están en groups Y tienen lote = 2 en user_register
+$sql_total_groups_2 = "SELECT COUNT(DISTINCT g.number_id) as total_groups 
+                       FROM groups g 
+                       INNER JOIN user_register ur ON g.number_id = ur.number_id 
+                       WHERE ur.lote = 2";
 $result_groups_2 = $conn->query($sql_total_groups_2);
 $total_groups_2 = $result_groups_2->fetch_assoc()['total_groups'];
 
