@@ -22,17 +22,20 @@
         font-weight: 600;
     }
     .center-stats-registro-dos {
-        font-size: 12px;
-        line-height: 1.4;
+        font-size: 10px;
+        line-height: 1.3;
     }
     .registro-stat-dos {
-        margin: 2px 0;
+        margin: 1px 0;
         font-weight: bold;
     }
     .registrados-color-dos {
         color: #28a745;
     }
-    .matriculados-color-dos {
+    .presencial-color-dos {
+        color: #007bff;
+    }
+    .virtual-color-dos {
         color: #ffc107;
     }
 </style>
@@ -42,7 +45,8 @@
         <div class="center-title-registro-dos">Total</div>
         <div class="center-stats-registro-dos" id="centerStatsRegistroDos">
             <div class="registro-stat-dos registrados-color-dos" id="registradosStatDos">Registrados: 0</div>
-            <div class="registro-stat-dos matriculados-color-dos" id="matriculadosStatDos">Matriculados: 0</div>
+            <div class="registro-stat-dos presencial-color-dos" id="presencialStatDos">Presencial: 0</div>
+            <div class="registro-stat-dos virtual-color-dos" id="virtualStatDos">Virtual: 0</div>
         </div>
     </div>
 </div>
@@ -50,7 +54,6 @@
 <script>
     async function cargarDatosRegistrosVsGruposDos() {
         try {
-            // Obtener los datos desde PHP para lote 2
             const respuesta = await fetch('components/graphics/registeVsEnrollerQuery.php?json=2');
             const datos = await respuesta.json();
 
@@ -75,12 +78,14 @@
                     avoidLabelOverlap: false,
                     data: datos.labels.map((label, i) => {
                         let color;
-                        if (label.toLowerCase().includes('registrado') || label.toLowerCase().includes('registro')) {
-                            color = '#28a745';
-                        } else if (label.toLowerCase().includes('matriculado') || label.toLowerCase().includes('matricula')) {
-                            color = '#ffc107';
+                        if (label.toLowerCase().includes('registrado')) {
+                            color = '#28a745'; // Verde para registrados
+                        } else if (label.toLowerCase().includes('presencial')) {
+                            color = '#007bff'; // Azul para presencial
+                        } else if (label.toLowerCase().includes('virtual')) {
+                            color = '#ffc107'; // Amarillo para virtual
                         } else {
-                            color = '#6c757d';
+                            color = '#6c757d'; // Gris para otros
                         }
                         return {
                             name: label,
@@ -96,10 +101,10 @@
                         show: true,
                         position: 'outside',
                         formatter: '{b}\n{d}%',
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: 'bold',
                         color: '#333',
-                        lineHeight: 16
+                        lineHeight: 14
                     },
                     emphasis: {
                         itemStyle: {
@@ -111,14 +116,14 @@
                         },
                         label: {
                             show: true,
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: 'bold'
                         }
                     },
                     labelLine: {
                         show: true,
-                        length: 10,
-                        length2: 8,
+                        length: 8,
+                        length2: 6,
                         smooth: 0.2
                     }
                 }],
@@ -139,16 +144,19 @@
     }
 
     function updateCenterStatsRegistroDos(datos) {
-        let registradosValue = 0, matriculadosValue = 0;
+        let registradosValue = 0, presencialValue = 0, virtualValue = 0;
         datos.labels.forEach((label, index) => {
-            if (label.toLowerCase().includes('registrado') || label.toLowerCase().includes('registro')) {
+            if (label.toLowerCase().includes('registrado')) {
                 registradosValue = datos.data[index];
-            } else if (label.toLowerCase().includes('matriculado') || label.toLowerCase().includes('matricula')) {
-                matriculadosValue = datos.data[index];
+            } else if (label.toLowerCase().includes('presencial')) {
+                presencialValue = datos.data[index];
+            } else if (label.toLowerCase().includes('virtual')) {
+                virtualValue = datos.data[index];
             }
         });
         document.getElementById('registradosStatDos').textContent = `Registrados: ${registradosValue}`;
-        document.getElementById('matriculadosStatDos').textContent = `Matriculados: ${matriculadosValue}`;
+        document.getElementById('presencialStatDos').textContent = `Presencial: ${presencialValue}`;
+        document.getElementById('virtualStatDos').textContent = `Virtual: ${virtualValue}`;
     }
 
     document.addEventListener('DOMContentLoaded', cargarDatosRegistrosVsGruposDos);

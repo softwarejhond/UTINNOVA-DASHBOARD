@@ -25,21 +25,25 @@
     }
     
     .center-stats-registro {
-        font-size: 12px;
-        line-height: 1.4;
+        font-size: 10px;
+        line-height: 1.3;
     }
     
     .registro-stat {
-        margin: 2px 0;
+        margin: 1px 0;
         font-weight: bold;
     }
     
     .registrados-color {
-        color: #28a745; /* CAMBIADO: Verde para registrados */
+        color: #28a745;
     }
     
-    .matriculados-color {
-        color: #ffc107; /* CAMBIADO: Amarillo para matriculados */
+    .presencial-color {
+        color: #007bff;
+    }
+    
+    .virtual-color {
+        color: #ffc107;
     }
 </style>
 
@@ -48,7 +52,8 @@
         <div class="center-title-registro">Total</div>
         <div class="center-stats-registro" id="centerStatsRegistro">
             <div class="registro-stat registrados-color" id="registradosStat">Registrados: 0</div>
-            <div class="registro-stat matriculados-color" id="matriculadosStat">Matriculados: 0</div>
+            <div class="registro-stat presencial-color" id="presencialStat">Presencial: 0</div>
+            <div class="registro-stat virtual-color" id="virtualStat">Virtual: 0</div>
         </div>
     </div>
 </div>
@@ -56,22 +61,17 @@
 <script>
     async function cargarDatosRegistrosVsGrupos() {
         try {
-            // Obtener los datos desde PHP
             const respuestaRegistrosVsGrupos = await fetch('components/graphics/registeVsEnrollerQuery.php?json=1');
             const datosRegistrosVsGrupos = await respuestaRegistrosVsGrupos.json();
 
-            // Verificar si los datos están correctos
             if (!datosRegistrosVsGrupos.labels || !datosRegistrosVsGrupos.data) {
                 throw new Error('Datos inválidos recibidos.');
             }
 
-            // Actualizar las estadísticas en el centro
             updateCenterStatsRegistro(datosRegistrosVsGrupos);
 
-            // Inicializar el gráfico en el div "graficaRegistrosVsGrupos"
             const chartRegistrosVsGrupos = echarts.init(document.getElementById('graficaRegistrosVsGrupos'));
 
-            // Configurar la gráfica tipo donut
             const opcionesRegistrosVsGrupos = {
                 tooltip: {
                     trigger: 'item',
@@ -80,16 +80,17 @@
                 },
                 series: [{
                     type: 'pie',
-                    radius: ['45%', '75%'], // Radio interno y externo para crear efecto donut
+                    radius: ['45%', '75%'],
                     center: ['35%', '50%'],
                     avoidLabelOverlap: false,
                     data: datosRegistrosVsGrupos.labels.map((label, i) => {
-                        // Asignar colores específicos para cada categoría
                         let color;
-                        if (label.toLowerCase().includes('registrado') || label.toLowerCase().includes('registro')) {
-                            color = '#28a745'; // CAMBIADO: Verde para registrados
-                        } else if (label.toLowerCase().includes('matriculado') || label.toLowerCase().includes('matricula')) {
-                            color = '#ffc107'; // CAMBIADO: Amarillo para matriculados
+                        if (label.toLowerCase().includes('registrado')) {
+                            color = '#28a745'; // Verde para registrados
+                        } else if (label.toLowerCase().includes('presencial')) {
+                            color = '#007bff'; // Azul para presencial
+                        } else if (label.toLowerCase().includes('virtual')) {
+                            color = '#ffc107'; // Amarillo para virtual
                         } else {
                             color = '#6c757d'; // Gris para otros
                         }
@@ -108,10 +109,10 @@
                         show: true,
                         position: 'outside',
                         formatter: '{b}\n{d}%',
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: 'bold',
                         color: '#333',
-                        lineHeight: 16
+                        lineHeight: 14
                     },
                     emphasis: {
                         itemStyle: {
@@ -123,14 +124,14 @@
                         },
                         label: {
                             show: true,
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: 'bold'
                         }
                     },
                     labelLine: {
                         show: true,
-                        length: 10,
-                        length2: 8,
+                        length: 8,
+                        length2: 6,
                         smooth: 0.2
                     }
                 }],
@@ -138,10 +139,8 @@
                 animationDuration: 1000
             };
 
-            // Renderizar la gráfica
             chartRegistrosVsGrupos.setOption(opcionesRegistrosVsGrupos);
             
-            // Redimensionar el gráfico cuando cambie el tamaño de la ventana
             window.addEventListener('resize', () => {
                 chartRegistrosVsGrupos.resize();
             });
@@ -153,21 +152,22 @@
     }
 
     function updateCenterStatsRegistro(datos) {
-        let registradosValue = 0, matriculadosValue = 0;
+        let registradosValue = 0, presencialValue = 0, virtualValue = 0;
         
         datos.labels.forEach((label, index) => {
-            if (label.toLowerCase().includes('registrado') || label.toLowerCase().includes('registro')) {
+            if (label.toLowerCase().includes('registrado')) {
                 registradosValue = datos.data[index];
-            } else if (label.toLowerCase().includes('matriculado') || label.toLowerCase().includes('matricula')) {
-                matriculadosValue = datos.data[index];
+            } else if (label.toLowerCase().includes('presencial')) {
+                presencialValue = datos.data[index];
+            } else if (label.toLowerCase().includes('virtual')) {
+                virtualValue = datos.data[index];
             }
         });
 
-        // Actualizar los elementos del centro
         document.getElementById('registradosStat').textContent = `Registrados: ${registradosValue}`;
-        document.getElementById('matriculadosStat').textContent = `Matriculados: ${matriculadosValue}`;
+        document.getElementById('presencialStat').textContent = `Presencial: ${presencialValue}`;
+        document.getElementById('virtualStat').textContent = `Virtual: ${virtualValue}`;
     }
 
-    // Cargar la gráfica cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', cargarDatosRegistrosVsGrupos);
 </script>

@@ -2,7 +2,10 @@
     <div class="text-center">
         <small id="countdown-timer" class="text-muted">Actualización en tiempo real</small>
     </div>
+
+    <!-- Primeras tarjetas normales -->
     <div class="col-md-6 col-lg-3 col-sm-12 pb-4">
+        <!-- Tarjeta Registrados Lote 1 -->
         <div class="card h-100">
             <div class="card-body"><span class="corner corner-success"></span>
                 <div class="d-flex mb-0">
@@ -47,7 +50,7 @@
                                                 method: 'GET',
                                                 data: {
                                                     date: selectedDate,
-                                                    lote: 1  // Agregar el parámetro lote
+                                                    lote: 1 // Agregar el parámetro lote
                                                 },
                                                 success: function(data) {
                                                     Swal.fire({
@@ -246,54 +249,363 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-3 col-sm-12 ">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex mb-0">
-                    <h3 class="card-title text-black "><b><i class="fas fa-layer-group fa-1x "></i> Lote 1 aceptados</b>
-                        <h><br>
 
-                            <h4 class="mb-1 font-weight-bold text-black"><b id="total_lote1">0</b> | <b id="porc_lote1"></b></h4>
-                            <p class="mb-2 text-xs text-white"><i class="bi bi-check-circle-fill"></i><span class="opacity-75">
-                                    Usuarios del Lote 1 que aprueban los requisitos</span></p>
-                            <div class="progress progress-sm h-5 mt-2 mb-3">
-                                <div id="progress-bar-lote1" class="progress-bar bg-black" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <h6 class="p-0">
-                                <span id="current-time"></span>
-                                <small class="text-white text-xs ml-1">Hora actual</small>
-                            </h6>
+    <!-- DISTRIBUCIÓN ESPECIAL: Tarjeta alta + 6 tarjetas en 2 filas -->
+    <div class="row w-100">
+        <!-- Tarjeta alta a la izquierda -->
+        <div class="col-md-4 d-flex flex-column mb-4">
+            <div class="card h-100" style="max-height: 520px;">
+                <div class="card-body d-flex flex-column">
+                    <!-- Título fijo arriba -->
+                    <div class="mb-3">
+                        <h4 class="card-title text-black mb-0">
+                            <b>
+                                <i class="fa-solid fa-laptop-code"></i> Inscritos en Bootcamps Lote 1
+                                <button id="openModalBootcampsLoteUno" type="button" class="btn btn-link p-0 ml-2 text-primary" style="font-size: 1.2rem; cursor: pointer;" title="Ver detalle por bootcamp">
+                                    <i class="fa-solid fa-laptop-code fa-beat"></i>
+                                </button>
+                            </b>
+                        </h4>
+                    </div>
+
+                    <!-- Lista scrolleable en el medio -->
+                    <div id="bootcampListLoteUno" class="flex-grow-1 h-100 w-100" style="max-height: 250px; min-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                        <p class="text-muted text-center">Cargando bootcamps...</p>
+                    </div>
+
+                    <!-- Total fijo abajo -->
+                    <div class="mt-3">
+                        <h5 class="mb-1 font-weight-bold text-black text-center">
+                            Total: <span id="totalBootcampsLoteUno" class="badge badge-primary">0</span> matriculados
+                        </h5>
+                        <div class="progress progress-sm h-5 mt-2">
+                            <div id="progress-bar-bootcamps-lote1" class="progress-bar bg-primary" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6 col-lg-3 col-sm-12 ">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <div class="d-flex mb-0">
-                    <h3 class="card-title text-white "><b><i class="bi bi-telephone-inbound fa-1x "></i> Contacto a beneficiarios Lote 1</b>
-                        <h><br>
-                            <h5 class="mb-1 font-weight-bold text-white">
-                                <b>SÍ: <span id="total_contacto_si_lote1"></span> -
-                                    <span id="porc_contacto_si_lote1"></span>%</b> |
-                                <b>NO: <span id="total_contacto_no_lote1"></span> -
-                                    <span id="porc_contacto_no_lote1"></span>%</b>
-                            </h5>
-                            <p class="mb-2 text-xs text-white"><i class="bi bi-telephone-fill"></i><span class="opacity-75">
-                                    Contacto establecido con beneficiarios del Lote 1</span></p>
-                            <div class="progress progress-sm h-5 mt-2 mb-3">
-                                <div id="progress-bar-contacto-lote1" class="progress-bar bg-black" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+
+        <!-- Tarjetas agrupadas a la derecha (2 filas x 3 tarjetas) -->
+        <div class="col-md-8">
+            <div class="row">
+                <!-- Primera fila de tres tarjetas -->
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body"><span class="corner corner-warning"></span>
+                            <div class="d-flex mb-0">
+                                <h3 class="card-title text-black "><b><i class="bi bi-person-slash"></i> Total de No Válidos Lote 1</b>
+                                    <h><br><br>
+                                        <h4 class="mb-1 font-weight-bold text-black"><b id="total_no_validos_lote1">0</b> | <b id="porc_no_validos_lote1"></b>%</h4>
+                                        <p class="mb-2 text-xs text-muted"><i class="bi bi-person-slash"></i> <span class="opacity-75">
+                                                Usuarios del Lote 1 No válidos según Interventoría</span></p>
+                                        <div class="progress progress-sm h-5 mt-2 mb-3">
+                                            <div id="progress-bar-no-validos-lote1" class="progress-bar bg-warning" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <h6 class="p-0">
+                                            <span id="current-time"></span>
+                                            <small class="text-muted text-xs ml-1">Hora actual</small>
+                                        </h6>
                             </div>
-                            <h6 class="p-0">
-                                <span id="current-time"></span>
-                                <small class="text-white text-xs ml-1">Hora actual</small>
-                            </h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body"><span class="corner corner-danger"></span>
+                            <div class="d-flex mb-0">
+                                <h3 class="card-title text-black "><b><i class="bi bi-broadcast"></i> Impacto por radio Lote 1</b>
+                                    <h><br><br>
+                                        <h4 class="mb-1 font-weight-bold text-black"><b id="total_radio_lote1">0</b> | <b>100%</b></h4>
+                                        <p class="mb-2 text-xs text-muted"><i class="bi bi-broadcast"></i> <span class="opacity-75">
+                                                Usuarios del Lote 1 registrados por pauta radial</span></p>
+                                        <div class="progress progress-sm h-5 mt-2 mb-3">
+                                            <div id="progress-bar-radio-lote1" class="progress-bar bg-danger" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <h6 class="p-0">
+                                            <span id="current-time"></span>
+                                            <small class="text-muted text-xs ml-1">Hora actual</small>
+                                        </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body"><span class="corner corner-info"></span>
+                            <div class="d-flex mb-0">
+                                <h3 class="card-title text-black "><b><i class="bi bi-wechat"></i> Impacto en redes Lote 1</b>
+                                    <h><br><br>
+                                        <h4 class="mb-1 font-weight-bold text-black"><b id="total_redes_sociales_lote1">0</b> | <b>100%</b></h4>
+                                        <p class="mb-2 text-xs text-muted"><i class="bi bi-wechat"></i><span class="opacity-75">
+                                                Usuarios del Lote 1 registrados por pauta en redes sociales</span></p>
+                                        <div class="progress progress-sm h-5 mt-2 mb-3">
+                                            <div id="progress-bar-redes-lote1" class="progress-bar bg-info" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <h6 class="p-0">
+                                            <span id="current-time"></span>
+                                            <small class="text-muted text-xs ml-1">Hora actual</small>
+                                        </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Segunda fila de tres tarjetas -->
+                <div class="col-md-4">
+                    <div class="card bg-danger text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex mb-0">
+                                <h3 class="card-title text-white "><b><i class="bi bi-telephone-inbound fa-1x "></i> Contacto a beneficiarios Lote 1</b>
+                                    <h><br>
+                                        <h5 class="mb-1 font-weight-bold text-white">
+                                            <b>SÍ: <span id="total_contacto_si_lote1"></span> -
+                                                <span id="porc_contacto_si_lote1"></span>%</b> |
+                                            <b>NO: <span id="total_contacto_no_lote1"></span> -
+                                                <span id="porc_contacto_no_lote1"></span>%</b>
+                                        </h5>
+                                        <p class="mb-2 text-xs text-white"><i class="bi bi-telephone-fill"></i><span class="opacity-75">
+                                                Contacto establecido con beneficiarios del Lote 1</span></p>
+                                        <div class="progress progress-sm h-5 mt-2 mb-3">
+                                            <div id="progress-bar-contacto-lote1" class="progress-bar bg-black" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <h6 class="p-0">
+                                            <span id="current-time"></span>
+                                            <small class="text-white text-xs ml-1">Hora actual</small>
+                                        </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <span class="corner corner-danger"></span>
+                        <div class="d-flex mb-0 mt-3">
+                            <div>
+                                <h3 class="card-title text-black">
+                                    <b>
+                                        <i class="fa-solid fa-building"></i> Inscritos por sede
+                                        <button id="openModalSedeLoteUno" type="button" class="btn btn-link p-0 ml-2 text-danger" style="font-size: 1.2rem; cursor: pointer;" title="Ver detalle por sede">
+                                            <i class="fa-solid fa-building fa-beat"></i>
+                                        </button>
+                                    </b>
+                                </h3>
+                                <h4 class="mb-1 font-weight-bold text-black"><b id="cantidadSedeLoteUno">0</b></h4>
+                                <p class="mb-2 text-xs text-muted">
+                                    <i class="fa fa-arrow-circle-up text-danger"></i>
+                                    <span class="opacity-75">Estudiantes inscritos por sede (Lote 1)</span>
+                                </p>
+                                <div class="progress progress-sm h-5 mt-2 mb-3">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <h6 class="p-0">
+                                    <span id="current-time"></span>
+                                    <small class="text-muted text-xs ml-1">Hora actual</small>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <span class="corner corner-danger"></span>
+                        <div class="d-flex mb-0 mt-3">
+                            <div>
+                                <h3 class="card-title text-black">
+                                    <b>
+                                        <i class="fa-solid fa-building"></i> Matriculados por sede
+                                        <button id="openModalSedeMatriculadosLoteUno" type="button" class="btn btn-link p-0 ml-2 text-danger" style="font-size: 1.2rem; cursor: pointer;" title="Ver detalle por sede">
+                                            <i class="fa-solid fa-building fa-beat"></i>
+                                        </button>
+                                    </b>
+                                </h3>
+                                <h4 class="mb-1 font-weight-bold text-black"><b id="cantidadSedeMatriculadosLoteUno">0</b></h4>
+                                <p class="mb-2 text-xs text-muted">
+                                    <i class="fa fa-arrow-circle-up text-danger"></i>
+                                    <span class="opacity-75">Estudiantes matriculados por sede (Lote 1)</span>
+                                </p>
+                                <div class="progress progress-sm h-5 mt-2 mb-3">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <h6 class="p-0">
+                                    <span id="current-time"></span>
+                                    <small class="text-muted text-xs ml-1">Hora actual</small>
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const openModal = document.getElementById('openModalSedeMatriculadosLoteUno');
+        const cantidadSede = document.getElementById('cantidadSedeMatriculadosLoteUno');
+        const progressBar = document.querySelector('#page-1 .progress-bar.bg-danger');
+
+        let isLoading = false; // Variable para evitar doble click
+
+        openModal.addEventListener('click', async () => {
+            // Prevenir doble click
+            if (isLoading) return;
+
+            isLoading = true;
+
+            // Mostrar loader
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Obteniendo matriculados por sede',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const respuesta = await fetch('components/cardContadores/actualizarContadores.php');
+                const datos = await respuesta.json();
+                const sedes = datos.sedesMatriculadosLote1;
+
+                if (!sedes || sedes.length === 0) {
+                    throw new Error('No se encontraron sedes.');
+                }
+
+                let listHtml = '<ul class="list-group" style="max-height:300px;overflow-y:auto;">';
+                sedes.forEach((sede, idx) => {
+                    listHtml += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer" 
+                        style="cursor:pointer;" 
+                        data-idx="${idx}">
+                        ${sede.sede}
+                        <span class="badge bg-magenta-dark rounded-pill">${sede.cantidad}</span>
+                    </li>`;
+                });
+                listHtml += '</ul>';
+
+                // Cerrar loader y mostrar datos
+                await Swal.fire({
+                    title: 'Matriculados por sede (Lote 1)',
+                    html: listHtml,
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                    cancelButtonText: 'Cerrar',
+                    didOpen: () => {
+                        Swal.getHtmlContainer().querySelectorAll('li').forEach(li => {
+                            li.addEventListener('click', () => {
+                                Swal.close();
+                                const idx = li.getAttribute('data-idx');
+                                const sede = sedes[idx];
+                                cantidadSede.textContent = `Sede: ${sede.sede} | Cantidad: ${sede.cantidad}`;
+                                progressBar.style.width = `${sede.cantidad}%`;
+                                progressBar.setAttribute('aria-valuenow', sede.cantidad);
+                            });
+                        });
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error al cargar las sedes:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudieron cargar las sedes matriculadas.',
+                    icon: 'error'
+                });
+                cantidadSede.textContent = 'Error al cargar las sedes.';
+            } finally {
+                isLoading = false; // Liberar el lock
+            }
+        });
+    });
+</script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const openModal = document.getElementById('openModalSedeLoteUno');
+        const cantidadSede = document.getElementById('cantidadSedeLoteUno');
+        const progressBar = document.querySelector('#page-1 .progress-bar.bg-danger');
+
+        let isLoading = false; // Variable para evitar doble click
+
+        openModal.addEventListener('click', async () => {
+            // Prevenir doble click
+            if (isLoading) return;
+
+            isLoading = true;
+
+            // Mostrar loader
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Obteniendo inscritos por sede',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const respuesta = await fetch('components/cardContadores/actualizarContadores.php');
+                const datos = await respuesta.json();
+                const sedes = datos.sedesLote1;
+
+                if (!sedes || sedes.length === 0) {
+                    throw new Error('No se encontraron sedes.');
+                }
+
+                let listHtml = '<ul class="list-group" style="max-height:300px;overflow-y:auto;">';
+                sedes.forEach((sede, idx) => {
+                    listHtml += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center cursor-pointer" 
+                        style="cursor:pointer;" 
+                        data-idx="${idx}">
+                        ${sede.sede}
+                        <span class="badge bg-magenta-dark rounded-pill">${sede.cantidad}</span>
+                    </li>`;
+                });
+                listHtml += '</ul>';
+
+                // Cerrar loader y mostrar datos
+                await Swal.fire({
+                    title: 'Inscritos por sede (Lote 1)',
+                    html: listHtml,
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                    cancelButtonText: 'Cerrar',
+                    didOpen: () => {
+                        Swal.getHtmlContainer().querySelectorAll('li').forEach(li => {
+                            li.addEventListener('click', () => {
+                                Swal.close();
+                                const idx = li.getAttribute('data-idx');
+                                const sede = sedes[idx];
+                                cantidadSede.textContent = `Sede: ${sede.sede} | Cantidad: ${sede.cantidad}`;
+                                progressBar.style.width = `${sede.cantidad}%`;
+                                progressBar.setAttribute('aria-valuenow', sede.cantidad);
+                            });
+                        });
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error al cargar las sedes:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudieron cargar las sedes.',
+                    icon: 'error'
+                });
+                cantidadSede.textContent = 'Error al cargar las sedes.';
+            } finally {
+                isLoading = false; // Liberar el lock
+            }
+        });
+    });
+</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
@@ -313,7 +625,7 @@
                 }
 
                 // Construir la lista HTML para Swal
-                let listHtml = '<ul class="list-group">';
+                let listHtml = '<ul class="list-group" style="max-height:300px;overflow-y:auto;">';
                 generos.forEach((genero, idx) => {
                     // Corregir nombre si es necesario
                     if (genero.gener === 'LGBIQ+') genero.gener = 'LGTBIQ+';
@@ -354,5 +666,130 @@
                 cantidadGenero.textContent = 'Error al cargar los géneros.';
             }
         });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const openModal = document.getElementById('openModalBootcampsLoteUno');
+        const bootcampList = document.getElementById('bootcampListLoteUno');
+        const totalBootcamps = document.getElementById('totalBootcampsLoteUno');
+
+        let isLoading = false; // Variable para evitar doble click
+
+        // Función para cargar y mostrar los bootcamps
+        async function cargarBootcamps() {
+            try {
+                const respuesta = await fetch('components/cardContadores/actualizarContadores.php');
+                const datos = await respuesta.json();
+                const bootcamps = datos.bootcampsLote1;
+
+                if (!bootcamps || bootcamps.length === 0) {
+                    bootcampList.innerHTML = '<p class="text-muted text-center">No se encontraron bootcamps.</p>';
+                    totalBootcamps.textContent = '0';
+                    return;
+                }
+
+                // Calcular total de inscritos
+                const total = bootcamps.reduce((sum, bootcamp) => sum + parseInt(bootcamp.cantidad), 0);
+                totalBootcamps.textContent = total;
+
+                // Mostrar TODOS los bootcamps (scrolleable)
+                let listHtml = '';
+                bootcamps.forEach((bootcamp, index) => {
+                    listHtml += `
+                    <div class="d-flex justify-content-between align-items-center py-2 ${index < bootcamps.length - 1 ? 'border-bottom' : ''}" style="border-color: #f0f0f0;">
+                        <span class="text-dark" style="font-size: 0.85rem; font-weight: 500;" title="${bootcamp.bootcamp}">
+                            ${bootcamp.bootcamp}
+                        </span>
+                        <span class="badge badge-primary">${bootcamp.cantidad}</span>
+                    </div>
+                `;
+                });
+
+                // NO mostrar indicador de "más bootcamps" - se eliminó esta parte
+
+                bootcampList.innerHTML = listHtml;
+
+            } catch (error) {
+                console.error('Error al cargar bootcamps:', error);
+                bootcampList.innerHTML = '<p class="text-danger text-center">Error al cargar bootcamps.</p>';
+            }
+        }
+
+        // Modal con loader y protección contra doble click
+        openModal.addEventListener('click', async () => {
+            // Prevenir doble click
+            if (isLoading) return;
+
+            isLoading = true;
+
+            // Mostrar loader
+            Swal.fire({
+                title: 'Cargando...',
+                text: 'Obteniendo lista completa de bootcamps',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const respuesta = await fetch('components/cardContadores/actualizarContadores.php');
+                const datos = await respuesta.json();
+                const bootcamps = datos.bootcampsLote1;
+
+                if (!bootcamps || bootcamps.length === 0) {
+                    throw new Error('No se encontraron bootcamps.');
+                }
+
+                let listHtml = '<ul class="list-group" style="max-height:400px;overflow-y:auto;">';
+                bootcamps.forEach((bootcamp, idx) => {
+                    listHtml += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${bootcamp.bootcamp}</span>
+                        <span class="badge bg-primary rounded-pill">${bootcamp.cantidad}</span>
+                    </li>
+                `;
+                });
+                listHtml += '</ul>';
+
+                const total = bootcamps.reduce((sum, bootcamp) => sum + parseInt(bootcamp.cantidad), 0);
+
+                // Cerrar loader y mostrar datos
+                await Swal.fire({
+                    title: 'Inscritos en Bootcamps (Lote 1)',
+                    html: `
+                    <div class="mb-3">
+                        <h5>Total de inscritos: <span class="badge badge-primary">${total}</span></h5>
+                        <p class="text-muted">Mostrando ${bootcamps.length} bootcamps</p>
+                    </div>
+                    ${listHtml}
+                `,
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                    cancelButtonText: 'Cerrar',
+                    width: '600px'
+                });
+
+            } catch (error) {
+                console.error('Error al cargar bootcamps:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudieron cargar los bootcamps.',
+                    icon: 'error'
+                });
+            } finally {
+                isLoading = false; // Liberar el lock
+            }
+        });
+
+        // Cargar bootcamps al inicializar
+        cargarBootcamps();
+
+        // Recargar cada 10 segundos
+        setInterval(cargarBootcamps, 10000);
     });
 </script>

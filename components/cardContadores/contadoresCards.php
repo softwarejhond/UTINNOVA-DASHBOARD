@@ -622,21 +622,24 @@
     .scale-container {
         transform: scale(0.9);
         transform-origin: top left;
-        width: 111.11%; /* Compensar la reducción de escala para ocupar el espacio completo */
+        width: 111.11%;
+        /* Compensar la reducción de escala para ocupar el espacio completo */
         height: 111.11%;
     }
-    
+
     /* Mantener el contenedor principal responsivo */
     @media (max-width: 768px) {
         .scale-container {
-            transform: scale(0.7); /* Escala más pequeña en móviles */
+            transform: scale(0.7);
+            /* Escala más pequeña en móviles */
             width: 142.85%;
         }
     }
-    
+
     @media (max-width: 480px) {
         .scale-container {
-            transform: scale(0.6); /* Escala aún más pequeña en pantallas muy pequeñas */
+            transform: scale(0.6);
+            /* Escala aún más pequeña en pantallas muy pequeñas */
             width: 166.67%;
         }
     }
@@ -648,9 +651,9 @@
     <!-- Página 2 -->
     <?php include_once 'page2.php'; ?>
     <!-- Paginador -->
-    <div id="pagination-container" class="d-flex justify-content-center mb-4">
+    <div id="pagination-container" class="d-flex justify-content-center mb-0">
         <nav>
-            <ul class="pagination pagination-lg">
+            <ul class="pagination pagination-lg mt-5">
                 <li class="page-item disabled" id="prev-page">
                     <a class="page-link" href="#" aria-label="Anterior">
                         <span aria-hidden="true">&laquo;</span>
@@ -847,6 +850,12 @@
                     $('#total_contacto_no_lote2').text(data.total_contacto_no_lote2);
                     $('#porc_contacto_no_lote2').text(data.porc_contacto_no_lote2);
 
+                    $('#total_no_validos_lote1').text(data.total_no_validos_lote1);
+                    $('#porc_no_validos_lote1').text(data.porc_no_validos_lote1);
+                    $('#total_no_validos_lote2').text(data.total_no_validos_lote2);
+                    $('#porc_no_validos_lote2').text(data.porc_no_validos_lote2);
+
+
                     // Actualizar barras de progreso (usando porcentaje de contactos SÍ)
                     $('#progress-bar-contacto-lote1')
                         .css('width', (data.porc_contacto_si_lote1 || 0) + '%')
@@ -855,6 +864,51 @@
                     $('#progress-bar-contacto-lote2')
                         .css('width', (data.porc_contacto_si_lote2 || 0) + '%')
                         .attr('aria-valuenow', data.porc_contacto_si_lote2 || 0);
+
+                    // Impacto por radio por lote
+                    $('#total_radio_lote1').text(data.total_radio_lote1);
+                    $('#total_radio_lote2').text(data.total_radio_lote2);
+
+                    // Impacto en redes sociales por lote
+                    $('#total_redes_sociales_lote1').text(data.total_redes_sociales_lote1);
+                    $('#total_redes_sociales_lote2').text(data.total_redes_sociales_lote2);
+
+                    // Opcional: Actualizar barras de progreso basadas en porcentajes relativos al total del lote
+                    const porcentajeRadioLote1 = data.total_registrados_lote1 > 0 ?
+                        ((data.total_radio_lote1 / data.total_registrados_lote1) * 100).toFixed(2) : 0;
+                    const porcentajeRadioLote2 = data.total_registrados_lote2 > 0 ?
+                        ((data.total_radio_lote2 / data.total_registrados_lote2) * 100).toFixed(2) : 0;
+
+                    const porcentajeRedesLote1 = data.total_registrados_lote1 > 0 ?
+                        ((data.total_redes_sociales_lote1 / data.total_registrados_lote1) * 100).toFixed(2) : 0;
+                    const porcentajeRedesLote2 = data.total_registrados_lote2 > 0 ?
+                        ((data.total_redes_sociales_lote2 / data.total_registrados_lote2) * 100).toFixed(2) : 0;
+
+                    // Actualizar barras de progreso
+                    $('#progress-bar-radio-lote1')
+                        .css('width', porcentajeRadioLote1 + '%')
+                        .attr('aria-valuenow', porcentajeRadioLote1);
+
+                    $('#progress-bar-radio-lote2')
+                        .css('width', porcentajeRadioLote2 + '%')
+                        .attr('aria-valuenow', porcentajeRadioLote2);
+
+                    $('#progress-bar-redes-lote1')
+                        .css('width', porcentajeRedesLote1 + '%')
+                        .attr('aria-valuenow', porcentajeRedesLote1);
+
+                    $('#progress-bar-redes-lote2')
+                        .css('width', porcentajeRedesLote2 + '%')
+                        .attr('aria-valuenow', porcentajeRedesLote2);
+
+                    // Actualizar barras de progreso
+                    $('#progress-bar-no-validos-lote1')
+                        .css('width', (data.porc_no_validos_lote1 || 0) + '%')
+                        .attr('aria-valuenow', data.porc_no_validos_lote1 || 0);
+
+                    $('#progress-bar-no-validos-lote2')
+                        .css('width', (data.porc_no_validos_lote2 || 0) + '%')
+                        .attr('aria-valuenow', data.porc_no_validos_lote2 || 0);
                 },
                 error: function(error) {
                     console.error('Error al obtener los datos:', error);
