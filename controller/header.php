@@ -87,6 +87,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAbsence.php?action=export', 'ausencias')">Registros de ausencia</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/to_approve/export_excel_general_all.php', 'notas_general')">Informe de notas general</a></li>
+
                         </ul>
                     </li>
                 <?php endif; ?>

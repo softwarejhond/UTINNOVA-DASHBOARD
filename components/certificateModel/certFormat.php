@@ -264,20 +264,20 @@ $certificadosUrl = $isProduction
                                 while ($row = $res->fetch_assoc()):
                                 ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($row['full_name']) ?></td>
-                                        <td><?= htmlspecialchars($row['type_id']) ?></td>
-                                        <td><?= htmlspecialchars($row['number_id']) ?></td>
-                                        <td><?= htmlspecialchars($row['email']) ?></td>
-                                        <td><?= htmlspecialchars($row['program']) ?></td>
-                                        <td><?= htmlspecialchars($row['mode']) ?></td>
-                                        <td><?= htmlspecialchars($row['bootcamp_name']) ?></td>
-                                        <td><span class="badge bg-teal-light text-black"><?= htmlspecialchars($row['serie_certificado']) ?></span>
+                                        <td><?= htmlspecialchars($row['full_name'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['type_id'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['number_id'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['email'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['program'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['mode'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['bootcamp_name'] ?? 'N/A') ?></td>
+                                        <td><span class="badge bg-teal-light text-black"><?= htmlspecialchars($row['serie_certificado'] ?? 'N/A') ?></span>
                                         </td>
-                                        <td><?= htmlspecialchars($row['nombre_emisor']) ?></td>
-                                        <td><?= htmlspecialchars($row['fecha_emision']) ?></td>
+                                        <td><?= htmlspecialchars($row['nombre_emisor'] ?? 'N/A') ?></td>
+                                        <td><?= htmlspecialchars($row['fecha_emision'] ?? 'N/A') ?></td>
                                         <td class="text-center">
                                             <button class="btn bg-indigo-dark text-white btn-sm ver-cert-btn"
-                                                data-serie="<?= htmlspecialchars($row['serie_certificado']) ?>">
+                                                data-serie="<?= htmlspecialchars($row['serie_certificado'] ?? '') ?>">
                                                 <i class="fas fa-eye"></i> Ver
                                             </button>
                                         </td>

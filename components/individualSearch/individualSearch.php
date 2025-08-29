@@ -413,12 +413,10 @@
                                                         $certData = $resultCert->fetch_assoc();
 
                                                         // Badge para has_certification
-                                                        if ($certData && $certData['has_certification'] == 1) {
-                                                            echo '<span class="badge bg-success me-2">Sí</span>';
-                                                        } elseif ($certData && $certData['has_certification'] == 'NO') {
-                                                            echo '<span class="badge bg-secondary me-2">No</span>';
-                                                        } else {
+                                                        if ($certData && $certData['has_certification'] == 'SI') {
                                                             echo '<span class="badge bg-teal-dark me-2">Sí</span>';
+                                                        } else {
+                                                            echo '<span class="badge bg-secondary me-2">No</span>';
                                                         }
 
                                                         // Badge para program_certified
@@ -3272,6 +3270,12 @@
                             timer: 2000
                         }).then(() => {
                             location.reload();
+                        });
+                    } else if (response === "desmatricular_primero") {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'No se puede cambiar el estado',
+                            text: 'El estudiante ya está matriculado en un grupo. Debe desmatricularlo antes de cambiar el estado de admisión.'
                         });
                     } else {
                         Swal.fire({

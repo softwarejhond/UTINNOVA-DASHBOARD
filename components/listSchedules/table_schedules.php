@@ -147,6 +147,8 @@ if ($result->num_rows > 0) {
                                 <option value="Análisis de Datos" <?php echo ($schedule['program'] == 'Análisis de Datos') ? 'selected' : ''; ?>>Análisis de Datos</option>
                                 <option value="Inteligencia Artificial" <?php echo ($schedule['program'] == 'Inteligencia Artificial') ? 'selected' : ''; ?>>Inteligencia Artificial</option>
                                 <option value="Ciberseguridad" <?php echo ($schedule['program'] == 'Ciberseguridad') ? 'selected' : ''; ?>>Ciberseguridad</option>
+                                <option value="Blockchain" <?php echo ($schedule['program'] == 'Blockchain') ? 'selected' : ''; ?>>Blockchain</option>
+                                <option value="Arquitectura en la Nube" <?php echo ($schedule['program'] == 'Arquitectura en la Nube') ? 'selected' : ''; ?>>Arquitectura en la Nube</option>
                             </select>
                         </div>
                         <div class="mb-3">

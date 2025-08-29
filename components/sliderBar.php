@@ -219,6 +219,27 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Académico' || $rol === 'Control maestro'): ?>
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Emitir constancias de finalización">
+                                <a href="constanciasFinalizacion.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="fa-solid fa-user-graduate icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Constancias</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro' || $rol === 'Interventoría'): ?>
                         <div class="col-4">
                             <div class="checkbox"

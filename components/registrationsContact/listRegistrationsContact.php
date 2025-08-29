@@ -1797,6 +1797,12 @@ function obtenerSedes($conn)
                         }).then(() => {
                             location.reload();
                         });
+                    } else if (response === "desmatricular_primero") {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'No se puede cambiar el estado',
+                            text: 'El estudiante ya está matriculado en un grupo. Debe desmatricularlo antes de cambiar el estado de admisión.'
+                        });
                     } else {
                         Swal.fire({
                             icon: 'error',

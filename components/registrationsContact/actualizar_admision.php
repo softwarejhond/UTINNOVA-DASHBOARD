@@ -12,10 +12,6 @@ if (!isset($conn) || !$conn) {
 
 // Verificar que los datos necesarios se hayan enviado mediante POST
 if (isset($_POST['id']) && isset($_POST['nuevoEstado'])) {
-    // Depuración: Verifica los valores recibidos
-    error_log("ID recibido: " . $_POST['id']);
-    error_log("Nuevo Estado recibido: " . $_POST['nuevoEstado']);
-
     $id = $_POST['id'];
     $nuevoEstado = $_POST['nuevoEstado'];
 
@@ -25,22 +21,61 @@ if (isset($_POST['id']) && isset($_POST['nuevoEstado'])) {
         exit;
     }
 
-    // Consulta SQL para actualizar el medio de contacto
+    // 1. Buscar el email del usuario
+    $email = null;
+    $sqlEmail = "SELECT email FROM user_register WHERE number_id = ?";
+    $stmtEmail = $conn->prepare($sqlEmail);
+    if ($stmtEmail) {
+        $stmtEmail->bind_param('i', $id);
+        $stmtEmail->execute();
+        $stmtEmail->bind_result($email);
+        $stmtEmail->fetch();
+        $stmtEmail->close();
+    }
+
+    // 2. Verificar si existe en la tabla groups por number_id o email
+    $sqlCheck = "SELECT COUNT(*) FROM groups WHERE number_id = ? OR email = ?";
+    $stmtCheck = $conn->prepare($sqlCheck);
+    if ($stmtCheck) {
+        $stmtCheck->bind_param('is', $id, $email);
+        $stmtCheck->execute();
+        $stmtCheck->bind_result($existeGrupo);
+        $stmtCheck->fetch();
+        $stmtCheck->close();
+
+        if ($existeGrupo > 0) {
+            echo "desmatricular_primero";
+            exit;
+        }
+    } else {
+        error_log("Error al preparar la consulta de verificación: " . $conn->error);
+        echo "error";
+        exit;
+    }
+
+    // 3. Si no existe en groups, actualizar el estado de admisión
     $updateSql = "UPDATE user_register SET statusAdmin = ? WHERE number_id = ?";
     $stmt = $conn->prepare($updateSql);
 
     if ($stmt) {
-        // Vincular los parámetros para la consulta preparada
         $stmt->bind_param('si', $nuevoEstado, $id);
-
-        // Ejecutar la consulta
         if ($stmt->execute()) {
+            // Registrar en el historial de cambios
+            session_start();
+            $username = $_SESSION['username'] ?? 'Sistema';
+            $descripcion = "Cambio de estado de admisión a '$nuevoEstado'";
+            $historialStmt = $conn->prepare("INSERT INTO change_history (student_id, user_change, change_made) VALUES (?, ?, ?)");
+            $historialStmt->bind_param('iss', $id, $username, $descripcion);
+            $historialStmt->execute();
+            $historialStmt->close();
+
             echo "success"; // Devolver éxito si la actualización fue exitosa
         } else {
             // Log de error para depuración
             error_log("Error en la ejecución de la consulta: " . $stmt->error);
             echo "error"; // Devolver error si hubo un problema con la consulta
         }
+
 
         // Cerrar la consulta preparada
         $stmt->close();
