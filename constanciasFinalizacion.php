@@ -88,15 +88,15 @@ $rol = $infoUsuario['rol'];
     $(document).ready(function() {
         $('#link-dashboard').addClass('pagina-activa');
 
-        // Inicialización de DataTable
-        $('#tablaFormados').DataTable({
-            responsive: true,
-            language: 'controller/datatable_esp.json',
-            paging: true, // Habilita la paginación
-            searching: true, // Muestra la barra de búsqueda
-            lengthChange: true, // Muestra el selector de cantidad de registros
-            info: true, // Muestra el texto de "Mostrando X de Y registros"
-        });
+        // // // Inicialización de DataTable
+        // // $('#tablaConstanciasEmitidas').DataTable({
+        // //     responsive: true,
+        // //     language: 'controller/datatable_esp.json',
+        // //     paging: true, // Habilita la paginación
+        // //     searching: true, // Muestra la barra de búsqueda
+        // //     lengthChange: true, // Muestra el selector de cantidad de registros
+        // //     info: true, // Muestra el texto de "Mostrando X de Y registros"
+        // // });
     });
 </script>
 

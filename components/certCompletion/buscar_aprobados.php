@@ -253,6 +253,19 @@ try {
     $totalAprobados = 0;
     
     foreach ($estudiantesData as $row) {
+        // Verificar si ya existe constancia para este estudiante
+        $constanciaExiste = false;
+        $checkConstanciaQuery = "SELECT COUNT(*) as total FROM constancias_emitidas WHERE number_id = ?";
+        $checkConstanciaStmt = mysqli_prepare($conn, $checkConstanciaQuery);
+        if ($checkConstanciaStmt) {
+            mysqli_stmt_bind_param($checkConstanciaStmt, "s", $row['number_id']);
+            mysqli_stmt_execute($checkConstanciaStmt);
+            $checkConstanciaResult = mysqli_stmt_get_result($checkConstanciaStmt);
+            $checkConstanciaRow = mysqli_fetch_assoc($checkConstanciaResult);
+            $constanciaExiste = ($checkConstanciaRow['total'] > 0);
+            mysqli_stmt_close($checkConstanciaStmt);
+        }
+        
         // Calcular datos del estudiante
         $horasAsistidas = min(calcularHorasTotalesEstudiante($conn, $row['number_id']), $horasRequeridas);
         $porcentajeAsistencia = min(($horasAsistidas / $horasRequeridas) * 100, 100);
@@ -270,10 +283,19 @@ try {
                           data-student-email="' . htmlspecialchars($row['institutional_email']) . '"
                           data-student-modalidad="presencial"
                           data-student-start-date="' . date('Y-m-d') . '"
-                          data-student-end-date="' . date('Y-m-d') . '">';
+                          data-student-end-date="' . date('Y-m-d') . '"
+                          data-has-certificate="' . ($constanciaExiste ? 'true' : 'false') . '">';
+        
+        // Checkbox con estado según si ya tiene constancia
         $tableContent .= '<td class="text-center">';
-        $tableContent .= '<input type="checkbox" class="student-checkbox" value="' . htmlspecialchars($row['number_id']) . '">';
+        if ($constanciaExiste) {
+            $tableContent .= '<input type="checkbox" class="student-checkbox custom-checkbox" value="' . htmlspecialchars($row['number_id']) . '" disabled title="Ya tiene constancia generada">';
+            $tableContent .= '<br><small class="text-success"><i class="fa fa-check-circle"></i> Generada</small>';
+        } else {
+            $tableContent .= '<input type="checkbox" class="student-checkbox custom-checkbox" value="' . htmlspecialchars($row['number_id']) . '">';
+        }
         $tableContent .= '</td>';
+        
         $tableContent .= '<td>' . $contador . '</td>';
         $tableContent .= '<td>' . htmlspecialchars($row['number_id']) . '</td>';
         $tableContent .= '<td>' . htmlspecialchars($row['full_name']) . '</td>';
@@ -307,16 +329,13 @@ try {
         $tableContent .= '</small>';
         $tableContent .= '</td>';
         
-        // Estado (siempre aprobado)
+        // Estado (siempre aprobado, pero indicar si ya tiene constancia)
         $tableContent .= '<td class="text-center">';
-        $tableContent .= '<span class="badge" style="background-color: #ffd700; color: #000;"><i class="fa fa-medal"></i> Aprobado</span>';
-        $tableContent .= '</td>';
-        
-        // Botón de acción (sin funcionalidad por el momento)
-        $tableContent .= '<td class="text-center">';
-        $tableContent .= '<button class="btn btn-sm btn-outline-primary" disabled>';
-        $tableContent .= '<i class="fa fa-certificate"></i> Generar';
-        $tableContent .= '</button>';
+        if ($constanciaExiste) {
+            $tableContent .= '<span class="badge" style="background-color: #66cc00; color: #000;"><i class="fa fa-certificate"></i> Con Constancia</span>';
+        } else {
+            $tableContent .= '<span class="badge" style="background-color: #ffd700; color: #000;"><i class="fa fa-medal"></i> Aprobado</span>';
+        }
         $tableContent .= '</td>';
         
         $tableContent .= '</tr>';

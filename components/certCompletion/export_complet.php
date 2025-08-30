@@ -7,8 +7,8 @@ require __DIR__ . '../../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
 require __DIR__ . '../../../vendor/phpmailer/phpmailer/src/SMTP.php';
 require __DIR__ . '../../../vendor/phpmailer/phpmailer/src/Exception.php';
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
+// Cambiar las importaciones de DOMPDF por mPDF
+use Mpdf\Mpdf;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -70,10 +70,43 @@ function sendJsonResponse($success, $message, $phpmailer_error = null)
     exit;
 }
 
+// Función mejorada para limpiar el nombre del bootcamp
+function limpiarNombreBootcamp($nombreBootcamp) {
+    // Eliminar espacios y saltos de línea al inicio y final
+    $nombreBootcamp = trim($nombreBootcamp);
+    // Reemplazar múltiples espacios, tabs y saltos de línea por un solo espacio
+    $nombreBootcamp = preg_replace('/\s+/', ' ', $nombreBootcamp);
+
+    // Si el nombre está vacío o es N/A, devolverlo tal cual
+    if (empty($nombreBootcamp) || $nombreBootcamp === 'N/A') {
+        return $nombreBootcamp;
+    }
+
+    // Eliminar cualquier código numérico al inicio (ej: "254 - ")
+    $nombreLimpio = preg_replace('/^\d+\s*-\s*/', '', $nombreBootcamp);
+
+    // Eliminar cualquier código alfanumérico al final (ej: " - ABC123XYZ")
+    $nombreLimpio = preg_replace('/\s*-\s*[A-Z0-9]+$/i', '', $nombreLimpio);
+
+    // Eliminar todo lo que esté después de "Nivel Explorador", "Nivel Integrador" o "Nivel Innovador" (incluyendo el espacio)
+    $nombreLimpio = preg_replace('/(Explorador|Integrador|Innovador)\b.*/i', '$1', $nombreLimpio);
+
+    // Eliminar espacios extra finales
+    $nombreLimpio = trim($nombreLimpio);
+
+    return $nombreLimpio;
+}
+
 // Recibir datos del formulario
 $nombre_estudiante = $_POST['nombre_estudiante'] ?? 'N/A';
 $cedula = $_POST['cedula'] ?? 'N/A';
-$nombre_bootcamp = $_POST['nombre_bootcamp'] ?? 'N/A';
+$nombre_bootcamp_original = $_POST['nombre_bootcamp'] ?? 'N/A';
+$nombre_bootcamp = limpiarNombreBootcamp($nombre_bootcamp_original); // Aplicar limpieza
+
+// Verificar que la limpieza funcionó correctamente (para depuración)
+error_log("Nombre original: " . $nombre_bootcamp_original);
+error_log("Nombre limpio: " . $nombre_bootcamp);
+
 $fecha_inicio = $_POST['fecha_inicio'] ?? '';
 $fecha_fin = $_POST['fecha_fin'] ?? '';
 $modalidad_asistencia = $_POST['modalidad'] ?? 'N/A';
@@ -146,12 +179,62 @@ if ($constancia_existente) {
         $mail->Subject = 'Constancia de Participación y Finalización Satisfactoria - Bootcamp Talento Tech';
 
         $mail->Body = "
-            <p>Hola <b>" . htmlspecialchars($nombre_estudiante) . "</b>,</p>
-            <p>Adjuntamos tu constancia de participación al bootcamp <b>" . htmlspecialchars($nombre_bootcamp) . "</b> del programa Talento Tech.</p>
-            <p>¡Felicitaciones por tu participación!</p>
-            <p>Si tienes dudas, contáctanos a <b>servicioalcliente.ut2@cendi.edu.co</b></p>
-            <p>Equipo Talento Tech</p>
-        ";
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f9;
+                    color: #333;
+                }
+                .container {
+                    max-width: 600px;
+                    margin: 20px auto;
+                    background: #ffffff;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                }
+                .header-image {
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 0;
+                    padding: 0;
+                }
+                .content {
+                    padding: 20px;
+                    line-height: 1.6;
+                    color: #000000;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 20px;
+                    color: #777;
+                    font-size: 12px;
+                    padding: 0 20px 20px 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <img src='https://dashboard.utinnova.co/dashboard/img/header_correo_const.png' alt='Header Constancia' class='header-image'>
+                <div class='content'>
+                    <p>Hola <b>" . htmlspecialchars($nombre_estudiante) . "</b>,</p>
+                    <p>Adjuntamos tu constancia de participación al bootcamp <b>" . htmlspecialchars($nombre_bootcamp) . "</b> del programa Talento Tech.</p>
+                    <p><strong>Nota:</strong> Tu constancia está protegida con contraseña. Usa tu número de documento para abrirla.</p>
+                    <p>¡Felicitaciones por tu participación!</p>
+                    <p>Si tienes dudas, contáctanos a <b>servicioalcliente.ut2@cendi.edu.co</b></p>
+                </div>
+                <div class='footer'>
+                    <p>Equipo Talento Tech - Unión Temporal Innova Digital</p>
+                </div>
+            </div>
+        </body>
+        </html>";
 
         $mail->addAttachment($filePath, 'constancia_' . $cedula . '.pdf');
 
@@ -202,16 +285,12 @@ $headerImg = imgToBase64($rootPath . 'img/header_constancia.png');
 $footerImg1 = imgToBase64($rootPath . 'img/footer_certificado.png');
 $firma = imgToBase64($rootPath . 'img/firma_certificado.jpg');
 $marcaAgua = imgToBase64($rootPath . 'img/innova_opaco.png');
+$headerCorreo = imgToBase64($rootPath . 'img/header_correo_const.png'); // Agregar esta línea
 
 // Verificar que las imágenes se cargaron correctamente
-if (empty($headerImg) || empty($footerImg1) || empty($firma)) {
+if (empty($headerImg) || empty($footerImg1) || empty($firma) || empty($headerCorreo)) {
     sendJsonResponse(false, 'Error al cargar las imágenes de la constancia. Verifica las rutas de las imágenes.');
 }
-
-// Opciones para mejorar el manejo de imágenes
-$options = new Options();
-$options->set('isHtml5ParserEnabled', true);
-$options->set('isRemoteEnabled', true);
 
 $html = '<html>
 <head>
@@ -239,29 +318,26 @@ $html = '<html>
 
         .header-img {
             display: block;
-            margin-left: -35px;
-            margin-right: 0;
-            width: 110%;
-            max-width: none;
+            margin: 0 auto; /* Centrar horizontalmente */
+            width: 95%; /* Reducir el ancho para que no se corte */
+            max-width: 600px; /* Limitar el ancho máximo */
             height: auto;
-            margin-top: -70px;
-            margin-bottom: 12px;
+            margin-top: 20px; /* Separar del borde superior */
+            margin-bottom: 5px;
         }
         .footer-img {
             display: block;
-            margin-left: -35px;
-            margin-right: 0;
-            width: 110%;
-            max-width: none;
+            margin: 0 auto; /* Centrar horizontalmente */
+            width: 95%; /* Reducir el ancho para que no se corte */
+            max-width: 600px; /* Limitar el ancho máximo */
             height: auto;
-            position: fixed;
-            left: 0;
-            bottom: -45px;
+            margin-top: 30px; /* Separar del contenido anterior */
+            margin-bottom: 20px; /* Separar del borde inferior */
         }
 
         .fecha { margin-top: 20px; margin-bottom: 30px; }
         .asunto { margin-bottom: 20px; text-align: center; }
-        .firma { margin-top: 40px; margin-bottom: 10px; text-align: left; }
+        .firma { margin-top: 120px; margin-bottom: 10px; text-align: left; }
         .linea { border-top: 1px solid #222; width: 250px; margin: 10px 0 0 0; }
         .nombre { font-weight: bold; margin-top: 10px; }
         .cargo { margin-bottom: 0; }
@@ -270,7 +346,7 @@ $html = '<html>
 <body>
     <img src="' . $headerImg . '" alt="Header" class="header-img">
     
-    <div class="asunto" style="margin-top:30px; margin-bottom:30px;">
+    <div class="asunto" style="margin-top:10px; margin-bottom:30px;">
         <b>CONSTANCIA DE PARTICIPACIÓN Y FINALIZACIÓN SATISFACTORIA</b>
     </div>
     
@@ -283,13 +359,13 @@ $html = '<html>
     </div>
     
     <div class="justificado" style="margin-bottom:30px;">
-        En este sentido, se expide la presente constancia como documento válido que da cuenta de la participación y cumplimiento del beneficiario en el proceso formativo, la cual tendrá validez hasta la expedición del certificado oficial por parte del <b>Ministerio de Tecnologías de la Información y las Comunicaciones - MinTIC</b>.
+        En este sentido PRUEBA PRTUEBA PRUEBA PRUEBA, se expide la presente constancia como documento válido que da cuenta de la participación y cumplimiento del beneficiario en el proceso formativo, la cual tendrá validez hasta la expedición del certificado oficial por parte del <b>Ministerio de Tecnologías de la Información y las Comunicaciones - MinTIC</b>.
     </div>
     
     <div style="margin-bottom:40px;">
         Se firma en la ciudad de <b>Bogotá</b>, a los <b>' . $dia_actual . '</b> del mes de <b>' . $mes_actual . '</b> de <b>' . $anio_actual . '</b>.
     </div>
-    
+    <br><br>
     <div class="firma">
         <img src="' . $firma . '" alt="Firma" style="max-width:200px;">
         <div class="linea"></div>
@@ -305,41 +381,167 @@ $html = '<html>
         <b>Contacto:</b> servicioalcliente.ut2@cendi.edu.co<br>
         <b>Telefono:</b> 3125410929
     </div>
-    <div style="margin-top:10px; font-size:12px; color:#333;">
-        <b>Código de serie de la constancia:</b> ' . $codigo_serie . '
+    <div style="margin-top:300px; margin-bottom:30px; font-size:12px; color:#333; text-align:center;">
+         ' . $codigo_serie . '
     </div>
+    
     <img src="' . $footerImg1 . '" alt="Footer" class="footer-img">
 </body>
 </html>';
 
-// Crear y configurar DOMPDF
-$dompdf = new Dompdf($options);
-$dompdf->setPaper('letter', 'portrait');
-$dompdf->loadHtml($html);
-
+// Reemplazar la configuración de mPDF y los headers/footers:
 try {
-    $dompdf->render();
-    $pdfOutput = $dompdf->output();
-} catch (Exception $e) {
-    error_log("Error al generar PDF: " . $e->getMessage());
-    sendJsonResponse(false, 'Error al generar el PDF: ' . $e->getMessage());
-}
+    // Crear y configurar mPDF con márgenes ajustados a las imágenes reales
+    $mpdf = new Mpdf([
+        'format' => 'Letter',
+        'orientation' => 'P',
+        'margin_left' => 25,
+        'margin_right' => 25,
+        'margin_top' => 70,    // Más espacio para el header de 584px de altura
+        'margin_bottom' => 50,   // Espacio adecuado para el footer
+        'margin_header' => 10,
+        'margin_footer' => 10,
+        'default_font' => 'Arial'
+    ]);
 
-// Guardar el PDF en el servidor
-try {
+    // Configurar protección con contraseña
+    $mpdf->SetProtection(array(), $cedula, $cedula, 128);
+
+    // --- Header con altura proporcional a 584px ---
+    $mpdf->SetHTMLHeader('
+        <div style="width: 100%; margin-top: 5px; margin-bottom: 5px;">
+            <img src="' . $headerImg . '" style="
+                width: 100%; 
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            ">
+        </div>
+    ');
+
+    // --- Footer con altura proporcional ---
+    $mpdf->SetHTMLFooter('
+        <div style="width: 100%; margin-top: 5px; margin-bottom: 5px;">
+            <img src="' . $footerImg1 . '" style="
+                width: 100%; 
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            ">
+        </div>
+    ');
+
+    // --- Contenido Principal compactado para aprovechar mejor el espacio ---
+    $htmlContent = '
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                font-size: 16px; /* Reducido de 14px a 13px */
+                color: #000; 
+                line-height: 1.1; /* Más compactado */
+                text-align: justify;
+                margin: 0;
+                padding: 0;
+                background-image: url(' . $marcaAgua . ');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+            .asunto { 
+                text-align: center; 
+                margin-bottom: 15px; 
+                font-size: 16px;
+                font-weight: bold;
+            }
+            .parrafo { 
+                margin-bottom: 12px; 
+                text-align: justify;
+            }
+            .firma-bloque { 
+                margin-top: 20px; /* Reducido de 25px */
+            }
+            .linea { 
+                border-top: 1px solid #222; 
+                width: 220px; 
+                margin-top: 5px; 
+            }
+            .nombre { 
+                font-weight: bold; 
+                margin-top: 8px;
+            }
+            .cargo { 
+                font-size: 12px; 
+                margin-top: 5px;
+            }
+            .info-final { 
+                font-size: 10px; 
+                line-height: 1.3; 
+                margin-top: 15px; /* Reducido de 20px */
+            }
+        </style>
+    </head>
+    <body>
+        <div class="asunto">
+            CONSTANCIA DE PARTICIPACIÓN Y FINALIZACIÓN SATISFACTORIA
+        </div>
+        
+        <div class="parrafo">
+            La <b>Unión Temporal Innova Digital</b>, en el marco del programa <b>Talento Tech - Entrenamiento Intensivo en Innovación y Tecnología</b>, liderado por el <b>Ministerio de Tecnologías de la Información y las Comunicaciones - MinTIC</b>, se permite hacer constar que:
+        </div>
+        
+        <div class="parrafo">
+            <b>' . strtoupper($nombre_estudiante) . '</b>, identificado(a) con cédula de ciudadanía No. <b>' . $cedula . '</b>, ha atendido y cumplido con la intensidad horaria establecida para el BootCamp <b>' . $nombre_bootcamp . '</b> en modalidad <b>' . $modalidad_asistencia . '</b>, en concordancia con lo dispuesto en el programa Talento Tech, dentro del <b>Contrato de Prestación de Servicios No. 1107-2025</b>, suscrito entre el MinTIC y la Unión Temporal Innova Digital.
+        </div>
+        
+        <div class="parrafo">
+            En este sentido, se expide la presente constancia como documento válido que da cuenta de la participación y cumplimiento del beneficiario en el proceso formativo, la cual tendrá validez hasta la expedición del certificado oficial por parte del <b>Ministerio de Tecnologías de la Información y las Comunicaciones - MinTIC</b>.
+        </div>
+        
+        <div class="parrafo">
+            Se firma en la ciudad de <b>Bogotá</b>, a los <b>' . $dia_actual . '</b> del mes de <b>' . $mes_actual . '</b> de <b>' . $anio_actual . '</b>.
+        </div>
+        
+        <div class="firma-bloque" style="margin-top: 40px;">
+            <img src="' . $firma . '" alt="Firma" style="max-width:200px; height: auto;">
+            <div class="linea"></div>
+            <div class="nombre">Giovanni Andrés Caicedo Castro</div>
+            <div class="cargo">
+            Director del proyecto<br>
+            <b>UT INNOVA DIGITAL - Bogotá</b>
+            </div>
+        </div>
+
+        <div class="info-final">
+            <b>Contacto:</b> servicioalcliente.ut2@cendi.edu.co<br>
+            <b>Telefono:</b> 3125410929<br>
+            
+            
+            <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
+                ' . $codigo_serie . '
+            </div>
+        </div>
+    </body>
+    </html>';
+
+    // Escribir HTML
+    $mpdf->WriteHTML($htmlContent);
+
+    // Crear directorio si no existe
     if (!is_dir($certFolder)) {
         if (!mkdir($certFolder, 0777, true)) {
             throw new Exception("No se pudo crear la carpeta de constancias: $certFolder");
         }
     }
 
+    // Guardar PDF con protección
     $pdfPath = $certFolder . $codigo_serie . '.pdf';
-    if (file_put_contents($pdfPath, $pdfOutput) === false) {
-        throw new Exception("No se pudo guardar el archivo PDF en: " . $pdfPath);
-    }
+    $mpdf->Output($pdfPath, 'F');
+
 } catch (Exception $e) {
-    error_log("Error al guardar PDF: " . $e->getMessage());
-    sendJsonResponse(false, 'Error al guardar el PDF: ' . $e->getMessage());
+    error_log("Error al generar PDF protegido: " . $e->getMessage());
+    sendJsonResponse(false, 'Error al generar el PDF protegido: ' . $e->getMessage());
 }
 
 // --- 3. Enviar la constancia por correo electrónico ---
@@ -400,23 +602,31 @@ try {
                 background: #ffffff;
                 border-radius: 10px;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                padding: 20px;
+                overflow: hidden; /* Para que la imagen del header se vea bien */
+            }
+            .header-image {
+                width: 100%;
+                height: auto;
+                display: block;
+                margin: 0;
+                padding: 0;
             }
             .header {
                 text-align: center;
                 background: #066aab;
                 color: #fff;
-                padding: 20px;
-                border-top-left-radius: 10px;
-                border-top-right-radius: 10px;
+                padding: 15px 20px;
+                margin: 0;
             }
             .header h1 {
                 margin: 0;
-                font-size: 24px;
+                font-size: 22px;
+                font-weight: bold;
             }
             .content {
                 line-height: 1.6;
                 color: #000000;
+                padding: 20px;
             }
             .content p {
                 margin: 10px 0;
@@ -443,22 +653,46 @@ try {
                 text-align: center;
                 border: 2px solid #ffc107;
             }
+            .password-alert {
+                background: #e74c3c;
+                color: #fff;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 20px 0;
+                text-align: center;
+                border: 2px solid #c0392b;
+            }
+            .password-alert h4 {
+                margin: 0 0 10px 0;
+                font-size: 16px;
+            }
             .footer {
                 text-align: center;
                 margin-top: 20px;
                 color: #777;
                 font-size: 12px;
+                padding: 0 20px 20px 20px;
+            }
+            ul {
+                color: #000000;
+                line-height: 1.6;
+                padding-left: 20px;
+            }
+            ul li {
+                margin-bottom: 5px;
             }
         </style>
     </head>
     <body>
         <div class='container'>
+            <img src='https://dashboard.utinnova.co/dashboard/img/header_correo_const.png' alt='Header Constancia' class='header-image'>
             <div class='header'>
                 <h1>¡Felicitaciones por Finalizar tu Formación!</h1>
             </div>
+            
             <div class='content'>
-                <p>Estimado(a) <b>" . htmlspecialchars($nombre_estudiante) . "</b>,</p>
-                
+                <p style='text-align: center; font-size: 20px; font-weight: bold; margin: 20px 0;'>Estimado(a) <br> <b>" . htmlspecialchars($nombre_estudiante) . "</b>,</p>
+                <br>
                 <div class='achievement-badge'>
                     <h3 style='margin: 0; font-size: 18px;'>🎓 ¡Has completado exitosamente tu proceso formativo! 🎓</h3>
                 </div>
@@ -472,11 +706,20 @@ try {
                     </p>
                 </div>
                 
+                <div class='password-alert'>
+                    <h4>🔒 INFORMACIÓN IMPORTANTE SOBRE SEGURIDAD</h4>
+                    <p style='margin: 0; font-size: 14px; line-height: 1.4; color: #ffffff;'>
+                        <span style='color: #ffffff;'>Tu constancia está protegida con contraseña por motivos de seguridad.</span><br>
+                        <strong>La contraseña para abrir el archivo PDF es tu número de documento de identidad</strong><br>
+                    </p>
+                </div>
+                
                 <p><b>Información importante sobre tu constancia:</b></p>
-                <ul style='color: #000000; line-height: 1.6;'>
+                <ul>
                     <li>Este documento valida tu participación completa y satisfactoria en el proceso formativo</li>
                     <li>Confirma que has cumplido con todos los requisitos de asistencia e intensidad horaria</li>
                     <li>Ha sido emitida en concordancia con el <b>Contrato de Prestación de Servicios No. 1107-2025</b></li>
+                    <li>Está protegida con tu número de documento para garantizar su autenticidad</li>
                     <li>Representa tu compromiso y dedicación durante toda la formación</li>
                 </ul>
                 
@@ -485,13 +728,13 @@ try {
                     <p style='margin: 0; line-height: 1.4;'>
                         Has demostrado perseverancia y compromiso durante tu proceso formativo. Las competencias y conocimientos adquiridos te posicionan para nuevas oportunidades en el sector tecnológico.
                     </p>
+
+                    <p>Si tienes dudas o necesitas información adicional sobre tu constancia, no dudes en contactarnos:</p>
+                    <p>📞 <b>3125410929</b></p>
+                    <p>📧 <b><a href='mailto:servicioalcliente.ut2@cendi.edu.co' style='color: #066aab; text-decoration: none;'>servicioalcliente.ut2@cendi.edu.co</a></b></p>
                 </div>
                 
                 <p>Esta constancia es el reconocimiento a tu esfuerzo y dedicación. Esperamos que esta experiencia haya sido enriquecedora y que puedas aplicar todo lo aprendido en tu desarrollo profesional. ¡Estamos orgullosos de haber acompañado tu proceso de crecimiento! 🌟</p>
-                
-                <p>Si tienes dudas o necesitas información adicional sobre tu constancia, no dudes en contactarnos:</p>
-                <p>📞 <b>3125410929</b></p>
-                <p>📧 <b><a href='mailto:servicioalcliente.ut2@cendi.edu.co'>servicioalcliente.ut2@cendi.edu.co</a></b></p>
                 
                 <p style='margin-top: 25px;'><b>¡Felicitaciones nuevamente por este importante logro!</b></p>
             </div>
@@ -515,3 +758,5 @@ try {
     error_log("PHPMailer Exception: " . $e->getMessage());
     sendJsonResponse(false, 'Error al enviar el correo: ' . $e->getMessage(), $mail->ErrorInfo ?? 'Error desconocido');
 }
+
+

@@ -12,6 +12,74 @@
         border-color: #dee2e6 #dee2e6 #fff;
     }
 
+    /* Estilos personalizados para checkboxes */
+    .custom-checkbox {
+        width: 25px;
+        height: 25px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        border: 2px solid #30336b;
+        border-radius: 4px;
+        background-color: #fff;
+        position: relative;
+        transition: all 0.3s ease;
+        margin: 0;
+    }
+
+    .custom-checkbox:hover {
+        border-color: #30336b;
+        box-shadow: 0 0 5px rgba(48, 51, 107, 0.2);
+    }
+
+    .custom-checkbox:checked {
+        background-color: #30336b;
+        border-color: #30336b;
+        box-shadow: 0 0 8px rgba(48, 51, 107, 0.3);
+    }
+
+    .custom-checkbox:checked::before {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .custom-checkbox:indeterminate {
+        background-color: #30336b;
+        border-color: #30336b;
+        box-shadow: 0 0 8px rgba(48, 51, 107, 0.3);
+    }
+
+    .custom-checkbox:indeterminate::before {
+        content: '−';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        line-height: 1;
+    }
+
+    .custom-checkbox:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(48, 51, 107, 0.25);
+    }
+
+    /* Estilos para el checkbox principal (Seleccionar todos) */
+    #selectAllStudents {
+        width: 22px;
+        height: 22px;
+    }
+
     /* Layout principal */
     .main-container {
         display: flex;
@@ -199,6 +267,90 @@
             min-height: 500px;
         }
     }
+
+    /* Estilos para checkboxes deshabilitados */
+    .custom-checkbox:disabled {
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6;
+    }
+
+    .custom-checkbox:disabled:hover {
+        border-color: #dee2e6 !important;
+        box-shadow: none !important;
+    }
+
+    /* Estilo para filas con constancia existente */
+    tr[data-has-certificate="true"] {
+        background-color: #f8f9fa;
+    }
+
+    /* Estilos adicionales para la tabla de constancias */
+    .tabla-constancias {
+        width: 100%;
+        min-width: 1600px;
+        margin: 0;
+        table-layout: auto;
+    }
+
+    .tabla-constancias th,
+    .tabla-constancias td {
+        vertical-align: middle;
+        white-space: nowrap;
+        padding: 8px 12px;
+        min-width: 100px;
+    }
+
+    /* Permitir texto largo en nombre, email y bootcamp */
+    .tabla-constancias td:nth-child(2),
+    .tabla-constancias td:nth-child(5),
+    .tabla-constancias td:nth-child(9) {
+        white-space: normal !important;
+        min-width: 180px;
+        max-width: 250px;
+        word-wrap: break-word;
+    }
+
+    /* Badge para serie de constancia */
+    .tabla-constancias .badge {
+        font-size: 0.8em;
+        padding: 0.4em 0.8em;
+    }
+
+    /* Botones en tabla */
+    .tabla-constancias .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Estilos para grupo de botones en tabla de constancias */
+    .tabla-constancias .btn-group .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        margin: 0 1px;
+    }
+
+    .tabla-constancias .btn-group {
+        display: flex;
+        gap: 2px;
+    }
+
+    /* Hover effects para botones de eliminar */
+    .eliminar-constancia-btn:hover {
+        background-color: #c82333 !important;
+        border-color: #bd2130 !important;
+        transform: scale(1.05);
+        transition: all 0.2s ease;
+    }
+
+    /* Animación para filas que se eliminan */
+    .tabla-constancias tr.removing {
+        background-color: #f8d7da !important;
+        transition: all 0.3s ease;
+    }
+
+    /* Fin de estilos adicionales */
 </style>
 
 <!-- CDN de Select2 -->
@@ -234,7 +386,7 @@
                         <label class="form-label">Curso</label>
                         <select id="bootcampAprobados" class="form-select course-select">
                             <option value="">Seleccione un curso</option>
-                            <?php 
+                            <?php
                             // Reutilizar la lógica de cursos de list_approve.php
                             require_once __DIR__ . '/../../conexion.php';
 
@@ -268,13 +420,13 @@
                             }
 
                             $courses_data = getCourses();
-                            
+
                             foreach ($courses_data as $course): ?>
-                                <?php 
-                                    if (
-                                        in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 34, 35]) &&
-                                        stripos($course['fullname'], 'Copiar') === false
-                                    ): 
+                                <?php
+                                if (
+                                    in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 34, 35]) &&
+                                    stripos($course['fullname'], 'Copiar') === false
+                                ):
                                 ?>
                                     <option value="<?= htmlspecialchars($course['id']) ?>">
                                         <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
@@ -309,7 +461,7 @@
                     <div class="table-header">
                         <h5 class="mb-0"><i class="fa fa-graduation-cap"></i> Estudiantes Aprobados</h5>
                         <div class="d-flex gap-2">
-                            <button id="btnEnvioMasivo" class="btn btn-outline-primary" style="display: none;">
+                            <button id="btnEnvioMasivo" class="btn bg-indigo-dark text-white" style="display: none;">
                                 <i class="fa fa-paper-plane"></i> Envío Masivo de Constancias
                             </button>
                         </div>
@@ -321,7 +473,7 @@
                             <thead>
                                 <tr class="text-center">
                                     <th>
-                                        <input type="checkbox" id="selectAllStudents" title="Seleccionar todos">
+                                        <input type="checkbox" id="selectAllStudents" class="custom-checkbox" title="Seleccionar todos">
                                     </th>
                                     <th>ID</th>
                                     <th>Número de ID</th>
@@ -333,12 +485,12 @@
                                     <th>% Asistencia</th>
                                     <th>Nota Final</th>
                                     <th>Estado</th>
-                                    <th>Acción</th>
+                                    <!-- Eliminada la columna "Acción" -->
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="12" class="text-center py-5">
+                                    <td colspan="11" class="text-center py-5">
                                         <i class="fa fa-search fa-2x text-muted mb-3"></i><br>
                                         Seleccione un curso para cargar los estudiantes aprobados
                                     </td>
@@ -353,7 +505,157 @@
 
     <!-- Tabla de constancias generadas -->
     <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
-        <p>Contenido para constancias generadas (próximamente).</p>
+        <div class="container-fluid">
+            <div class="table-panel">
+                <!-- Header de la tabla -->
+                <div class="table-header">
+                    <h5 class="mb-0"><i class="fa fa-certificate"></i> Constancias Emitidas</h5>
+                    <div class="d-flex gap-2">
+                        <button id="btnRefreshConstancias" class="btn btn-outline-secondary">
+                            <i class="fa fa-refresh"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contenido de la tabla scrolleable -->
+                <div class="table-content">
+                    <div class="table-responsive">
+                        <table id="tablaConstanciasEmitidas" class="table table-hover table-bordered tabla-constancias">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>ID</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Tipo ID</th>
+                                    <th>Número ID</th>
+                                    <th>Email</th>
+                                    <th>Programa</th>
+                                    <th>Modalidad</th>
+                                    <th>Sede</th>
+                                    <th>Bootcamp</th>
+                                    <th>Serie Constancia</th>
+                                    <th>Emitido por</th>
+                                    <th>Fecha Emisión</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+
+                                // Consulta para obtener todas las constancias emitidas con datos completos
+                                $sql = "SELECT 
+                                                ce.id,
+                                                ce.number_id, 
+                                                ce.serie_constancia, 
+                                                ce.emitido_por, 
+                                                ce.fecha_emision,
+                                                g.full_name, 
+                                                g.type_id, 
+                                                g.email,
+                                                g.institutional_email, 
+                                                g.program, 
+                                                g.mode, 
+                                                g.headquarters,
+                                                g.bootcamp_name,
+                                                u.nombre AS nombre_emisor
+                                            FROM constancias_emitidas ce
+                                            LEFT JOIN groups g ON ce.number_id = g.number_id
+                                            LEFT JOIN users u ON ce.emitido_por = u.username
+                                            ORDER BY ce.fecha_emision DESC";
+
+                                $result = mysqli_query($conn, $sql);
+
+                                if (mysqli_num_rows($result) > 0):
+                                    $contador = 1;
+                                    while ($row = mysqli_fetch_assoc($result)):
+                                ?>
+                                        <tr id="row-constancia-<?= $row['id'] ?>">
+                                            <td class="text-center"><?= $contador ?></td>
+                                            <td><?= htmlspecialchars($row['full_name'] ?? 'N/A') ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($row['type_id'] ?? 'N/A') ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($row['number_id'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($row['institutional_email'] ?? $row['email'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($row['program'] ?? 'N/A') ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($row['mode'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($row['headquarters'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($row['bootcamp_name'] ?? 'N/A') ?></td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success text-white">
+                                                    <?= htmlspecialchars($row['serie_constancia'] ?? 'N/A') ?>
+                                                </span>
+                                            </td>
+                                            <td><?= htmlspecialchars($row['nombre_emisor'] ?? 'Sistema') ?></td>
+                                            <td class="text-center">
+                                                <?= $row['fecha_emision'] ? date('d/m/Y H:i', strtotime($row['fecha_emision'])) : 'N/A' ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group" role="group">
+                                                    <button class="btn bg-teal-dark text-white btn-sm ver-constancia-btn"
+                                                        data-serie="<?= htmlspecialchars($row['serie_constancia'] ?? '') ?>"
+                                                        data-nombre="<?= htmlspecialchars($row['full_name'] ?? 'Constancia') ?>"
+                                                        title="Ver constancia">
+                                                        <i class="fa fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm eliminar-constancia-btn"
+                                                        data-id="<?= $row['id'] ?>"
+                                                        data-serie="<?= htmlspecialchars($row['serie_constancia'] ?? '') ?>"
+                                                        data-nombre="<?= htmlspecialchars($row['full_name'] ?? '') ?>"
+                                                        title="Eliminar constancia">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php
+                                        $contador++;
+                                    endwhile;
+                                else:
+                                    ?>
+                                    <tr>
+                                        <?php for ($i = 0; $i < 13; $i++): ?>
+                                            <?php if ($i == 0): ?>
+                                                <td colspan="13" class="text-center py-5">
+                                                    <i class="fa fa-certificate fa-2x text-muted mb-3"></i><br>
+                                                    No se han emitido constancias aún
+                                                </td>
+                                            <?php else: ?>
+                                                
+                                            <?php endif; ?>
+                                        <?php endfor; ?>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5.3.3 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<!-- Modal para mostrar la constancia PDF -->
+<div class="modal fade" id="modalConstancia" tabindex="-1" aria-labelledby="modalConstanciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-indigo-dark text-white">
+                <h5 class="modal-title" id="modalConstanciaLabel">
+                    <i class="fa fa-certificate"></i> Constancia de Participación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 80vh;">
+                <iframe id="iframeConstancia" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times"></i> Cerrar
+                </button>
+                <button type="button" id="btnDescargarConstancia" class="btn bg-indigo-dark text-white">
+                    <i class="fa fa-download"></i> Descargar
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -383,7 +685,7 @@
             const $btnExcel = $('#btnExportarExcelAprobados');
             const $btnMasivo = $('#btnEnvioMasivo');
             const hayEstudiantes = $('#listaEstudiantesAprobados tbody tr[data-student-id]').length > 0;
-            
+
             if (hayEstudiantes) {
                 $btnExcel.show();
                 $btnMasivo.show();
@@ -443,7 +745,9 @@
             $.ajax({
                 url: 'components/certCompletion/export_excel_aprobados.php',
                 type: 'POST',
-                data: { bootcamp: bootcamp },
+                data: {
+                    bootcamp: bootcamp
+                },
                 xhr: function() {
                     var xhr = new XMLHttpRequest();
                     xhr.responseType = 'blob';
@@ -453,24 +757,24 @@
                     clearInterval(progressInterval);
                     $('#exportProgressAprobados').css('width', '100%');
 
-                    const blob = new Blob([data], { 
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                    const blob = new Blob([data], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                     });
-                    
+
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    
+
                     const contentDisposition = xhr.getResponseHeader('Content-Disposition');
                     let filename = 'estudiantes_aprobados_certificacion.xlsx';
-                    
+
                     if (contentDisposition) {
                         const filenameMatch = contentDisposition.match(/filename="(.+)"/);
                         if (filenameMatch) {
                             filename = filenameMatch[1];
                         }
                     }
-                    
+
                     a.download = filename;
                     document.body.appendChild(a);
                     a.click();
@@ -488,9 +792,9 @@
                 },
                 error: function(xhr, status, error) {
                     clearInterval(progressInterval);
-                    
+
                     console.error('Error en la exportación:', error);
-                    
+
                     Swal.fire({
                         title: 'Error en la exportación',
                         text: 'Hubo un problema al generar el archivo Excel. Por favor, inténtelo nuevamente.',
@@ -517,7 +821,9 @@
             $.ajax({
                 url: 'components/certCompletion/buscar_aprobados.php',
                 type: 'POST',
-                data: { bootcamp: bootcamp },
+                data: {
+                    bootcamp: bootcamp
+                },
                 dataType: 'json',
                 success: (response) => {
                     if (response && response.html) {
@@ -552,7 +858,7 @@
         // Event listener para cambio de curso
         $('#bootcampAprobados').change(function() {
             const bootcamp = $(this).val();
-            
+
             if (bootcamp) {
                 cargarEstudiantesAprobados();
             } else {
@@ -561,41 +867,41 @@
                 actualizarBotonExportacionAprobados();
             }
         });
-        
-        // Función para manejar selección de todos los estudiantes
+
+        // Función para manejar selección de todos los estudiantes (solo activos)
         $('#selectAllStudents').change(function() {
             const isChecked = $(this).is(':checked');
-            $('.student-checkbox').prop('checked', isChecked);
+            $('.student-checkbox:not(:disabled)').prop('checked', isChecked);
             actualizarContadorSeleccionados();
         });
 
-        // Función para actualizar contador de seleccionados
+        // Función para actualizar contador de seleccionados (solo activos)
         function actualizarContadorSeleccionados() {
-            const totalSeleccionados = $('.student-checkbox:checked').length;
-            const totalEstudiantes = $('.student-checkbox').length;
-            
+            const totalSeleccionados = $('.student-checkbox:checked:not(:disabled)').length;
+            const totalEstudiantesActivos = $('.student-checkbox:not(:disabled)').length;
+
             if (totalSeleccionados > 0) {
                 $('#btnEnvioMasivo').html(`<i class="fa fa-paper-plane"></i> Enviar Constancias (${totalSeleccionados})`);
             } else {
-                $('#btnEnvioMasivo').html(`<i class="fa fa-paper-plane"></i> Envío Masivo de Constancias`);
+                $('#btnEnvioMasivo').html(`<i class="fa fa-paper-plane"></i> Envío de Constancias`);
             }
-            
-            // Actualizar estado del checkbox principal
+
+            // Actualizar estado del checkbox principal (solo considera checkboxes activos)
             if (totalSeleccionados === 0) {
                 $('#selectAllStudents').prop('indeterminate', false).prop('checked', false);
-            } else if (totalSeleccionados === totalEstudiantes) {
+            } else if (totalSeleccionados === totalEstudiantesActivos) {
                 $('#selectAllStudents').prop('indeterminate', false).prop('checked', true);
             } else {
                 $('#selectAllStudents').prop('indeterminate', true);
             }
         }
 
-        // Event listener para checkboxes individuales
-        $(document).on('change', '.student-checkbox', function() {
+        // Event listener para checkboxes individuales (solo activos)
+        $(document).on('change', '.student-checkbox:not(:disabled)', function() {
             actualizarContadorSeleccionados();
         });
 
-        // Función para envío masivo de constancias
+        // Función para envío masivo de constancias (solo estudiantes activos)
         $('#btnEnvioMasivo').click(function() {
             const estudiantesSeleccionados = [];
             const bootcamp = $('#bootcampAprobados').val();
@@ -610,8 +916,8 @@
                 return;
             }
 
-            // Recopilar estudiantes seleccionados
-            $('.student-checkbox:checked').each(function() {
+            // Recopilar solo estudiantes seleccionados y activos (sin constancia previa)
+            $('.student-checkbox:checked:not(:disabled)').each(function() {
                 const $row = $(this).closest('tr');
                 estudiantesSeleccionados.push({
                     id: $row.data('student-id'),
@@ -627,7 +933,7 @@
             if (estudiantesSeleccionados.length === 0) {
                 Swal.fire({
                     title: 'Sin selección',
-                    text: 'Seleccione al menos un estudiante para enviar constancias',
+                    text: 'Seleccione al menos un estudiante sin constancia previa para enviar',
                     icon: 'warning'
                 });
                 return;
@@ -640,7 +946,7 @@
                     <div class="text-start">
                         <p><strong>Curso:</strong> ${bootcampText}</p>
                         <p><strong>Estudiantes seleccionados:</strong> ${estudiantesSeleccionados.length}</p>
-                        <p class="text-muted small">Se generarán y enviarán constancias por correo electrónico a todos los estudiantes seleccionados.</p>
+                        <p class="text-muted small">Se generarán y enviarán constancias por correo electrónico a todos los estudiantes seleccionados que aún no tienen constancia.</p>
                     </div>
                 `,
                 icon: 'question',
@@ -694,7 +1000,7 @@
 
                 const estudiante = estudiantes[index];
                 const progreso = ((index + 1) / total * 100).toFixed(1);
-                
+
                 // Actualizar progreso
                 $('#progressBarMasivo').css('width', progreso + '%');
                 $('#progressTextMasivo').text(`Procesando ${index + 1} de ${total}: ${estudiante.nombre}`);
@@ -724,7 +1030,7 @@
                             errores++;
                             agregarDetalleProgreso(estudiante.nombre, 'error', response.message || 'Error desconocido');
                         }
-                        
+
                         // Procesar siguiente estudiante
                         setTimeout(() => procesarSiguienteEstudiante(index + 1), 500);
                     },
@@ -732,7 +1038,7 @@
                         procesados++;
                         errores++;
                         agregarDetalleProgreso(estudiante.nombre, 'error', `Error de conexión: ${error}`);
-                        
+
                         // Procesar siguiente estudiante
                         setTimeout(() => procesarSiguienteEstudiante(index + 1), 500);
                     }
@@ -749,7 +1055,7 @@
                     </div>
                 `;
                 $('#progressDetailsMasivo').append(detalleHtml);
-                
+
                 // Scroll automático al final
                 const container = document.getElementById('progressDetailsMasivo');
                 container.scrollTop = container.scrollHeight;
@@ -759,7 +1065,7 @@
             function mostrarResultadoFinal() {
                 let iconType = 'success';
                 let title = '¡Envío completado!';
-                
+
                 if (errores === total) {
                     iconType = 'error';
                     title = 'Envío fallido';
@@ -818,5 +1124,297 @@
         function actualizarBotonExportacionAprobados() {
             actualizarBotonesAprobados();
         }
+
+        // =================== FUNCIONALIDAD PARA CONSTANCIAS EMITIDAS ===================
+
+        // Evento para el botón "Ver Constancia"
+        $(document).on('click', '.ver-constancia-btn', function() {
+            const serie = $(this).data('serie');
+            const nombre = $(this).data('nombre');
+
+            if (!serie) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se encontró la serie de la constancia',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            // Ruta simplificada de la constancia
+            const pdfUrl = `constancias/${serie}.pdf`;
+
+            // Mostrar modal con la constancia
+            $('#modalConstanciaLabel').html(`<i class="fa fa-certificate"></i> Constancia - ${nombre}`);
+            $('#iframeConstancia').attr('src', pdfUrl);
+            $('#modalConstancia').modal('show');
+
+            // Configurar botón de descarga
+            $('#btnDescargarConstancia').data('url', pdfUrl).data('filename', `constancia_${serie}.pdf`);
+        });
+
+        // Limpiar iframe al cerrar modal
+        $('#modalConstancia').on('hidden.bs.modal', function() {
+            $('#iframeConstancia').attr('src', '');
+            $('#modalConstanciaLabel').html('<i class="fa fa-certificate"></i> Constancia de Participación');
+        });
+
+        // Funcionalidad del botón descargar
+        $('#btnDescargarConstancia').click(function() {
+            const url = $(this).data('url');
+            const filename = $(this).data('filename');
+
+            if (url) {
+                // Crear enlace temporal para descarga
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename || 'constancia.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Mostrar mensaje de confirmación
+                Swal.fire({
+                    title: 'Descarga iniciada',
+                    text: 'La constancia se está descargando',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+
+        // Funcionalidad del botón actualizar
+        $('#btnRefreshConstancias').click(function() {
+            // Mostrar loading
+            const $btn = $(this);
+            const originalHtml = $btn.html();
+            $btn.html('<i class="fa fa-spinner fa-spin"></i> Actualizando...').prop('disabled', true);
+
+            // Recargar la página después de un breve delay
+            setTimeout(function() {
+                location.reload();
+            }, 1000);
+        });
+
+        // Funcionalidad para eliminar constancia
+        $(document).on('click', '.eliminar-constancia-btn', function() {
+            const id = $(this).data('id');
+            const serie = $(this).data('serie');
+            const nombre = $(this).data('nombre');
+            const $row = $(this).closest('tr');
+
+            if (!id || !serie) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se encontraron los datos de la constancia',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            // Confirmación de eliminación
+            Swal.fire({
+                title: '¿Eliminar constancia?',
+                html: `
+                    <div class="text-start">
+                        <p><strong>Estudiante:</strong> ${nombre}</p>
+                        <p><strong>Serie:</strong> ${serie}</p>
+                        <div class="alert alert-warning mt-3">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            <strong>¡Atención!</strong> Esta acción:
+                            <ul class="mt-2 mb-0">
+                                <li>Eliminará el archivo PDF de la constancia</li>
+                                <li>Eliminará el registro de la base de datos</li>
+                                <li><strong>No se puede deshacer</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarConstancia(id, serie, nombre, $row);
+                }
+            });
+        });
+
+        // Función para procesar la eliminación
+        function eliminarConstancia(id, serie, nombre, $row) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Eliminando constancia...',
+                html: `
+                    <div class="text-center">
+                        <div class="spinner-border text-danger mb-3" role="status">
+                            <span class="visually-hidden">Eliminando...</span>
+                        </div>
+                        <p>Eliminando constancia de <strong>${nombre}</strong></p>
+                        <small class="text-muted">Por favor espere...</small>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+
+            // Realizar petición AJAX
+            $.ajax({
+                url: 'components/certCompletion/eliminar_constancia.php',
+                type: 'POST',
+                data: {
+                    id_constancia: id,
+                    serie_constancia: serie
+                },
+                dataType: 'json',
+                timeout: 15000, // 15 segundos timeout
+                success: function(response) {
+                    if (response.success) {
+                        // Eliminar la fila de la tabla con animación
+                        $row.fadeOut(400, function() {
+                            $(this).remove();
+
+                            // Verificar si quedaron filas
+                            const filasRestantes = $('#tablaConstanciasEmitidas tbody tr[id^="row-constancia-"]').length;
+                            if (filasRestantes === 0) {
+                                $('#tablaConstanciasEmitidas tbody').html(`
+                                    <tr>
+                                        <td colspan="13" class="text-center py-5">
+                                            <i class="fa fa-certificate fa-2x text-muted mb-3"></i><br>
+                                            No se han emitido constancias aún
+                                        </td>
+                                    </tr>
+                                `);
+                            }
+                        });
+
+                        // Mostrar mensaje de éxito
+                        Swal.fire({
+                            title: '¡Eliminada correctamente!',
+                            text: response.message,
+                            icon: 'success',
+                            timer: 3000,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
+
+                    } else {
+                        // Mostrar error
+                        Swal.fire({
+                            title: 'Error al eliminar',
+                            text: response.message || 'No se pudo eliminar la constancia',
+                            icon: 'error',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en eliminación:', error);
+
+                    let mensajeError = 'Error de conexión al eliminar la constancia';
+                    if (status === 'timeout') {
+                        mensajeError = 'La operación tardó demasiado tiempo. Verifique si la constancia fue eliminada.';
+                    }
+
+                    Swal.fire({
+                        title: 'Error de conexión',
+                        text: mensajeError,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            });
+        }
+        // Inicializar DataTable solo cuando el DOM esté completamente cargado
+        // y después de que la tabla haya sido renderizada con PHP
+        $('#tab2-tab').on('shown.bs.tab', function(e) {
+            // Inicializar DataTable de forma simple
+            if (!$.fn.DataTable.isDataTable('#tablaConstanciasEmitidas')) {
+                $('#tablaConstanciasEmitidas').DataTable({
+                    responsive: true,
+                    language: {
+                        "search": "Buscar:",
+                        "lengthMenu": "Mostrar _MENU_ registros",
+                        "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
+                        }
+                    },
+                    pageLength: 10,
+                    order: [
+                        [11, 'desc']
+                    ],
+                    columnDefs: [{
+                        targets: [12],
+                        orderable: false
+                    },
+                    { "targets": "_all", "defaultContent": "" }
+                ]
+                });
+            }
+        });
+
+        // También inicializar cuando el documento esté listo, pero solo si la tab2 está activa
+        if ($('#tab2-tab').hasClass('active')) {
+            if (!$.fn.DataTable.isDataTable('#tablaConstanciasEmitidas')) {
+                $('#tablaConstanciasEmitidas').DataTable({
+                    responsive: true,
+                    language: {
+                        "decimal": "",
+                        "emptyTable": "No hay constancias emitidas disponibles",
+                        "info": "Mostrando _START_ a _END_ de _TOTAL_ constancias",
+                        "infoEmpty": "Mostrando 0 a 0 de 0 constancias",
+                        "infoFiltered": "(filtrado de _MAX_ constancias totales)",
+                        "infoPostFix": "",
+                        "thousands": ",",
+                        "lengthMenu": "Mostrar _MENU_ constancias",
+                        "loadingRecords": "Cargando...",
+                        "processing": "Procesando...",
+                        "search": "Buscar:",
+                        "zeroRecords": "No se encontraron constancias coincidentes",
+                        "paginate": {
+                            "first": "Primero",
+                            "last": "Último",
+                            "next": "Siguiente",
+                            "previous": "Anterior"
+                        },
+                        "aria": {
+                            "sortAscending": ": activar para ordenar ascendentemente",
+                            "sortDescending": ": activar para ordenar descendentemente"
+                        }
+                    },
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, "Todas"]
+                    ],
+                    order: [
+                        [11, 'desc']
+                    ],
+                    columnDefs: [{
+                            targets: [12],
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            targets: [0, 2, 3, 6, 9, 11, 12],
+                            className: 'text-center'
+                        }
+                    ],
+                    scrollX: true,
+                    autoWidth: false
+                });
+            }
+        }
+
     });
 </script>
