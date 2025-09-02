@@ -2808,9 +2808,13 @@
     function autoSelectRelatedCourses(id, courseId) {
         // Obtener el texto de la opción seleccionada
         const selectedOption = $(`#bootcamp_${id} option:selected`).text();
-
-        // Extraer el código del curso (formato C1L1-G1V)
-        const courseCodeMatch = selectedOption.match(/C\d+L\d+-G\d+[A-Z]?/);
+    
+        // Extraer el código del curso (formato C1L1-G1V o G100P/G202P/G301V)
+        // Busca primero el formato C{num}L{num}-G{num}{letra}, si no lo encuentra busca G{num}{letra}
+        let courseCodeMatch = selectedOption.match(/C\d+L\d+-G\d+[A-Z]?/);
+        if (!courseCodeMatch) {
+            courseCodeMatch = selectedOption.match(/G\d+[A-Z]?/);
+        }
         if (!courseCodeMatch) return;
 
         const courseCode = courseCodeMatch[0];

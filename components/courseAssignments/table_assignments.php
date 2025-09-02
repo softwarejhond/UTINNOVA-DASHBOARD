@@ -23,9 +23,11 @@ $sql = "SELECT
             ur.level,
             ur.lote,
             ur.mode,
+            ur.headquarters,
             d.departamento AS department_name,
             m.municipio AS municipality_name,
-            u.nombre AS assigned_by_name  
+            u.nombre AS assigned_by_name,
+            cp.cohort AS cohort
         FROM 
             course_assignments ca
         JOIN 
@@ -36,6 +38,8 @@ $sql = "SELECT
             municipios m ON ur.municipality = m.id_municipio AND m.departamento_id = d.id_departamento
         LEFT JOIN 
             users u ON ca.assigned_by = u.username
+        LEFT JOIN 
+            course_periods cp ON ca.bootcamp_id = cp.bootcamp_code
         WHERE 
             ur.statusAdmin IN (1, 8)
         ORDER BY 
@@ -149,7 +153,7 @@ $statusClasses = [
                 ?>
             </select>
         </div>
-        
+
         <div class="row mb-2 mt-3">
             <div class="col-md-3 offset-md-4">
                 <label for="filter-lote" class="form-label fw-bold text-center">Filtrar por Lote</label>
@@ -191,6 +195,8 @@ $statusClasses = [
                     <th>Nivel</th>
                     <th>Modalidad</th>
                     <th>Lote</th>
+                    <th>Sede</th>
+                    <th>Cohorte</th>
                     <th>Estado</th>
                     <th>Bootcamp</th>
                     <th>Inglés Nivelador</th>
@@ -221,6 +227,8 @@ $statusClasses = [
                         <td><?= htmlspecialchars($row['level']) ?></td>
                         <td><?= htmlspecialchars($row['mode']) ?></td>
                         <td><?= htmlspecialchars($row['lote']) ?></td>
+                        <td><?= htmlspecialchars($row['headquarters']) ?></td>
+                        <td><?= htmlspecialchars($row['cohort']) ?></td>
                         <td>
                             <span class="badge <?= $statusClasses[$row['statusAdmin']] ?? 'bg-secondary' ?>">
                                 <?= $statusLabels[$row['statusAdmin']] ?? 'Desconocido' ?>

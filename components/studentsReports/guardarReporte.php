@@ -10,11 +10,18 @@ $code = isset($_POST['code']) ? trim($_POST['code']) : '';
 $grupo = isset($_POST['grupo']) ? trim($_POST['grupo']) : '';
 $gestion = isset($_POST['gestion']) ? trim($_POST['gestion']) : '';
 $status = 'PENDIENTE'; // Valor fijo por defecto
-$responsable = isset($_SESSION['username']) ? $_SESSION['username'] : 'desconocido';
+
+// Validar sesión y responsable
+if (!isset($_SESSION['username']) || empty($_SESSION['username'])) {
+    echo json_encode(['success' => false, 'message' => 'Sesión inválida. Por favor inicia sesión nuevamente.']);
+    exit;
+}
+$responsable = $_SESSION['username'];
 $fecha_registro = date('Y-m-d H:i:s');
 
+// Validar datos obligatorios
 if ($number_id <= 0 || !$code || !$grupo || !$gestion) {
-    echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+    echo json_encode(['success' => false, 'message' => 'Datos incompletos. Todos los campos son obligatorios.']);
     exit;
 }
 

@@ -163,13 +163,16 @@
                             let grupo = $('#grupo option:selected').text();
                             let code = '';
 
-                            // Extraer el código del curso del texto seleccionado (ejemplo: C1L1-G1V)
-                            let match = grupo.match(/C\\d+L\\d+-G\\d+[A-Z]?/);
-                            if (match) {
-                                code = match[0];
+                            if (grupo === 'Sin cursos asignados') {
+                                code = 'Pendiente';
                             } else {
-                                // Si no encuentra el patrón, puedes dejarlo vacío o tomar los últimos 6-8 caracteres
-                                code = grupo.slice(-8);
+                                // Extraer el código del curso del texto seleccionado (ejemplo: C1L1-G1V)
+                                let match = grupo.match(/C\d+L\d+-G\d+[A-Z]?/);
+                                if (match) {
+                                    code = match[0];
+                                } else {
+                                    code = grupo.slice(-8);
+                                }
                             }
 
                             let gestion = $('#gestion').val();

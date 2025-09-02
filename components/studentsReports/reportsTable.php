@@ -184,7 +184,7 @@ while ($row = $result->fetch_assoc()) {
                                 }
                                 ?>
                             </td>
-                            <td><?= htmlspecialchars($row['nombre_responsable']) ?></td>
+                            <td><?= htmlspecialchars($row['nombre_responsable'] ?? 'No especificado') ?></td>
                             <td>
                                 <?php
                                 $fecha = new DateTime($row['fecha_registro']);

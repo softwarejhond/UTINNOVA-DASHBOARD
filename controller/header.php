@@ -102,10 +102,13 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             <?php endif; ?>
 
             <!-- Mostrar el nombre del usuario logueado -->
-            <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico' ): ?>
+            <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
                 <?php include 'components/pqr/pqrButton.php'; ?>
             <?php endif; ?>
 
+            <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
+                <?php include 'components/bootcampPeriods/periods_button.php'; ?> 
+            <?php endif; ?>
             <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
                     <i class="fa-solid fa-user-graduate fa-shake"></i>
                     <span id="totalCertificados" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark">
@@ -161,7 +164,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     <div class="spinner-grow spinner-grow-sm" role="status" style="color:#00976a">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <button type="button" class="btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Usuario: <?php echo htmlspecialchars($infoUsuario['rol']); ?>">
+                    <button type="button" class="btn" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="<?php echo htmlspecialchars($infoUsuario['rol']); ?>" data-bs-trigger="hover">
                         <i class="bi bi-info-circle-fill colorVerde" style="color: #00976a;"></i>
                     </button>
                 </button>
