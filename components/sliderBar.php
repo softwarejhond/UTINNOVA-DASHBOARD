@@ -47,7 +47,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                             <span class="checkbox-icon">
                                                 <i class="bi bi-people-fill icono"></i>
                                             </span>
-                                            <span class="checkbox-label">Ingresar</span>
+                                            <span class="checkbox-label">Registros</span>
                                         </span>
                                     </label>
                                 </a>
@@ -67,7 +67,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                         <span class="checkbox-icon">
                                             <i class="bi bi-people-fill icono"></i>
                                         </span>
-                                        <span class="checkbox-label">Añadir</span>
+                                        <span class="checkbox-label">Asesor +</span>
                                     </span>
                                 </label>
                             </div>
@@ -87,7 +87,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                             <span class="checkbox-icon">
                                                 <i class="bi bi-mortarboard-fill icono"></i>
                                             </span>
-                                            <span class="checkbox-label">Ingresar</span>
+                                            <span class="checkbox-label">Verificados</span>
                                         </span>
                                     </label>
                                 </a>
@@ -116,27 +116,6 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro'): ?>
-                        <div class="col-4">
-                            <div class="checkbox"
-                                data-bs-toggle="popover"
-                                data-bs-trigger="hover focus"
-                                data-bs-placement="bottom"
-                                data-bs-content="Administrativos inscritos a Bootcamp">
-                                <a href="adminRegistrations.php">
-                                    <label class="checkbox-wrapper">
-                                        <span class="checkbox-tile">
-                                            <span class="checkbox-icon">
-                                                <i class="fa-solid fa-user-tie icono"></i>
-                                            </span>
-                                            <span class="checkbox-label">Ingresar</span>
-                                        </span>
-                                    </label>
-                                </a>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
                     <?php if ($rol === 'Administrador' || $rol === 'Asesor' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Triangulo'): ?>
                         <div class="col-4">
                             <div class="checkbox"
@@ -150,7 +129,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                             <span class="checkbox-icon">
                                                 <i class="bi bi-person-bounding-box icono"></i>
                                             </span>
-                                            <span class="checkbox-label">Ingresar</span>
+                                            <span class="checkbox-label">Individual</span>
                                         </span>
                                     </label>
                                 </a>
@@ -171,7 +150,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                             <span class="checkbox-icon">
                                                 <i class="fa-solid fa-address-book icono"></i>
                                             </span>
-                                            <span class="checkbox-label">Registros</span>
+                                            <span class="checkbox-label">Contactos</span>
                                         </span>
                                     </label>
                                 </a>
@@ -275,28 +254,6 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                                 <i class="bi bi-list-stars icono"></i>
                                             </span>
                                             <span class="checkbox-label">Encuestas</span>
-                                        </span>
-                                    </label>
-                                </a>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-
-                    <?php if ($rol === 'Control maestro'): ?>
-                        <div class="col-4">
-                            <div class="checkbox"
-                                data-bs-toggle="popover"
-                                data-bs-trigger="hover focus"
-                                data-bs-placement="bottom"
-                                data-bs-content="Notas por bootcamp campistas">
-                                <a href="studentsNotes.php">
-                                    <label class="checkbox-wrapper">
-                                        <span class="checkbox-tile">
-                                            <span class="checkbox-icon">
-                                                <i class="bi bi-journal-bookmark-fill icono"></i>
-                                            </span>
-                                            <span class="checkbox-label">Notas</span>
                                         </span>
                                     </label>
                                 </a>

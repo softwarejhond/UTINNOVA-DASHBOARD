@@ -833,7 +833,7 @@ foreach ($data as $row) {
                             mode: row.dataset.mode,
                             level: row.dataset.level,
                             schedule: row.dataset.schedule,
-                            password: numberId // Usar la misma contraseña
+                            password: numberId
                         });
                     } else {
                         selectedUsers.delete(numberId);
@@ -851,7 +851,7 @@ foreach ($data as $row) {
 
                     container.innerHTML = '';
                     let index = 1;
-                    
+
                     selectedUsers.forEach((userData, numberId) => {
                         const userCard = document.createElement('div');
                         userCard.className = 'card mb-2';
@@ -980,7 +980,7 @@ foreach ($data as $row) {
                             }
                             confirmBulkEnrollment(usersToEnroll);
                         };
-                        
+
                         processUsers().catch(error => {
                             Swal.fire('Error', error.message, 'error');
                         });
@@ -1111,9 +1111,9 @@ foreach ($data as $row) {
                                         });
                                     }
                                 } else {
-                                     const errorText = await carnetResponse.text();
-                                     console.error(`Error HTTP al generar/obtener carnet para ${formData.number_id}: ${carnetResponse.status} - ${errorText}`);
-                                     errors.push({
+                                    const errorText = await carnetResponse.text();
+                                    console.error(`Error HTTP al generar/obtener carnet para ${formData.number_id}: ${carnetResponse.status} - ${errorText}`);
+                                    errors.push({
                                         student: formData.number_id,
                                         message: `Matrícula exitosa, pero error HTTP (${carnetResponse.status}) al generar/obtener carnet.`,
                                         type: 'carnet_http_error'
@@ -1238,7 +1238,7 @@ foreach ($data as $row) {
                     headquarters: userData.headquarters,
                     program: userData.program,
                     mode: userData.mode,
-                    password: numberId, // Usar la misma contraseña
+                    password: userData.number_id, // Usar la misma contraseña
                     id_bootcamp: bootcamp.id,
                     bootcamp_name: bootcamp.name,
                     id_leveling_english: ingles.id,

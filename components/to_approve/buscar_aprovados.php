@@ -127,138 +127,237 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     return $totalHoras;
 }
 
-// Cambia la función obtenerNotaFinal para que devuelva también las notas individuales
+// Reemplazar la función obtenerNotaFinal() con esta función más completa:
 function obtenerNotaFinal($conn, $studentId, $courseCode) {
-    if (empty($courseCode) || empty($studentId)) return ['final' => 0, 'items' => []];
-    
-    // Configuración básica para la API de Moodle
-    $apiUrl = 'https://talento-tech.uttalento.co/webservice/rest/server.php';
-    $token = '3f158134506350615397c83d861c2104';
-    $format = 'json';
-    
-    // Paso 1: Obtener el userid a partir del número de identificación (username)
-    $functionGetUser = 'core_user_get_users_by_field';
-    
-    // Parámetros para buscar usuario
-    $paramsUser = [
-        'field' => 'username',
-        'values[0]' => $studentId
-    ];
-    
-    $postdataUser = http_build_query([
-        'wstoken' => $token,
-        'wsfunction' => $functionGetUser,
-        'moodlewsrestformat' => $format
-    ] + $paramsUser);
-    
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $apiUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postdataUser);
-    
-    $responseUser = curl_exec($ch);
-    $userData = json_decode($responseUser, true);
-    
-    if (empty($userData)) {
-        // No se encontró el usuario
-        curl_close($ch);
+    if (empty($courseCode) || empty($studentId)) {
         return ['final' => 0, 'items' => []];
     }
     
-    // Obtener el userid del primer usuario encontrado
-    $userid = $userData[0]['id'];
-    
-    // Paso 2: Obtener las notas usando el userid encontrado
-    $function = 'gradereport_user_get_grade_items';
-    
-    $params = [
-        'courseid' => $courseCode, // El ID del curso en Moodle
-        'userid' => $userid
-    ];
-    
-    $postdata = http_build_query([
-        'wstoken' => $token,
-        'wsfunction' => $function,
-        'moodlewsrestformat' => $format
-    ] + $params);
-    
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
-    
-    $response = curl_exec($ch);
-    
-    if ($response === false) {
-        curl_close($ch);
-        return ['final' => 0, 'items' => []];
-    }
-    
-    $data = json_decode($response, true);
-    
-    if ($data === null) {
-        curl_close($ch);
-        return ['final' => 0, 'items' => []];
-    }
-    
-    curl_close($ch);
-    
-    // Paso 3: Procesar las notas y calcular el promedio ponderado
-    if (isset($data['usergrades'][0])) {
-        $usergrade = $data['usergrades'][0];
-        $notas = [];
+    try {
+        // 1. Intentar obtener las notas desde course_approvals (tabla de notas finales/oficiales)
+        $sql_approvals = "SELECT final_grade, grade_1, grade_2 FROM course_approvals 
+                          WHERE student_number_id = ? AND course_code = ?";
         
-        if (isset($usergrade['gradeitems'])) {
-            foreach ($usergrade['gradeitems'] as $item) {
-                // Solo tomar ítems de tipo 'course' o que tengan nota asignada
-                if (
-                    (isset($item['itemtype']) && $item['itemtype'] === 'course') ||
-                    (isset($item['graderaw']) && $item['graderaw'] !== null)
-                ) {
-                    $notaRaw = isset($item['graderaw']) ? $item['graderaw'] : null;
-                    $notaFormatted = isset($item['gradeformatted']) ? $item['gradeformatted'] : null;
-                    $itemname = isset($item['itemname']) ? $item['itemname'] : 'Nota';
-                    $grademax = isset($item['grademax']) ? $item['grademax'] : 5.0;
+        $stmt_approvals = $conn->prepare($sql_approvals);
+        if ($stmt_approvals) {
+            $stmt_approvals->bind_param("ss", $studentId, $courseCode);
+            if ($stmt_approvals->execute()) {
+                $result_approvals = $stmt_approvals->get_result();
+                $row_approvals = $result_approvals->fetch_assoc();
+                $stmt_approvals->close();
+                
+                if ($row_approvals) {
+                    // Las notas en course_approvals ya están en escala 5.0
+                    $grade1 = floatval($row_approvals['grade_1']);
+                    $grade2 = floatval($row_approvals['grade_2']);
                     
-                    if ($notaRaw !== null && $grademax > 0) {
-                        // Convertir la nota a escala 5.0 estándar
-                        $notaNormalizada = ($notaRaw / $grademax) * 5.0;
-                        
-                        $notas[] = [
-                            'raw' => $notaRaw,
-                            'normalizada' => $notaNormalizada,
-                            'max' => $grademax,
-                            'nota' => $notaFormatted,
-                            'nombre' => $itemname
-                        ];
+                    // Calcular nota final - Aplicar ponderación 30%-70%
+                    $notaFinal = 0;
+                    if ($grade1 >= 0 && $grade2 >= 0) {
+                        $notaFinal = ($grade1 * 0.30) + ($grade2 * 0.70);
+                    } else if ($grade1 >= 0 && $grade2 < 0) {
+                        $notaFinal = $grade1;
+                    } else if ($grade2 >= 0 && $grade1 < 0) {
+                        $notaFinal = $grade2;
+                    } else {
+                        $notaFinal = 0;
                     }
+                    
+                    return [
+                        'final' => round($notaFinal, 2),
+                        'items' => [
+                            ['normalizada' => $grade1, 'nota' => number_format($grade1, 1), 'nombre' => 'Nota 1'],
+                            ['normalizada' => $grade2, 'nota' => number_format($grade2, 1), 'nombre' => 'Nota 2']
+                        ]
+                    ];
                 }
-                if (count($notas) == 2) break; // Solo las dos primeras notas encontradas
+            } else {
+                $stmt_approvals->close();
+            }
+        }
+
+        // 2. Si no está en la tabla de aprobados, obtener desde notas_estudiantes
+        $sql_notas = "SELECT nota1, nota2 FROM notas_estudiantes WHERE number_id = ? AND code = ?";
+        $stmt_notas = $conn->prepare($sql_notas);
+
+        if ($stmt_notas) {
+            $stmt_notas->bind_param("si", $studentId, $courseCode);
+            if ($stmt_notas->execute()) {
+                $result_notas = $stmt_notas->get_result();
+                $row_notas = $result_notas->fetch_assoc();
+                $stmt_notas->close();
+
+                if ($row_notas) {
+                    $grade1_raw = floatval($row_notas['nota1']);
+                    $grade2_raw = floatval($row_notas['nota2']);
+                    
+                    // Determinar si las notas están en escala 10
+                    $enEscala10 = ($grade1_raw > 5.0 || $grade2_raw > 5.0);
+                    
+                    // Convertir ambas notas consistentemente
+                    if ($enEscala10) {
+                        $grade1_normalized = ($grade1_raw / 10.0) * 5.0;
+                        $grade2_normalized = ($grade2_raw / 10.0) * 5.0;
+                    } else {
+                        $grade1_normalized = $grade1_raw;
+                        $grade2_normalized = $grade2_raw;
+                    }
+                    
+                    // Calcular nota final - Aplicar ponderación 30%-70%
+                    $notaFinal = 0;
+                    if ($grade1_normalized >= 0 && $grade2_normalized >= 0) {
+                        $notaFinal = ($grade1_normalized * 0.30) + ($grade2_normalized * 0.70);
+                    } else if ($grade1_normalized >= 0 && $grade2_normalized < 0) {
+                        $notaFinal = $grade1_normalized;
+                    } else if ($grade2_normalized >= 0 && $grade1_normalized < 0) {
+                        $notaFinal = $grade2_normalized;
+                    } else {
+                        $notaFinal = 0;
+                    }
+                    
+                    return [
+                        'final' => round($notaFinal, 2),
+                        'items' => [
+                            ['normalizada' => round($grade1_normalized, 2), 'nota' => number_format($grade1_normalized, 1), 'nombre' => 'Nota 1'],
+                            ['normalizada' => round($grade2_normalized, 2), 'nota' => number_format($grade2_normalized, 1), 'nombre' => 'Nota 2']
+                        ]
+                    ];
+                }
+            } else {
+                $stmt_notas->close();
+            }
+        }
+
+        // 3. Si no está en ninguna tabla, obtener desde Moodle API como fallback
+        // Configuración básica para la API de Moodle
+        $apiUrl = 'https://talento-tech.uttalento.co/webservice/rest/server.php';
+        $token = '3f158134506350615397c83d861c2104';
+        $format = 'json';
+        
+        // Paso 1: Obtener el userid a partir del número de identificación (username)
+        $functionGetUser = 'core_user_get_users_by_field';
+        $paramsUser = [
+            'field' => 'username',
+            'values[0]' => $studentId
+        ];
+        
+        $postdataUser = http_build_query([
+            'wstoken' => $token,
+            'wsfunction' => $functionGetUser,
+            'moodlewsrestformat' => $format
+        ] + $paramsUser);
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdataUser);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        
+        $responseUser = curl_exec($ch);
+        $userData = json_decode($responseUser, true);
+        
+        if (empty($userData)) {
+            curl_close($ch);
+            return ['final' => 0, 'items' => []];
+        }
+        
+        // Obtener el userid
+        $userid = $userData[0]['id'];
+        
+        // Paso 2: Obtener las notas usando el userid
+        $function = 'gradereport_user_get_grade_items';
+        $params = [
+            'courseid' => $courseCode,
+            'userid' => $userid
+        ];
+        
+        $postdata = http_build_query([
+            'wstoken' => $token,
+            'wsfunction' => $function,
+            'moodlewsrestformat' => $format
+        ] + $params);
+        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+        $response = curl_exec($ch);
+        
+        if ($response === false) {
+            curl_close($ch);
+            return ['final' => 0, 'items' => []];
+        }
+        
+        $data = json_decode($response, true);
+        
+        if ($data === null) {
+            curl_close($ch);
+            return ['final' => 0, 'items' => []];
+        }
+        
+        curl_close($ch);
+        
+        // Paso 3: Procesar las notas de la API de Moodle
+        if (isset($data['usergrades'][0])) {
+            $usergrade = $data['usergrades'][0];
+            $notas = [];
+            
+            if (isset($usergrade['gradeitems'])) {
+                foreach ($usergrade['gradeitems'] as $item) {
+                    // Solo tomar ítems de tipo 'course' o que tengan nota asignada
+                    if (
+                        (isset($item['itemtype']) && $item['itemtype'] === 'course') ||
+                        (isset($item['graderaw']) && $item['graderaw'] !== null)
+                    ) {
+                        $notaRaw = isset($item['graderaw']) ? $item['graderaw'] : null;
+                        $notaFormatted = isset($item['gradeformatted']) ? $item['gradeformatted'] : null;
+                        $itemname = isset($item['itemname']) ? $item['itemname'] : 'Nota';
+                        $grademax = isset($item['grademax']) ? $item['grademax'] : 5.0;
+                        
+                        if ($notaRaw !== null && $grademax > 0) {
+                            // Convertir la nota a escala 5.0 estándar
+                            $notaNormalizada = ($notaRaw / $grademax) * 5.0;
+                            
+                            $notas[] = [
+                                'raw' => $notaRaw,
+                                'normalizada' => $notaNormalizada,
+                                'max' => $grademax,
+                                'nota' => $notaFormatted,
+                                'nombre' => $itemname
+                            ];
+                        }
+                    }
+                    if (count($notas) == 2) break; // Solo las dos primeras notas encontradas
+                }
+            }
+            
+            // Calcular nota final con ponderación: 30% primera nota + 70% segunda nota
+            if (count($notas) >= 2) {
+                $nota1 = $notas[0]['normalizada']; // Primera nota (30%)
+                $nota2 = $notas[1]['normalizada']; // Segunda nota (70%)
+                
+                // Aplicar ponderación: 30% + 70%
+                $notaFinal = round(($nota1 * 0.30) + ($nota2 * 0.70), 2);
+                
+                return [
+                    'final' => $notaFinal,
+                    'items' => $notas
+                ];
+            } else if (count($notas) == 1) {
+                // Si solo hay una nota, usar esa nota como final
+                $notaFinal = round($notas[0]['normalizada'], 2);
+                
+                return [
+                    'final' => $notaFinal,
+                    'items' => $notas
+                ];
             }
         }
         
-        // Calcular nota final con ponderación: 30% primera nota + 70% segunda nota
-        if (count($notas) >= 2) {
-            $nota1 = $notas[0]['normalizada']; // Primera nota (30%)
-            $nota2 = $notas[1]['normalizada']; // Segunda nota (70%)
-            
-            // Aplicar ponderación: 30% + 70%
-            $notaFinal = round(($nota1 * 0.30) + ($nota2 * 0.70), 2);
-            
-            return [
-                'final' => $notaFinal,
-                'items' => $notas
-            ];
-        } else if (count($notas) == 1) {
-            // Si solo hay una nota, usar esa nota como final
-            $notaFinal = round($notas[0]['normalizada'], 2);
-            
-            return [
-                'final' => $notaFinal,
-                'items' => $notas
-            ];
-        }
+        return ['final' => 0, 'items' => []];
+        
+    } catch (Exception $e) {
+        error_log("Excepción en obtenerNotaFinal para estudiante $studentId: " . $e->getMessage());
+        return ['final' => 0, 'items' => []];
     }
-    
-    return ['final' => 0, 'items' => []];
 }
 
 // Función para verificar si el estudiante ya está aprobado

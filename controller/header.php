@@ -36,9 +36,9 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         <a class="nav-link" href="codigosQR.php">Generar QR</a>
                     </li>
 
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="asistencias.php">Asistencia Talleres</a>
-                    </li>
+                    </li> -->
                 <?php endif; ?>
                 <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                     <!-- Sistema PQRS -->
@@ -51,10 +51,14 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
                         </ul>
                     </li>
+                <?php endif; ?>
+
+                <?php if ($rol === 'Control maestro'): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="profile.php">Perfil</a>
+                        <a class="nav-link" href="#" onclick="abrirSwalDocumentos(); return false;">Cambiar base</a>
                     </li>
                 <?php endif; ?>
+
                 <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia'): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPQRS" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -107,7 +111,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             <?php endif; ?>
 
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
-                <?php include 'components/bootcampPeriods/periods_button.php'; ?> 
+                <?php include 'components/bootcampPeriods/periods_button.php'; ?>
             <?php endif; ?>
             <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
                     <i class="fa-solid fa-user-graduate fa-shake"></i>
@@ -417,6 +421,96 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             }
         });
     }
+
+    function abrirSwalDocumentos() {
+    let baseValue = 1; // Valor inicial: Base Adicionales
+
+    Swal.fire({
+        title: 'Cambiar Base dirigida',
+        html: `
+        <div style="margin-bottom:15px;">
+            <label for="baseSelector" style="font-weight:bold;">Tipo de base:</label>
+            <select id="baseSelector" class="form-select" style="width:200px;display:inline-block;">
+                <option value="1" selected>Base Adicionales</option>
+                <option value="0">Base Normal</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docPaste" style="font-weight:bold;">Documentos</label>
+                <textarea id="docPaste" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento"></textarea>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docResult" style="font-weight:bold;">Resultado</label>
+                <textarea id="docResult" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled></textarea>
+            </div>
+        </div>
+        `,
+        showCancelButton: true,
+        showConfirmButton: true,
+        confirmButtonText: 'Aplicar',
+        confirmButtonColor: '#006d68',
+        cancelButtonText: 'Limpiar',
+        cancelButtonColor: '#ec008c',
+        width: 700,
+        footer: `<button type="button" id="swalCloseBtn" class="swal2-confirm swal2-styled" style="background:#6c757d;margin-top:10px;">Cerrar</button>`,
+        didOpen: () => {
+            const pasteArea = document.getElementById('docPaste');
+            const resultArea = document.getElementById('docResult');
+            const baseSelector = document.getElementById('baseSelector');
+            const confirmBtn = document.querySelector('.swal2-confirm:not(#swalCloseBtn)');
+
+            baseSelector.addEventListener('change', function() {
+                baseValue = baseSelector.value;
+                updateButtonColor();
+            });
+
+            pasteArea.addEventListener('input', function() {
+                const lines = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0);
+                resultArea.value = lines.map(l => l + ',').join('\n');
+            });
+
+            document.getElementById('swalCloseBtn').onclick = function() {
+                Swal.close();
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const pasteArea = document.getElementById('docPaste');
+            const baseSelector = document.getElementById('baseSelector');
+            const documentos = pasteArea.value.split('\n')
+                .map(l => l.trim())
+                .filter(l => l.length > 0);
+            const baseValue = baseSelector.value;
+
+            if (documentos.length === 0) {
+                Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
+                return;
+            }
+
+            fetch('controller/update_directed_base.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ documentos, baseValue })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('¡Listo!', 'Se actualizó la base dirigida correctamente.', 'success');
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
+                }
+            })
+            .catch(() => {
+                Swal.fire('Error', 'Hubo un problema con la petición.', 'error');
+            });
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            abrirSwalDocumentos(); // Reinicia el modal al limpiar
+        }
+    });
+}
 </script>
 
 <style>
