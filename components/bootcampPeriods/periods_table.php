@@ -306,96 +306,96 @@ if ($result->num_rows > 0) {
 </div>
 
 <?php foreach ($periods as $period) { ?>
-<!-- Modal para Editar Período -->
-<div class="modal fade" id="editModal<?php echo $period['id']; ?>" tabindex="-1" aria-labelledby="editModalLabel<?php echo $period['id']; ?>" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title" id="editModalLabel<?php echo $period['id']; ?>">
-                    <i class="bi bi-pencil-square"></i> Editar Período: <?php echo htmlspecialchars($period['period_name']); ?>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editPeriodForm<?php echo $period['id']; ?>">
-                    <input type="hidden" name="period_id" value="<?php echo $period['id']; ?>">
-                    
-                    <!-- Información No Editable (Solo Lectura) -->
-                    <div class="alert alert-info">
-                        <h6><i class="bi bi-info-circle"></i> Información del Período</h6>
-                        <div class="row">
+    <!-- Modal para Editar Período -->
+    <div class="modal fade" id="editModal<?php echo $period['id']; ?>" tabindex="-1" aria-labelledby="editModalLabel<?php echo $period['id']; ?>" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="editModalLabel<?php echo $period['id']; ?>">
+                        <i class="bi bi-pencil-square"></i> Editar Período: <?php echo htmlspecialchars($period['period_name']); ?>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editPeriodForm<?php echo $period['id']; ?>">
+                        <input type="hidden" name="period_id" value="<?php echo $period['id']; ?>">
+
+                        <!-- Información No Editable (Solo Lectura) -->
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Información del Período</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Nombre:</strong> <?php echo htmlspecialchars($period['period_name']); ?>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Bootcamp:</strong> <?php echo htmlspecialchars($period['bootcamp_name'] ?? 'No asignado'); ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campos Editables -->
+                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <strong>Nombre:</strong> <?php echo htmlspecialchars($period['period_name']); ?>
+                                <label for="cohort_edit_<?php echo $period['id']; ?>" class="form-label">
+                                    Cohorte <span class="text-danger">*</span>
+                                </label>
+                                <input type="number"
+                                    class="form-control"
+                                    id="cohort_edit_<?php echo $period['id']; ?>"
+                                    name="cohort"
+                                    value="<?php echo htmlspecialchars($period['cohort']); ?>"
+                                    min="1" max="99" required>
                             </div>
                             <div class="col-md-6">
-                                <strong>Bootcamp:</strong> <?php echo htmlspecialchars($period['bootcamp_name'] ?? 'No asignado'); ?>
+                                <label for="status_edit_<?php echo $period['id']; ?>" class="form-label">Estado</label>
+                                <select class="form-select" id="status_edit_<?php echo $period['id']; ?>" name="status">
+                                    <option value="1" <?php echo $period['status'] == 1 ? 'selected' : ''; ?>>Activo</option>
+                                    <option value="0" <?php echo $period['status'] == 0 ? 'selected' : ''; ?>>Inactivo</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Campos Editables -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="cohort_edit_<?php echo $period['id']; ?>" class="form-label">
-                                Cohorte <span class="text-danger">*</span>
-                            </label>
-                            <input type="number" 
-                                class="form-control" 
-                                id="cohort_edit_<?php echo $period['id']; ?>" 
-                                name="cohort"
-                                value="<?php echo htmlspecialchars($period['cohort']); ?>"
-                                min="1" max="99" required>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="start_date_edit_<?php echo $period['id']; ?>" class="form-label">
+                                    Fecha de Inicio <span class="text-danger">*</span>
+                                </label>
+                                <input type="date"
+                                    class="form-control"
+                                    id="start_date_edit_<?php echo $period['id']; ?>"
+                                    name="start_date"
+                                    value="<?php echo htmlspecialchars($period['start_date']); ?>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="end_date_edit_<?php echo $period['id']; ?>" class="form-label">
+                                    Fecha de Fin <span class="text-danger">*</span>
+                                </label>
+                                <input type="date"
+                                    class="form-control"
+                                    id="end_date_edit_<?php echo $period['id']; ?>"
+                                    name="end_date"
+                                    value="<?php echo htmlspecialchars($period['end_date']); ?>" required>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="status_edit_<?php echo $period['id']; ?>" class="form-label">Estado</label>
-                            <select class="form-select" id="status_edit_<?php echo $period['id']; ?>" name="status">
-                                <option value="1" <?php echo $period['status'] == 1 ? 'selected' : ''; ?>>Activo</option>
-                                <option value="0" <?php echo $period['status'] == 0 ? 'selected' : ''; ?>>Inactivo</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="start_date_edit_<?php echo $period['id']; ?>" class="form-label">
-                                Fecha de Inicio <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" 
-                                class="form-control" 
-                                id="start_date_edit_<?php echo $period['id']; ?>" 
-                                name="start_date"
-                                value="<?php echo htmlspecialchars($period['start_date']); ?>" required>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Nota:</strong> Solo se pueden editar las fechas, cohorte y estado del período.
+                            Los cursos asignados no se pueden modificar desde aquí.
                         </div>
-                        <div class="col-md-6">
-                            <label for="end_date_edit_<?php echo $period['id']; ?>" class="form-label">
-                                Fecha de Fin <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" 
-                                class="form-control" 
-                                id="end_date_edit_<?php echo $period['id']; ?>" 
-                                name="end_date"
-                                value="<?php echo htmlspecialchars($period['end_date']); ?>" required>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> 
-                        <strong>Nota:</strong> Solo se pueden editar las fechas, cohorte y estado del período. 
-                        Los cursos asignados no se pueden modificar desde aquí.
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle"></i> Cancelar
-                </button>
-                <button type="button" class="btn btn-warning" onclick="updatePeriod(<?php echo $period['id']; ?>)">
-                    <i class="bi bi-save"></i> Actualizar Período
-                </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="updatePeriod(<?php echo $period['id']; ?>)">
+                        <i class="bi bi-save"></i> Actualizar Período
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 <?php } ?>
 
 <script>
@@ -405,14 +405,12 @@ if ($result->num_rows > 0) {
             if (!fullname) return null;
 
             // Buscar patrones como G41-1P, G20-2V, G12-1P, G5-2V, etc.
-            // Actualizado para incluir el último carácter P o V
             var matches = fullname.match(/G\d+-\d+[A-Z]/g);
             if (matches && matches.length > 0) {
                 return matches[0];
             }
 
             // Fallback: buscar otros patrones más específicos
-            // Patrones como C1L1-G5P, C1L1G2V, C1L1-G41-1P, etc.
             var altMatches = fullname.match(/C\d+L\d+-?G\d+(?:-\d+)?[A-Z]/g);
             if (altMatches && altMatches.length > 0) {
                 return altMatches[0];
@@ -422,6 +420,12 @@ if ($result->num_rows > 0) {
             var specialMatches = fullname.match(/[A-Z]\d+[A-Z]\d+-[A-Z]\d+[A-Z]/g);
             if (specialMatches && specialMatches.length > 0) {
                 return specialMatches[0];
+            }
+
+            // NUEVO: patrón sugerido por el usuario
+            var userPattern = fullname.match(/G\d+[A-Z]?/g);
+            if (userPattern && userPattern.length > 0) {
+                return userPattern[0];
             }
 
             return null;
@@ -506,7 +510,7 @@ if ($result->num_rows > 0) {
                     });
                 } else {
                     console.log("No se pudo extraer el código de grupo de:", fullname);
-                    
+
                     // Intentar extraer manualmente patrones adicionales
                     var manualMatch = fullname.match(/[A-Z]\d+[A-Z]\d+-[A-Z]\d+[A-Z]|G\d+[A-Z]|C\d+L\d+[A-Z]/);
                     if (manualMatch) {
@@ -670,7 +674,7 @@ if ($result->num_rows > 0) {
         // Reemplazar la función updatePeriod existente
         window.updatePeriod = function(periodId) {
             var form = $('#editPeriodForm' + periodId)[0];
-            
+
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
@@ -679,7 +683,7 @@ if ($result->num_rows > 0) {
             // Validar fechas antes de enviar
             var startDate = $('#start_date_edit_' + periodId).val();
             var endDate = $('#end_date_edit_' + periodId).val();
-            
+
             if (new Date(endDate) <= new Date(startDate)) {
                 Swal.fire({
                     icon: 'error',
@@ -768,12 +772,14 @@ if ($result->num_rows > 0) {
             $.ajax({
                 url: 'components/bootcampPeriods/get_period_details.php',
                 type: 'POST',
-                data: { period_id: periodId },
+                data: {
+                    period_id: periodId
+                },
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
                         const period = response.data;
-                        
+
                         // Construir el HTML del contenido
                         const detailsHtml = `
                             <div class="period-details-container">
@@ -962,7 +968,7 @@ if ($result->num_rows > 0) {
                                 </div>
                             </div>
                         `;
-                        
+
                         // Mostrar SweetAlert con los detalles
                         Swal.fire({
                             title: `<strong><i class="bi bi-calendar-event"></i> Detalles del Período</strong>`,
@@ -1023,5 +1029,66 @@ if ($result->num_rows > 0) {
 
         // Hacer el campo de nombre del período de solo lectura
         $('#period_name_create').prop('readonly', true).css('background-color', '#f8f9fa');
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('modal') === 'addPeriod') {
+            // Autocompletar campos
+            const codigoGrupo = urlParams.get('codigo_grupo') || '';
+            const cohort = urlParams.get('cohort') || '';
+            const nombre = urlParams.get('nombre') || '';
+
+            document.getElementById('period_name_create').value = codigoGrupo;
+            document.getElementById('cohort_create').value = cohort;
+
+            // Bootcamp técnico
+            const bootcampSelect = document.getElementById('bootcamp_course_select_create');
+            if (bootcampSelect && nombre) {
+                for (let opt of bootcampSelect.options) {
+                    if (opt.text.includes(nombre) || opt.text.includes(codigoGrupo)) {
+                        bootcampSelect.value = opt.value;
+                        break;
+                    }
+                }
+            }
+
+            // Inglés nivelador
+            const englishLevelSelect = document.getElementById('leveling_english_course_select_create');
+            if (englishLevelSelect) {
+                for (let opt of englishLevelSelect.options) {
+                    if (opt.text.includes(codigoGrupo)) {
+                        englishLevelSelect.value = opt.value;
+                        break;
+                    }
+                }
+            }
+
+            // English code
+            const englishCodeSelect = document.getElementById('english_code_course_select_create');
+            if (englishCodeSelect) {
+                for (let opt of englishCodeSelect.options) {
+                    if (opt.text.includes(codigoGrupo)) {
+                        englishCodeSelect.value = opt.value;
+                        break;
+                    }
+                }
+            }
+
+            // Habilidades
+            const skillsSelect = document.getElementById('skills_course_select_create');
+            if (skillsSelect) {
+                for (let opt of skillsSelect.options) {
+                    if (opt.text.includes(codigoGrupo)) {
+                        skillsSelect.value = opt.value;
+                        break;
+                    }
+                }
+            }
+
+            // Abre el modal
+            const modal = new bootstrap.Modal(document.getElementById('addPeriodModal'));
+            modal.show();
+        }
     });
 </script>

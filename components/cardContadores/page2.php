@@ -241,7 +241,7 @@
     <div class="row w-100">
         <!-- Tarjeta alta a la izquierda -->
         <div class="col-md-4 d-flex flex-column mb-4">
-            <div class="card h-100" style="max-height: 520px;">
+            <div class="card h-100" style="max-height: 650px;">
                 <div class="card-body d-flex flex-column">
                     <!-- Título fijo arriba -->
                     <div class="mb-3">
@@ -256,7 +256,7 @@
                     </div>
 
                     <!-- Lista scrolleable en el medio -->
-                    <div id="bootcampListLoteDos" class="flex-grow-1 h-100 w-100" style="max-height: 250px; min-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                    <div id="bootcampListLoteDos" class="flex-grow-1 h-100 w-100" style="max-height: 420px; min-height: 280px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
                         <p class="text-muted text-center">Cargando bootcamps...</p>
                     </div>
 

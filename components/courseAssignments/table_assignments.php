@@ -228,7 +228,7 @@ $statusClasses = [
                         <td><?= htmlspecialchars($row['mode']) ?></td>
                         <td><?= htmlspecialchars($row['lote']) ?></td>
                         <td><?= htmlspecialchars($row['headquarters']) ?></td>
-                        <td><?= htmlspecialchars($row['cohort']) ?></td>
+                        <td><?= !empty($row['cohort']) ? htmlspecialchars($row['cohort']) : '-' ?></td>
                         <td>
                             <span class="badge <?= $statusClasses[$row['statusAdmin']] ?? 'bg-secondary' ?>">
                                 <?= $statusLabels[$row['statusAdmin']] ?? 'Desconocido' ?>

@@ -160,7 +160,8 @@ document.addEventListener("DOMContentLoaded", function() {
                         <small class="text-muted">${grupo.nombre}</small>
                     `;
                     item.addEventListener("click", function() {
-                        window.location.href = "bootcamp_period.php";
+                        // Redirige con parámetros para autocompletar el modal
+                        window.location.href = `bootcamp_period.php?modal=addPeriod&codigo_grupo=${encodeURIComponent(grupo.codigo_grupo)}&cohort=${encodeURIComponent(grupo.cohort)}&nombre=${encodeURIComponent(grupo.nombre)}`;
                     });
                     list.appendChild(item);
                 });

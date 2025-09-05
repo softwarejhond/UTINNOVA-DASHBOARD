@@ -68,10 +68,10 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificados_no_matriculadosLote1')">Informe contrapartida sin matricula L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificados_no_matriculadosLote2')">Informe contrapartida sin matricula L2</a></li>
+                                <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li> -->
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificados_no_matriculadosLote1')">Informe contrapartida L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificados_no_matriculadosLote2')">Informe contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
                             <?php endif; ?>
 
@@ -112,6 +112,10 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
                 <?php include 'components/bootcampPeriods/periods_button.php'; ?>
+            <?php endif; ?>
+
+            <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Académico'): ?>
+                <?php include 'components/classrooms/classroom_button.php'; ?>
             <?php endif; ?>
             <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
                     <i class="fa-solid fa-user-graduate fa-shake"></i>
@@ -423,11 +427,11 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
     }
 
     function abrirSwalDocumentos() {
-    let baseValue = 1; // Valor inicial: Base Adicionales
+        let baseValue = 1; // Valor inicial: Base Adicionales
 
-    Swal.fire({
-        title: 'Cambiar Base dirigida',
-        html: `
+        Swal.fire({
+            title: 'Cambiar Base dirigida',
+            html: `
         <div style="margin-bottom:15px;">
             <label for="baseSelector" style="font-weight:bold;">Tipo de base:</label>
             <select id="baseSelector" class="form-select" style="width:200px;display:inline-block;">
@@ -446,71 +450,76 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             </div>
         </div>
         `,
-        showCancelButton: true,
-        showConfirmButton: true,
-        confirmButtonText: 'Aplicar',
-        confirmButtonColor: '#006d68',
-        cancelButtonText: 'Limpiar',
-        cancelButtonColor: '#ec008c',
-        width: 700,
-        footer: `<button type="button" id="swalCloseBtn" class="swal2-confirm swal2-styled" style="background:#6c757d;margin-top:10px;">Cerrar</button>`,
-        didOpen: () => {
-            const pasteArea = document.getElementById('docPaste');
-            const resultArea = document.getElementById('docResult');
-            const baseSelector = document.getElementById('baseSelector');
-            const confirmBtn = document.querySelector('.swal2-confirm:not(#swalCloseBtn)');
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Aplicar',
+            confirmButtonColor: '#006d68',
+            cancelButtonText: 'Limpiar',
+            cancelButtonColor: '#ec008c',
+            width: 700,
+            footer: `<button type="button" id="swalCloseBtn" class="swal2-confirm swal2-styled" style="background:#6c757d;margin-top:10px;">Cerrar</button>`,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPaste');
+                const resultArea = document.getElementById('docResult');
+                const baseSelector = document.getElementById('baseSelector');
+                const confirmBtn = document.querySelector('.swal2-confirm:not(#swalCloseBtn)');
 
-            baseSelector.addEventListener('change', function() {
-                baseValue = baseSelector.value;
-                updateButtonColor();
-            });
+                baseSelector.addEventListener('change', function() {
+                    baseValue = baseSelector.value;
+                    updateButtonColor();
+                });
 
-            pasteArea.addEventListener('input', function() {
-                const lines = pasteArea.value.split('\n')
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0);
+                    resultArea.value = lines.map(l => l + ',').join('\n');
+                });
+
+                document.getElementById('swalCloseBtn').onclick = function() {
+                    Swal.close();
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPaste');
+                const baseSelector = document.getElementById('baseSelector');
+                const documentos = pasteArea.value.split('\n')
                     .map(l => l.trim())
                     .filter(l => l.length > 0);
-                resultArea.value = lines.map(l => l + ',').join('\n');
-            });
+                const baseValue = baseSelector.value;
 
-            document.getElementById('swalCloseBtn').onclick = function() {
-                Swal.close();
-            };
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const pasteArea = document.getElementById('docPaste');
-            const baseSelector = document.getElementById('baseSelector');
-            const documentos = pasteArea.value.split('\n')
-                .map(l => l.trim())
-                .filter(l => l.length > 0);
-            const baseValue = baseSelector.value;
-
-            if (documentos.length === 0) {
-                Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
-                return;
-            }
-
-            fetch('controller/update_directed_base.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ documentos, baseValue })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire('¡Listo!', 'Se actualizó la base dirigida correctamente.', 'success');
-                } else {
-                    Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
+                if (documentos.length === 0) {
+                    Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
+                    return;
                 }
-            })
-            .catch(() => {
-                Swal.fire('Error', 'Hubo un problema con la petición.', 'error');
-            });
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            abrirSwalDocumentos(); // Reinicia el modal al limpiar
-        }
-    });
-}
+
+                fetch('controller/update_directed_base.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            documentos,
+                            baseValue
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('¡Listo!', 'Se actualizó la base dirigida correctamente.', 'success');
+                        } else {
+                            Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire('Error', 'Hubo un problema con la petición.', 'error');
+                    });
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                abrirSwalDocumentos(); // Reinicia el modal al limpiar
+            }
+        });
+    }
 </script>
 
 <style>

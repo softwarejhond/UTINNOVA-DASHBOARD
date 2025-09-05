@@ -273,11 +273,27 @@ function exportDataToExcel($conn)
                 'id' => $row['id'],
                 'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'], // Cambio: normalizar CC
                 'Número_documento' => $row['number_id'],
-                'Nombre1' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_name'])), // Cambio: agregar espacio en blanco
-                'Nombre2' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_name'])), // Cambio: agregar espacio en blanco
-                'Apellido1' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['first_last'])), // Cambio: agregar espacio en blanco
-                'Apellido2' => strtoupper(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'], ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U'], $row['second_last'])), // Cambio: agregar espacio en blanco
-                'Fecha_nacimiento' => date('d/m/Y', strtotime($row['birthdate'])),
+                'Nombre1' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['first_name']
+                )),
+                'Nombre2' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['second_name']
+                )),
+                'Apellido1' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['first_last']
+                )),
+                'Apellido2' => strtoupper(str_replace(
+                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    $row['second_last']
+                )),
+                'Fecha_nacimiento' => fechaAExcel($row['birthdate']),
                 'Correo' => $row['email'],
 
                 'Codigo_epartamento' => $row['department'],
@@ -292,7 +308,7 @@ function exportDataToExcel($conn)
 
                 'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']), // Cambio: simplificar lógica
 
-                'Campesino' => '',
+                'Campesino' => ($row['country_person'] === 'Sí') ? 'SI' : (($row['country_person'] === 'No') ? 'NO' : $row['country_person']),
 
                 'Estrato' => ($row['stratum'] == '0' ? 'Sin estratificar' : ($row['residence_area'] == 'Rural' ? '1' : $row['stratum'])),
 
@@ -317,9 +333,9 @@ function exportDataToExcel($conn)
                 'Victima_del_conflicto' => $victimaConflictoArmado,
                 'Autoriza_manejo_datos_personales' => ($row['accept_data_policies'] === 'Sí') ? 'SI' : $row['accept_data_policies'],
                 'Disponibilidad_d_Equipo' => !empty($row['technologies']) ? 'SI' : '',
-                'creationdate' => $row['creationDate'] ? date('d/m/Y', strtotime($row['creationDate'])) : '',
+                'creationdate' => $row['creationDate'] ? fechaAExcel($row['creationDate']) : '',
                 'Presento' => ($puntaje !== null && $puntaje !== '') ? 'SI' : 'NO',
-                'fecha_ini' => $row['fecha_registro'] ? date('d/m/Y', strtotime($row['fecha_registro'])) : '',
+                'fecha_ini' => $row['fecha_registro'] ? fechaAExcel($row['fecha_registro']) : '',
                 'tiempo_segundos' => '',
                 'Eje_tematico' => $row['program'],
                 'Eje final' => $row['program'],
@@ -357,7 +373,7 @@ function exportDataToExcel($conn)
                 } : '',
                 'Documento_Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_id'],
                 'Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_name'],
-                'Fecha Inicio de la formación (dd/mm/aaaa)' => $row['bootcamp_start_date'] ? date('d/m/Y', strtotime($row['bootcamp_start_date'])) : '',
+                'Fecha Inicio de la formación (dd/mm/aaaa)' => $row['bootcamp_start_date'] ? fechaAExcel($row['bootcamp_start_date']) : '',
                 'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['bootcamp_cohort'], // Cambio: usar bootcamp_cohort en lugar de cohort
                 'Año Cohorte' => $row['bootcamp_start_date'] ? date('Y', strtotime($row['bootcamp_start_date'])) : '',
                 'Tipo de formación' => $row['group_mode'],
@@ -365,7 +381,7 @@ function exportDataToExcel($conn)
                 'Observaciones (menos de 50 cracteres)' => '',
                 'codigo del curso' => $row['id_bootcamp'],
                 'Nombre del curso' => $row['bootcamp_name'],
-                'Asistencias' => $estaEnGroups ? ($attendanceCount[$row['number_id']] ?? 0) : '',
+                'Asistencias' => $estaEnGroups ? calcularHorasActualesPorEstudiante($conn, $row['number_id']) : '',
                 'Asistencias programadas' => $estaEnGroups ? '159' : '',
                 'Documento_Mentor' => $row['bootcamp_mentor_id'],
                 'Mentor' => $row['bootcamp_mentor_name'],
@@ -389,7 +405,7 @@ function exportDataToExcel($conn)
                     '9' => 'APLAZADO',
                     '10' => 'FORMADO',
                     '11' => 'NO VALIDO',
-                    '12' => 'PENDIENTE MINTIC',
+                    '12' => 'Pendiente MINTIC',
                     default => ''
                 },
             ];
@@ -540,4 +556,77 @@ function normalizeString($string)
         'ÿ' => 'y'
     );
     return strtr($string, $unwanted_array);
+}
+
+function calcularHorasActualesPorEstudiante($conn, $studentId)
+{
+    // Selecciona todos los cursos del estudiante excepto inglés nivelatorio
+    $sql = "SELECT c.code, c.real_hours
+            FROM groups g
+            JOIN courses c ON (
+                c.code = g.id_bootcamp OR 
+                c.code = g.id_english_code OR 
+                c.code = g.id_skills
+            )
+            WHERE g.number_id = ?
+            AND c.code != g.id_leveling_english";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $studentId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $totalHoras = 0;
+    while ($curso = $result->fetch_assoc()) {
+        $cursoId = $curso['code'];
+        $horasMaximas = intval($curso['real_hours']);
+
+        // Consulta las asistencias y suma las horas actuales
+        $sqlHoras = "SELECT ar.class_date, 
+                            CASE 
+                                WHEN ar.attendance_status = 'presente' THEN 
+                                    CASE DAYOFWEEK(ar.class_date)
+                                        WHEN 2 THEN c.monday_hours
+                                        WHEN 3 THEN c.tuesday_hours
+                                        WHEN 4 THEN c.wednesday_hours
+                                        WHEN 5 THEN c.thursday_hours
+                                        WHEN 6 THEN c.friday_hours
+                                        WHEN 7 THEN c.saturday_hours
+                                        WHEN 1 THEN c.sunday_hours
+                                        ELSE 0
+                                    END
+                                WHEN ar.attendance_status = 'tarde' THEN ar.recorded_hours
+                                ELSE 0 
+                            END as horas
+                    FROM attendance_records ar
+                    JOIN courses c ON ar.course_id = c.code
+                    WHERE ar.student_id = ? AND ar.course_id = ?";
+        $stmtHoras = $conn->prepare($sqlHoras);
+        $stmtHoras->bind_param("si", $studentId, $cursoId);
+        $stmtHoras->execute();
+        $resultHoras = $stmtHoras->get_result();
+
+        $fechasContadas = [];
+        $horasCurso = 0;
+        while ($asistencia = $resultHoras->fetch_assoc()) {
+            $fecha = $asistencia['class_date'];
+            if (!in_array($fecha, $fechasContadas)) {
+                $horasCurso += $asistencia['horas'];
+                $fechasContadas[] = $fecha;
+            }
+        }
+        $stmtHoras->close();
+
+        // Aplica el límite de horas máximas del curso
+        $totalHoras += min($horasCurso, $horasMaximas);
+    }
+    $stmt->close();
+    return $totalHoras;
+}
+
+// Helper para convertir fecha a número de Excel
+function fechaAExcel($fecha)
+{
+    if (!$fecha) return '';
+    $fechaExcel = (new DateTime($fecha))->diff(new DateTime('1899-12-30'))->days;
+    return $fechaExcel;
 }

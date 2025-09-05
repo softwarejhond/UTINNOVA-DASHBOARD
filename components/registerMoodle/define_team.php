@@ -238,19 +238,19 @@ $monitores = getUsersByRole($conn, 7);
             background-color: white !important;
             border-radius: 10px !important;
         }
-        
+
         .introjs-tooltip {
             min-width: 300px;
         }
-        
+
         .introjs-helperLayer {
             background-color: transparent;
         }
-        
+
         .introjs-arrow.left {
             border-right-color: var(--tecnico-color) !important;
         }
-        
+
         .introjs-button {
             background-color: var(--ingles-color);
             color: white;
@@ -260,11 +260,11 @@ $monitores = getUsersByRole($conn, 7);
             border-radius: 5px;
             margin: 5px;
         }
-        
+
         .introjs-button:hover {
             background-color: var(--tecnico-color);
             color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -563,12 +563,15 @@ $monitores = getUsersByRole($conn, 7);
                     // Buscar patrones comunes de códigos de grupo
                     var matches = fullname.match(/C\dL\d-G\d+V|C\dL\d-\d+V/);
 
-                    // Si encontramos un código de grupo
+                    // NUEVO: Si no se encuentra, buscar con /(G\d+[A-Z]?)/ como fallback
+                    if (!matches || !matches[0]) {
+                        matches = fullname.match(/G\d+[A-Z]?/);
+                    }
+
                     if (matches && matches[0]) {
                         var groupCode = matches[0];
                         console.log("Código de grupo encontrado:", groupCode);
 
-                        // Buscar y seleccionar automáticamente cursos con el mismo código
                         autoSelectRelatedCourse('#inglesCourse', groupCode);
                         autoSelectRelatedCourse('#englishCodeCourse', groupCode);
                         autoSelectRelatedCourse('#habilidadesCourse', groupCode);
@@ -797,7 +800,7 @@ $monitores = getUsersByRole($conn, 7);
                                 </div>
                             `;
                         }
-                        
+
                         Swal.fire({
                             title: title,
                             html: html,
@@ -808,9 +811,9 @@ $monitores = getUsersByRole($conn, 7);
                     },
                     error: function(xhr, status, error) {
                         console.error('Error details:', xhr.responseText);
-                        
+
                         let errorMessage = 'Error de comunicación con el servidor';
-                        
+
                         // Intentar parsear la respuesta si es JSON
                         try {
                             const response = JSON.parse(xhr.responseText);
@@ -824,7 +827,7 @@ $monitores = getUsersByRole($conn, 7);
                                 errorMessage += `<br><small>${xhr.responseText}</small>`;
                             }
                         }
-                        
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Error de comunicación',

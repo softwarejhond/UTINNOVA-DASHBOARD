@@ -25,36 +25,38 @@ function getCourses()
 }
 
 // NUEVA función para obtener los códigos de cursos válidos desde la base de datos local
-function getValidCourseCodes($conn) {
+function getValidCourseCodes($conn)
+{
     $validCodes = [];
-    
+
     $sql = "SELECT DISTINCT code FROM courses";
     $result = mysqli_query($conn, $sql);
-    
+
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
             $validCodes[] = (int)$row['code'];
         }
     }
-    
+
     return $validCodes;
 }
 
 // NUEVA función para filtrar cursos de Moodle según códigos válidos
-function filterValidCourses($moodleCourses, $validCodes) {
+function filterValidCourses($moodleCourses, $validCodes)
+{
     $filteredCourses = [];
-    
+
     if (!is_array($moodleCourses)) {
         return $filteredCourses;
     }
-    
+
     foreach ($moodleCourses as $course) {
         // Verificar si el ID del curso de Moodle está en la lista de códigos válidos
         if (in_array((int)$course['id'], $validCodes)) {
             $filteredCourses[] = $course;
         }
     }
-    
+
     return $filteredCourses;
 }
 
@@ -295,7 +297,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                             <option value="">Seleccione un curso</option>
                             <?php
                             $allowed_categories = [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 35];
-                            
+
                             // Verificar si hay cursos filtrados
                             if (!empty($courses_data)) {
                                 foreach ($courses_data as $course):
@@ -516,8 +518,12 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                 return;
             }
 
-            // Extraer el código del curso - EXPRESIÓN REGULAR ACTUALIZADA
-            const courseCodeMatch = selectedText.match(/C\d+L\d+-G\d+[A-Z]*\d*/);
+            // EXPRESIÓN REGULAR ACTUALIZADA: incluye /(G\d+[A-Z]?)/ como fallback
+            let courseCodeMatch = selectedText.match(/C\d+L\d+-G\d+[A-Z]*\d*/);
+            if (!courseCodeMatch) {
+                // Si no coincide el patrón principal, intenta con el nuevo patrón sugerido
+                courseCodeMatch = selectedText.match(/G\d+[A-Z]?/);
+            }
             if (!courseCodeMatch) {
                 $('#courseCodeDisplay').val('Código no disponible');
                 Swal.fire({
@@ -1199,7 +1205,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                     row.append(`<td style="text-align: left;">${student.email || 'N/A'}</td>`);
                     row.append(`<td>${student.horario || 'N/A'}</td>`);
                     row.append(`<td>${student.group_name || 'N/A'}</td>`);
-                    
+
                     // Celda de Estado de Admisión con popover condicional
                     let badgeHtml;
                     if (student.student_status === 'unenrolled') {
@@ -1291,7 +1297,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
     function initializePopovers() {
         // Destruir popovers existentes para evitar duplicados
         $('[data-bs-toggle="popover"]').popover('dispose');
-        
+
         // Inicializar nuevos popovers
         const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
         [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
@@ -1677,37 +1683,37 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
         // Event listener para el botón de historial
         $(document).off('click', '#showHistoryBtn').on('click', '#showHistoryBtn', function(e) {
             e.preventDefault();
-            
+
             const modal = $('#genericAttendanceModal');
             const studentId = modal.find('input[name="student_id"]').val();
             const courseId = modal.find('input[name="course_id"]').val();
             const studentName = modal.find('#attendanceModalTitle').text().replace('Información de Asistencia', '').trim();
-            
+
             // CERRAR el modal anterior antes de mostrar el historial
             $('#genericAttendanceModal').modal('hide');
-            
+
             // Esperar a que se cierre completamente el modal anterior
             $('#genericAttendanceModal').on('hidden.bs.modal', function() {
                 // Remover el event listener para evitar acumulación
                 $(this).off('hidden.bs.modal');
-                
+
                 // Actualizar el título del modal de historial
                 $('#historyModalLabel').html(`<i class="fas fa-history me-2"></i> Historial de Gestiones - ${studentName}`);
-                
+
                 // Almacenar los datos del estudiante en el modal para exportación
                 $('#historyModal').data('student-info', {
                     id: studentId,
                     name: studentName,
                     course_id: courseId
                 });
-                
+
                 // Mostrar el modal de historial
                 $('#historyModal').modal('show');
-                
+
                 // Mostrar carga y ocultar contenido
                 $('#historyLoading').show();
                 $('#historyContent').hide();
-                
+
                 loadHistoryData(studentId, courseId);
             });
         });
@@ -1716,7 +1722,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
         $(document).off('click', '#exportHistoryBtn').on('click', '#exportHistoryBtn', function() {
             const historyData = $('#historyModal').data('history-data');
             const studentInfo = $('#historyModal').data('student-info');
-            
+
             if (!historyData || !studentInfo) {
                 Swal.fire({
                     icon: 'error',
@@ -1725,7 +1731,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                 });
                 return;
             }
-            
+
             // Mostrar indicador de carga
             Swal.fire({
                 title: 'Generando archivo Excel',
@@ -1737,7 +1743,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                     Swal.showLoading();
                 }
             });
-            
+
             // Hacer petición AJAX para exportar
             $.ajax({
                 url: 'components/attendance/exportHistoryToExcel.php',
@@ -1764,10 +1770,10 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                     a.click();
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
-                    
+
                     // Cerrar loading
                     Swal.close();
-                    
+
                     // Mostrar mensaje de éxito
                     Swal.fire({
                         icon: 'success',
@@ -2163,7 +2169,7 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                             const interventionObs = item.intervention_observation ?
                                 `<span class="text-truncate d-inline-block" style="max-width: 200px;" 
                                           title="${item.intervention_observation}">${item.intervention_observation}</span>` :
-                               
+
                                 'N/A';
                             row.append(`<td>${interventionObs}</td>`);
 

@@ -56,7 +56,7 @@ $rol = $infoUsuario['rol'];
             </div>
             <br><br>
             <hr>
-            <?php include("components/tutorials/listTutorials.php"); ?>
+            <?php include("components/classrooms/asignarAulas.php"); ?>
             <div class="row">
                 <div class="col-sm-12 col-md-12 col-lg-12">
                     <?php //include("components/aceptUsers/updateStatus.php"); 
@@ -85,8 +85,11 @@ $rol = $infoUsuario['rol'];
     $(document).ready(function() {
         $('#link-dashboard').addClass('pagina-activa');
 
+        // Silenciar errores de DataTable
+        $.fn.dataTable.ext.errMode = 'none';
+
         // Inicialización de DataTable
-        $('#listaInscritos').DataTable({
+        $('#listaAulas').DataTable({
             responsive: true,
             language: {
                 url: "controller/datatable_esp.json"
