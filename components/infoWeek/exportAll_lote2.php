@@ -42,6 +42,7 @@ function exportDataToExcel($conn)
     -- Obtener cohorte y fechas desde course_periods
     cp.cohort as bootcamp_cohort,
     cp.start_date as bootcamp_start_date,
+    cp.end_date as bootcamp_end_date,
     u.fecha_registro,
     -- Bootcamp staff (convertir a mayúsculas en la consulta)
     bc.teacher as bootcamp_teacher_id,
@@ -408,6 +409,8 @@ function exportDataToExcel($conn)
                     '12' => 'PENDIENTE MINTIC',
                     default => ''
                 },
+                'Fecha de matricula' => $row['creation_date'] ? fechaAExcel($row['creation_date']) : '',
+                'Fecha fin de la formación (dd/mm/aaaa)' => $row['bootcamp_end_date'] ? fechaAExcel($row['bootcamp_end_date']) : '',
             ];
         }
     }

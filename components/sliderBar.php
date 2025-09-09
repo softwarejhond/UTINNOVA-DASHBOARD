@@ -1,6 +1,21 @@
 <?php
+/**
+ * ============================================
+ * Barra lateral de navegación principal (sliderBar.php)
+ * ============================================
+ * Este componente muestra la barra lateral con accesos rápidos a las principales funciones del sistema.
+ * Las opciones visibles dependen del rol del usuario logueado.
+ * Cada botón puede abrir un modal, redirigir a otra página o mostrar información relevante.
+ * 
+ * - Los roles controlan el acceso a cada funcionalidad (Administrador, Asesor, Académico, Monitor, etc).
+ * - Se utiliza Bootstrap para el diseño responsivo y popovers para mostrar descripciones de cada opción.
+ * - Al final se muestra el crédito de desarrollo.
+ */
+
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
+
+// Modal para registrar cursos (solo para roles autorizados)
 require_once __DIR__ . '/../components/modals/register_course.php';
 ?>
 
@@ -13,7 +28,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
         <div class="container-fluid sliderbar-scale" style="padding-bottom: 50px;">
             <fieldset class="checkbox-group">
                 <legend class="checkbox-group-legend"></legend>
-                <!-- Cambié row-cols-3 por col específicos y ajusté el gap -->
+                <!-- Opciones de la barra lateral, cada una controlada por el rol del usuario -->
                 <div class="row gx-2 gy-1">
                     <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                         <div class="col-4">
@@ -323,7 +338,7 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                     </div>
                 </div>
             </fieldset>
-
+            <!-- Pie de barra lateral con créditos -->
             <div class="text-center mt-2">
                 <small class="text-muted" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                     Made by

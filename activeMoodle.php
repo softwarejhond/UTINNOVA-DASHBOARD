@@ -1,4 +1,18 @@
 <?php
+/**
+ * ============================================
+ * Gestión de usuarios activos en Moodle (activeMoodle.php)
+ * ============================================
+ * Este componente muestra el listado y gestión de usuarios actualmente matriculados en la plataforma Moodle.
+ * Permite filtrar, visualizar y administrar las matrículas activas, así como realizar acciones sobre los usuarios.
+ * 
+ * - Verifica la sesión y el rol del usuario antes de mostrar la información.
+ * - Integra filtros por bootcamp, sede, programa y modalidad.
+ * - Utiliza DataTables para la visualización dinámica y responsiva de los datos.
+ * - Incluye componentes para agregar usuarios, asesores y gestionar matrículas.
+ * - El diseño es responsivo y utiliza Bootstrap.
+ */
+
 session_start();
 include("conexion.php");
 // Habilitar la visualización de errores

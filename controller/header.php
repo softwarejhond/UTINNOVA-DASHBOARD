@@ -1,9 +1,24 @@
 <?php
+/**
+ * ============================================
+ * Barra superior y navegación principal (header.php)
+ * ============================================
+ * Este componente muestra la barra superior fija del dashboard.
+ * Incluye el logo, menú principal, accesos rápidos, perfil del usuario y botones flotantes.
+ * Las opciones del menú y los accesos dependen del rol del usuario logueado.
+ * 
+ * - Los roles controlan el acceso a cada funcionalidad (Administrador, Control maestro, Empleabilidad, Permanencia, Académico, etc).
+ * - Se integra con los componentes de barra lateral y correo flotante.
+ * - Incluye menús desplegables para informes, PQRS, periodos, aulas y perfil.
+ * - Permite la descarga de informes con control de tiempo y feedback visual.
+ * - El diseño es responsivo y utiliza Bootstrap.
+ */
+
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 require_once __DIR__ . '/../components/modals/cohortes.php';
 ?>
-<?php include("components/sliderBarRight.php"); ?>
-<?php include 'components/multipleEmail/float_email.php'; ?>
+<?php include("components/sliderBarRight.php"); ?> <!-- Barra lateral derecha de opciones -->
+<?php include 'components/multipleEmail/float_email.php'; ?> <!-- Botón flotante de correo -->
 
 <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
     <div class="container-fluid">
@@ -66,12 +81,13 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         </a>
                         <ul class="dropdown-menu informes-scroll" aria-labelledby="navbarDropdownPQRS">
                             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
+                                <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
                                 <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li> -->
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificados_no_matriculadosLote1')">Informe contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificados_no_matriculadosLote2')">Informe contrapartida L2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
                             <?php endif; ?>
 

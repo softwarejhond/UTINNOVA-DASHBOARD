@@ -1,7 +1,14 @@
 <?php
+// ===============================
+// UTINNOVA-DASHBOARD - main.php
+// ===============================
+// Este archivo es el punto de entrada principal del dashboard.
+// Controla la sesión, verifica el login y carga los componentes visuales.
+// También gestiona la alerta de perfil incompleto y la estructura base de la página.
+
 session_start();
 include("conexion.php");
-// Habilitar la visualización de errores
+// Habilitar la visualización de errores para desarrollo
 ini_set('display_errors', 1);
 error_reporting(E_ALL);  // Mostrar todos los errores
 
@@ -13,10 +20,11 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 }
 include("components/filters/takeUser.php");
 
+// Obtener información del usuario logueado
 $infoUsuario = obtenerInformacionUsuario(); // Obtén la información del usuario
 $rol = $infoUsuario['rol'];
 
-// Verificar campos incompletos
+// Verificar si el usuario tiene campos incompletos en su perfil
 $mostrar_alerta = false;
 $mensaje_campos = "";
 
@@ -44,6 +52,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <!-- Integración de Bootstrap y DataTables -->
+    <!-- Carga de estilos y scripts para la interfaz principal -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -61,10 +70,10 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
 </head>
 
 <body style="background-color:white">
-    <?php include("controller/header.php"); ?>
-    <?php include("components/sliderBar.php"); ?>
-    <?php include("components/modals/userNew.php"); ?>
-    <?php include("components/modals/newAdvisor.php"); ?>
+    <?php include("controller/header.php"); ?> <!-- Barra superior y navegación -->
+    <?php include("components/sliderBar.php"); ?> <!-- Menú lateral -->
+    <?php include("components/modals/userNew.php"); ?> <!-- Modal para nuevo usuario -->
+    <?php include("components/modals/newAdvisor.php"); ?> <!-- Modal para nuevo asesor -->
     <br><br>
 </body>
 <div style="margin-top: 50px;">
@@ -73,6 +82,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
             <div class="d-flex align-items-center justify-content-between">
                 <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
                 <div class="loader">
+                    <!-- Animación de carga -->
                     <div class="slider" style="--i:0"></div>
                     <div class="slider" style="--i:1"></div>
                     <div class="slider" style="--i:2"></div>
@@ -81,18 +91,16 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
                 </div>
             </div>
             <hr>
-            <?php include("components/cardContadores/contadoresCards.php"); ?>
+            <?php include("components/cardContadores/contadoresCards.php"); ?> <!-- Tarjetas de contadores principales -->
 
             <?php //include("components/aceptUsers/updateStatus.php");  
             ?>
             <div class="row">
                 <div class="col-sm-12 col-md-3 col-lg-3">
-
+                    <!-- Espacio para gráficos o widgets adicionales -->
                 </div>
                 <div class="col-sm-12 col-md-3 col-lg-3">
-
-                    <?php //include("components/graphics/stratum.php");  
-                    ?>
+                    <?php //include("components/graphics/stratum.php");  ?>
                 </div>
             </div>
         </div>
@@ -113,9 +121,9 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
 <script src="js/dataTables.js?v=0.2"></script>
 <script>
     $(document).ready(function() {
-        $('#link-dashboard').addClass('pagina-activa');
+        $('#link-dashboard').addClass('pagina-activa'); // Marca el dashboard como activo en el menú
 
-        // Inicialización de DataTable
+        // Inicialización de DataTable para la lista de inscritos
         $('#listaInscritos').DataTable({
             responsive: true,
             language: {
@@ -124,7 +132,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
             pagingType: "simple"
         });
 
-        // Mostrar alerta si hay campos incompletos
+        // Mostrar alerta si hay campos incompletos en el perfil del usuario
         <?php if ($mostrar_alerta): ?>
             Swal.fire({
                 title: 'Perfil incompleto',
@@ -136,7 +144,7 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Redirigir a la página de perfil - ajusta la ruta según tu estructura
+                    // Redirigir a la página de perfil para completar los datos
                     window.location.href = 'profile.php'; // Cambia esta ruta por la correcta
                 }
             });

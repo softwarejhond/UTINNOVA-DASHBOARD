@@ -1,4 +1,17 @@
 <?php
+/**
+ * ============================================
+ * Barra inferior de gestión de matriculados (sliderBarBotton.php)
+ * ============================================
+ * Este componente muestra una barra inferior con accesos rápidos a funciones de gestión de matriculados y asistencia.
+ * Las opciones visibles dependen del rol y extra_rol del usuario logueado.
+ * Cada botón puede abrir una página específica, como asistencia individual o grupal, matrícula múltiple, edición de cursos, usuarios, horarios, puntajes, etc.
+ * 
+ * - Los roles controlan el acceso a cada funcionalidad (Administrador, Académico, Docente, Control maestro, Mentor, Monitor, Asesor, Supervisor, Permanencia).
+ * - Se utiliza Bootstrap para el diseño responsivo y popovers para mostrar descripciones de cada opción.
+ * - El diseño es horizontal y responsivo, pensado para facilitar la gestión rápida desde la parte inferior del dashboard.
+ */
+
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
 ?>

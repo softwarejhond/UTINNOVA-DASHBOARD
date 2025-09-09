@@ -1,4 +1,17 @@
 <?php
+/**
+ * ============================================
+ * Barra lateral derecha de opciones (sliderBarRight.php)
+ * ============================================
+ * Este componente muestra una barra lateral con accesos rápidos a funciones administrativas y de gestión avanzada.
+ * Las opciones visibles dependen del rol y extra_rol del usuario logueado.
+ * Cada botón puede abrir una página específica, como envío de correos masivos, asignación de cursos, generación de carnets, administración de sedes, entre otros.
+ * 
+ * - Los roles controlan el acceso a cada funcionalidad (Administrador, Académico, Control maestro, Monitor, Asesor, Permanencia, etc).
+ * - Se utiliza Bootstrap para el diseño responsivo y popovers para mostrar descripciones de cada opción.
+ * - Al final se muestra el crédito de desarrollo.
+ */
+
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
 
@@ -420,6 +433,7 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                 </div>
             </fieldset>
 
+            <!-- Pie de barra lateral con créditos -->
             <div class="text-center mt-2">
                 <small class="text-muted" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
                     Made by
