@@ -195,7 +195,8 @@ foreach ($data as $row) {
                                     <?php foreach ($courses_data as $course): ?>
                                         <?php
                                         $categoryAllowed = in_array($course['categoryid'], [20, 22, 23, 25, 28, 35, 19, 21, 24, 26, 27, 34, 35]);
-                                        if ($categoryAllowed):
+                                        $noCopiar = stripos($course['fullname'], 'Copiar') === false; // Excluir cursos con 'copiar'
+                                        if ($categoryAllowed && $noCopiar):
                                         ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?php echo htmlspecialchars($course['id'] . ' - ' . $course['fullname']); ?>
@@ -226,7 +227,11 @@ foreach ($data as $row) {
                             <select id="ingles" class="form-select course-select" readonly>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if (in_array($course['categoryid'], [17, 18])): ?>
+                                        <?php
+                                        $categoryAllowed = in_array($course['categoryid'], [17, 18]);
+                                        $noCopiar = stripos($course['fullname'], 'Copiar') === false; // Excluir cursos con 'Copiar'
+                                        if ($categoryAllowed && $noCopiar):
+                                        ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -245,7 +250,11 @@ foreach ($data as $row) {
                             <select id="english_code" class="form-select course-select" readonly>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if (in_array($course['categoryid'], [30, 31])): ?>
+                                        <?php
+                                        $categoryAllowed = in_array($course['categoryid'], [30, 31]);
+                                        $noCopiar = stripos($course['fullname'], 'Copiar') === false; // Excluir cursos con 'Copiar'
+                                        if ($categoryAllowed && $noCopiar):
+                                        ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -264,7 +273,11 @@ foreach ($data as $row) {
                             <select id="skills" class="form-select course-select" readonly>
                                 <?php if (!empty($courses_data)): ?>
                                     <?php foreach ($courses_data as $course): ?>
-                                        <?php if (in_array($course['categoryid'], [32, 33])): ?>
+                                        <?php
+                                        $categoryAllowed = in_array($course['categoryid'], [32, 33]);
+                                        $noCopiar = stripos($course['fullname'], 'Copiar') === false; // Excluir cursos con 'Copiar'
+                                        if ($categoryAllowed && $noCopiar):
+                                        ?>
                                             <option value="<?php echo htmlspecialchars($course['id']); ?>">
                                                 <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
                                             </option>
@@ -632,7 +645,7 @@ foreach ($data as $row) {
                     tr.dataset.level = rowData.level;
                     tr.dataset.mode = rowData.mode;
                     tr.dataset.email = rowData.email;
-                    tr.dataset.institutionalEmail = nuevoCorreo;  // Agregar el nuevo correo al dataset
+                    tr.dataset.institutionalEmail = nuevoCorreo; // Agregar el nuevo correo al dataset
                     tr.dataset.department = rowData.departamento;
                     tr.dataset.headquarters = rowData.headquarters;
                     tr.dataset.schedule = rowData.schedules;
@@ -966,7 +979,7 @@ foreach ($data as $row) {
 
                     try {
                         const usersToEnroll = [];
-                        
+
                         // Procesamiento asíncrono de usuarios seleccionados
                         const processUsers = async () => {
                             for (const userData of selectedUsers.values()) {

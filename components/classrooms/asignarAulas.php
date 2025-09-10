@@ -31,6 +31,39 @@ if ($result_bootcamp && $result_bootcamp->num_rows > 0) {
         background-color: #fff !important;
         border-color: #dee2e6 #dee2e6 #fff;
     }
+
+    /* Estilo para los selects con select2 */
+    .select2-container .select2-selection--single {
+        height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0 8px !important;
+        box-sizing: border-box;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 38px !important;
+        height: 38px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 38px !important;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-dropdown {
+        /* Opcional: centra verticalmente las opciones del dropdown */
+        font-size: 16px;
+    }
+
+    .select2-results__option {
+        display: flex;
+        align-items: center;
+        min-height: 38px;
+    }
 </style>
 
 <ul class="nav nav-tabs mb-3" id="classroomTabs" role="tablist">
@@ -179,6 +212,9 @@ if ($result_bootcamp && $result_bootcamp->num_rows > 0) {
     </div>
 </div>
 
+<!-- Agrega estos CDN en tu archivo antes de tus scripts -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <!-- Pasar bootcamps a JS -->
 <script>
@@ -267,7 +303,7 @@ if ($result_bootcamp && $result_bootcamp->num_rows > 0) {
             input.placeholder = `Nombre aula ${i + 1}`;
             colInput.appendChild(input);
 
-            // Selector de bootcamp
+            // Selector de bootcamp con select2
             const colSelect = document.createElement('div');
             colSelect.className = 'col-6';
             const select = document.createElement('select');
@@ -285,10 +321,17 @@ if ($result_bootcamp && $result_bootcamp->num_rows > 0) {
             classroomInputs.appendChild(row);
         }
 
+        // Inicializar select2 en todos los selects
+        $(classroomInputs).find('select.classroom-bootcamp').select2({
+            width: '100%',
+            placeholder: 'Seleccione bootcamp',
+            allowClear: true
+        });
+
         // Evento para evitar duplicados
-        const selects = classroomInputs.querySelectorAll('select');
+        const selects = classroomInputs.querySelectorAll('select.classroom-bootcamp');
         selects.forEach(select => {
-            select.addEventListener('change', function() {
+            $(select).on('change', function() {
                 updateSelectOptions();
             });
         });
@@ -297,11 +340,14 @@ if ($result_bootcamp && $result_bootcamp->num_rows > 0) {
             const selected = Array.from(selects).map(s => s.value).filter(v => v);
             selects.forEach(s => {
                 const currentValue = s.value;
-                s.innerHTML = `<option value="">Seleccione bootcamp</option>`;
+                // Guardar el valor actual antes de reconstruir
+                $(s).empty().append('<option value="">Seleccione bootcamp</option>');
                 bootcamps.forEach(bc => {
                     if (selected.includes(String(bc.id)) && String(bc.id) !== currentValue) return;
-                    s.innerHTML += `<option value="${bc.id}"${currentValue == bc.id ? ' selected' : ''}>${bc.name}</option>`;
+                    $(s).append(`<option value="${bc.id}"${currentValue == bc.id ? ' selected' : ''}>${bc.id} - ${bc.name}</option>`);
                 });
+                // Refrescar select2
+                $(s).trigger('change.select2');
             });
         }
 

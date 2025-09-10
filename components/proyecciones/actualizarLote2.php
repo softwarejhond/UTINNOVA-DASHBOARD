@@ -125,6 +125,58 @@ try {
         ];
     }
 
+    // Cursos sin asistencia Lote 2 (Presencial)
+    $queryCursosSinAsistenciaLote2 = "
+        SELECT 
+            g.bootcamp_name AS nombre,
+            COUNT(ur.number_id) AS inscritos
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE ur.lote = 2
+          AND g.mode = 'Presencial'
+          AND (
+            (g.id_bootcamp IS NOT NULL AND g.id_bootcamp NOT IN (SELECT course_id FROM attendance_records))
+            OR (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
+            OR (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
+          )
+        GROUP BY g.bootcamp_name
+        ORDER BY inscritos DESC
+    ";
+    $resultadoCursosSinAsistenciaLote2 = $conn->query($queryCursosSinAsistenciaLote2);
+    $cursosSinAsistenciaLote2 = [];
+    while ($row = $resultadoCursosSinAsistenciaLote2->fetch_assoc()) {
+        $cursosSinAsistenciaLote2[] = [
+            'nombre' => $row['nombre'],
+            'inscritos' => $row['inscritos']
+        ];
+    }
+
+    // Cursos sin asistencia Lote 2 (Virtual)
+    $queryCursosSinAsistenciaLote2Virtual = "
+        SELECT 
+            g.bootcamp_name AS nombre,
+            COUNT(ur.number_id) AS inscritos
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE ur.lote = 2
+          AND g.mode = 'Virtual'
+          AND (
+            (g.id_bootcamp IS NOT NULL AND g.id_bootcamp NOT IN (SELECT course_id FROM attendance_records))
+            OR (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
+            OR (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
+          )
+        GROUP BY g.bootcamp_name
+        ORDER BY inscritos DESC
+    ";
+    $resultadoCursosSinAsistenciaLote2Virtual = $conn->query($queryCursosSinAsistenciaLote2Virtual);
+    $cursosSinAsistenciaLote2Virtual = [];
+    while ($row = $resultadoCursosSinAsistenciaLote2Virtual->fetch_assoc()) {
+        $cursosSinAsistenciaLote2Virtual[] = [
+            'nombre' => $row['nombre'],
+            'inscritos' => $row['inscritos']
+        ];
+    }
+
     header('Content-Type: application/json');
     echo json_encode([
         "bootcampsPresencialesLote2" => $bootcampsPresencialesLote2,
@@ -132,7 +184,9 @@ try {
         "programasPresencialesPendientesLote2" => $programasPresencialesPendientesLote2,
         "bootcampsVirtualesLote2" => $bootcampsVirtualesLote2,
         "bootcampsVirtualesLote2Aprobados" => $bootcampsVirtualesLote2Aprobados,
-        "programasVirtualesPendientesLote2" => $programasVirtualesPendientesLote2
+        "programasVirtualesPendientesLote2" => $programasVirtualesPendientesLote2,
+        "cursosSinAsistenciaLote2" => $cursosSinAsistenciaLote2,
+        "cursosSinAsistenciaLote2Virtual" => $cursosSinAsistenciaLote2Virtual
     ]);
 } catch (Exception $e) {
     http_response_code(500);

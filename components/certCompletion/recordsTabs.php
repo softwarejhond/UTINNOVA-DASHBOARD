@@ -387,52 +387,38 @@
                         <select id="bootcampAprobados" class="form-select course-select">
                             <option value="">Seleccione un curso</option>
                             <?php
-                            // Reutilizar la lógica de cursos de list_approve.php
                             require_once __DIR__ . '/../../conexion.php';
 
-                            // Definir las variables globales para Moodle
-                            $api_url = "https://talento-tech.uttalento.co/webservice/rest/server.php";
-                            $token   = "3f158134506350615397c83d861c2104";
-                            $format  = "json";
+                            // Obtener los códigos de curso únicos aprobados
+                            $sql = "SELECT DISTINCT course_code FROM course_approvals";
+                            $result = mysqli_query($conn, $sql);
 
-                            function callMoodleAPI($function, $params = [])
-                            {
-                                global $api_url, $token, $format;
-                                $params['wstoken'] = $token;
-                                $params['wsfunction'] = $function;
-                                $params['moodlewsrestformat'] = $format;
-                                $url = $api_url . '?' . http_build_query($params);
-                                $ch = curl_init();
-                                curl_setopt($ch, CURLOPT_URL, $url);
-                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                                $response = curl_exec($ch);
-                                if (curl_errno($ch)) {
-                                    echo 'Error en la solicitud cURL: ' . curl_error($ch);
+                            // Crear array para almacenar los códigos
+                            $course_codes = [];
+                            while ($row = mysqli_fetch_assoc($result)) {
+                                $course_codes[] = $row['course_code'];
+                            }
+
+                            // Si hay códigos, obtener los nombres de los cursos
+                            if (!empty($course_codes)) {
+                                // Preparar los códigos para la consulta IN
+                                $codes_in = "'" . implode("','", array_map('mysqli_real_escape_string', array_fill(0, count($course_codes), $conn), $course_codes)) . "'";
+                                $sql_courses = "SELECT id, code, name FROM courses WHERE code IN ($codes_in)";
+                                $result_courses = mysqli_query($conn, $sql_courses);
+
+                                // Crear array asociativo code => name
+                                $courses = [];
+                                while ($row = mysqli_fetch_assoc($result_courses)) {
+                                    $courses[$row['code']] = $row['name'];
                                 }
-                                curl_close($ch);
-                                return json_decode($response, true);
+
+                                // Mostrar opciones
+                                foreach ($course_codes as $code) {
+                                    $name = isset($courses[$code]) ? $courses[$code] : 'Nombre no encontrado';
+                                    echo '<option value="' . htmlspecialchars($code) . '">' . htmlspecialchars($code . ' - ' . $name) . '</option>';
+                                }
                             }
-
-                            function getCourses()
-                            {
-                                return callMoodleAPI('core_course_get_courses');
-                            }
-
-                            $courses_data = getCourses();
-
-                            foreach ($courses_data as $course): ?>
-                                <?php
-                                if (
-                                    in_array($course['categoryid'], [20, 22, 23, 25, 28, 34, 19, 21, 24, 26, 27, 34, 35]) &&
-                                    stripos($course['fullname'], 'Copiar') === false
-                                ):
-                                ?>
-                                    <option value="<?= htmlspecialchars($course['id']) ?>">
-                                        <?= htmlspecialchars($course['id'] . ' - ' . $course['fullname']) ?>
-                                    </option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
+                            ?>
                         </select>
                     </div>
 
