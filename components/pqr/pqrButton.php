@@ -57,16 +57,13 @@ function listarPQRsNuevas()
     }
     return $pqrs;
 }
-
-// Obtener el conteo inicial
-$totalPQRs = contarPQRsNuevas();
 ?>
 
 <div class="pqr-notification-container">
     <button id="pqrNotificationBtn" type="button" class="btn bg-indigo-dark position-relative">
         <i class="fas fa-bell"></i>
         <span id="pqrCounter" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-magenta-dark">
-            <?php echo $totalPQRs; ?>
+            <!-- El contador se llenará por JS -->
         </span>
     </button>
 
@@ -116,7 +113,10 @@ $totalPQRs = contarPQRsNuevas();
         const pqrBtn = document.getElementById("pqrNotificationBtn");
         const pqrDropdown = document.getElementById("pqrDropdown");
         const notificationSound = document.getElementById("notificationSound");
-        let lastCount = <?php echo $totalPQRs; ?>;
+        let lastCount = 0; // Inicializa en 0
+
+        // Cargar el contador al iniciar
+        updatePQRCounter();
 
         // Toggle dropdown
         pqrBtn.addEventListener("click", function(e) {
@@ -174,9 +174,8 @@ $totalPQRs = contarPQRsNuevas();
                     const pqrCounter = document.getElementById("pqrCounter");
                     pqrCounter.textContent = data.count;
                     
-                    // Reproducir sonido si hay nuevas PQRs (para cualquier cambio)
+                    // Reproducir sonido si hay nuevas PQRs
                     if (data.count > lastCount) {
-                        // Crear nuevo elemento de audio cada vez (más efectivo)
                         const tempAudio = new Audio("components/pqr/sounds/notification.mp3");
                         tempAudio.play().catch(err => {
                             console.log("Error reproduciendo sonido:", err.message);

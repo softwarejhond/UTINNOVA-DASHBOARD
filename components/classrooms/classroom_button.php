@@ -70,14 +70,13 @@ function guardarCantidadSalones($headquarters, $cantidad) {
     $conn->query("REPLACE INTO headquarters_classrooms (headquarters, classrooms_count) VALUES ('$headquarters', $cantidad)");
 }
 
-$totalSedesSinSalones = contarSedesSinSalones();
 ?>
 
 <div class="classrooms-notification-container">
     <button id="classroomsNotificationBtn" type="button" class="btn text-white bg-orange-dark position-relative">
         <i class="fas fa-door-open"></i>
         <span id="classroomsCounter" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-teal-dark ">
-            <?php echo $totalSedesSinSalones; ?>
+            <!-- El contador se llenará por JS -->
         </span>
     </button>
     <div id="classroomsDropdown" class="dropdown-menu classrooms-dropdown">
@@ -102,7 +101,10 @@ $totalSedesSinSalones = contarSedesSinSalones();
 document.addEventListener("DOMContentLoaded", function() {
     const btn = document.getElementById("classroomsNotificationBtn");
     const dropdown = document.getElementById("classroomsDropdown");
-    let lastCount = <?php echo $totalSedesSinSalones; ?>;
+    let lastCount = 0; // Inicializa en 0
+
+    // Cargar el contador al iniciar
+    updateClassroomsCounter();
 
     btn.addEventListener("click", function(e) {
         e.stopPropagation();

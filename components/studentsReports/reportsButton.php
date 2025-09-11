@@ -63,16 +63,13 @@ function listarReportesPendientes()
     }
     return $reportes;
 }
-
-// Obtener el conteo inicial
-$totalReportes = contarReportesPendientes();
 ?>
 
 <div class="reports-notification-container">
     <button id="reportsNotificationBtn" type="button" class="btn bg-magenta-dark position-relative text-white">
         <i class="fas fa-clipboard-list"></i>
         <span id="reportsCounter" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-indigo-dark">
-            <?php echo $totalReportes; ?>
+            <!-- El contador se llenará por JS -->
         </span>
     </button>
 
@@ -122,7 +119,10 @@ $totalReportes = contarReportesPendientes();
         const reportsBtn = document.getElementById("reportsNotificationBtn");
         const reportsDropdown = document.getElementById("reportsDropdown");
         const notificationSound = document.getElementById("reportsNotificationSound");
-        let lastCount = <?php echo $totalReportes; ?>;
+        let lastCount = 0; // Inicializa en 0
+
+        // Cargar el contador al iniciar
+        updateReportsCounter();
 
         // Toggle dropdown
         reportsBtn.addEventListener("click", function(e) {
@@ -183,7 +183,7 @@ $totalReportes = contarReportesPendientes();
                     
                     // Reproducir sonido si hay nuevos reportes
                     if (data.count > lastCount) {
-                        const tempAudio = new Audio("components/studentsReports/notificacion_reporte.mp3");
+                        const tempAudio = new Audio("/components/studentsReports/notificacion_reporte.mp3");
                         tempAudio.play().catch(err => {
                             console.log("Error reproduciendo sonido:", err.message);
                         });

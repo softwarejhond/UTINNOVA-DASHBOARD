@@ -177,6 +177,78 @@ try {
         ];
     }
 
+    // Contrapartida Presenciales Matriculados
+    $queryContrapartidaPresencialMatriculados = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Presencial' AND ur.lote = 1 AND ur.statusAdmin = 3
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaPresencialMatriculados = [];
+    $resContrapartidaPresencialMatriculados = $conn->query($queryContrapartidaPresencialMatriculados);
+    while ($row = $resContrapartidaPresencialMatriculados->fetch_assoc()) {
+        $contrapartidaPresencialMatriculados[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
+    // Contrapartida Presenciales Aprobados
+    $queryContrapartidaPresencialAprobados = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Presencial' AND ur.lote = 1 AND ur.statusAdmin = 10
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaPresencialAprobados = [];
+    $resContrapartidaPresencialAprobados = $conn->query($queryContrapartidaPresencialAprobados);
+    while ($row = $resContrapartidaPresencialAprobados->fetch_assoc()) {
+        $contrapartidaPresencialAprobados[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
+    // Contrapartida Virtuales Matriculados
+    $queryContrapartidaVirtualMatriculados = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Virtual' AND ur.lote = 1 AND ur.statusAdmin = 3
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaVirtualMatriculados = [];
+    $resContrapartidaVirtualMatriculados = $conn->query($queryContrapartidaVirtualMatriculados);
+    while ($row = $resContrapartidaVirtualMatriculados->fetch_assoc()) {
+        $contrapartidaVirtualMatriculados[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
+    // Contrapartida Virtuales Aprobados
+    $queryContrapartidaVirtualAprobados = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Virtual' AND ur.lote = 1 AND ur.statusAdmin = 10
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaVirtualAprobados = [];
+    $resContrapartidaVirtualAprobados = $conn->query($queryContrapartidaVirtualAprobados);
+    while ($row = $resContrapartidaVirtualAprobados->fetch_assoc()) {
+        $contrapartidaVirtualAprobados[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
     header('Content-Type: application/json');
     echo json_encode([
         "bootcampsPresencialesLote1" => $bootcampsPresencialesLote1,
@@ -186,7 +258,12 @@ try {
         "bootcampsVirtualesLote1Aprobados" => $bootcampsVirtualesLote1Aprobados,
         "programasVirtualesPendientes" => $programasVirtualesPendientes,
         "cursosSinAsistenciaLote1" => $cursosSinAsistenciaLote1,
-        "cursosSinAsistenciaLote1Virtual" => $cursosSinAsistenciaLote1Virtual
+        "cursosSinAsistenciaLote1Virtual" => $cursosSinAsistenciaLote1Virtual,
+        // Contrapartida
+        "contrapartidaPresencialMatriculados" => $contrapartidaPresencialMatriculados,
+        "contrapartidaPresencialAprobados" => $contrapartidaPresencialAprobados,
+        "contrapartidaVirtualMatriculados" => $contrapartidaVirtualMatriculados,
+        "contrapartidaVirtualAprobados" => $contrapartidaVirtualAprobados
     ]);
 } catch (Exception $e) {
     http_response_code(500);

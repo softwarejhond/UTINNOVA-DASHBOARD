@@ -21,12 +21,123 @@
     .scale-09 {
         transform: scale(0.9);
         transform-origin: top center;
-        width: 111.11%; /* 1 / 0.9 = 1.111... */
-        margin-left: -5.55%; /* Centra el contenido escalado */
-    }   
+        width: 111.11%;
+        /* 1 / 0.9 = 1.111... */
+        margin-left: -5.55%;
+        /* Centra el contenido escalado */
+    }
 </style>
 <div class="scale-09">
+
+    <!-- Contrapartida: Participantes (Presenciales/Virtuales, Matriculados/Aprobados) -->
     <div class="row">
+        <!-- Presenciales Matriculados Contrapartida -->
+        <div class="col-md-3">
+            <div class="card h-100 bg-indigo-light" style="margin-bottom: 20px;">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <h5 class="card-title text-black mb-0">
+                            <b>
+                                <i class="fa-solid fa-chalkboard-teacher"></i>
+                                Presenciales Lote 1 matriculados (Adicionales)
+                                <span class="ms-1" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="Incluye los valores actuales más los campistas adicionales">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </b>
+                        </h5>
+                    </div>
+                    <div id="contrapartidaPresencialMatriculadosList" class="flex-grow-1 bg-white h-100 w-100" style="max-height: 300px; min-height: 120px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                        <p class="text-muted text-center">Cargando datos...</p>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <h5 class="mb-1 font-weight-bold text-black">
+                            TOTAL: <span id="contrapartidaPresencialMatriculadosTotal" class="badge badge-total">0</span> matriculados
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Presenciales Aprobados Contrapartida -->
+        <div class="col-md-3">
+            <div class="card h-100 bg-indigo-light" style="margin-bottom: 20px;">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <h5 class="card-title text-black mb-0">
+                            <b>
+                                <i class="fa-solid fa-check-circle"></i>
+                                Presenciales Lote 1 aprobados (Adicionales)
+                                <span class="ms-1" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="Incluye los valores actuales más los campistas adicionales">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </b>
+                        </h5>
+                    </div>
+                    <div id="contrapartidaPresencialAprobadosList" class="flex-grow-1 bg-white h-100 w-100" style="max-height: 300px; min-height: 120px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                        <p class="text-muted text-center">Cargando datos...</p>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <h5 class="mb-1 font-weight-bold text-black">
+                            TOTAL: <span id="contrapartidaPresencialAprobadosTotal" class="badge badge-total">0</span> aprobados
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Virtuales Matriculados Contrapartida -->
+        <div class="col-md-3">
+            <div class="card h-100 bg-indigo-light" style="margin-bottom: 20px;">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <h5 class="card-title text-black mb-0">
+                            <b>
+                                <i class="fa-solid fa-laptop"></i>
+                                Virtuales Lote 1 matriculados (Adicionales)
+                                <span class="ms-1" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="Incluye los valores actuales más los campistas adicionales">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </b>
+                        </h5>
+                    </div>
+                    <div id="contrapartidaVirtualMatriculadosList" class="flex-grow-1 bg-white h-100 w-100" style="max-height: 300px; min-height: 120px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                        <p class="text-muted text-center">Cargando datos...</p>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <h5 class="mb-1 font-weight-bold text-black">
+                            TOTAL: <span id="contrapartidaVirtualMatriculadosTotal" class="badge badge-total">0</span> matriculados
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Virtuales Aprobados Contrapartida -->
+        <div class="col-md-3">
+            <div class="card h-100 bg-indigo-light" style="margin-bottom: 20px;">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <h5 class="card-title text-black mb-0">
+                            <b>
+                                <i class="fa-solid fa-check-circle"></i>
+                                Virtuales Lote 1 aprobados (Adicionales)
+                                <span class="ms-1" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="Incluye los valores actuales más los campistas adicionales">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </b>
+                        </h5>
+                    </div>
+                    <div id="contrapartidaVirtualAprobadosList" class="flex-grow-1 bg-white h-100 w-100" style="max-height: 300px; min-height: 120px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                        <p class="text-muted text-center">Cargando datos...</p>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <h5 class="mb-1 font-weight-bold text-black">
+                            TOTAL: <span id="contrapartidaVirtualAprobadosTotal" class="badge badge-total">0</span> aprobados
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row pt-4">
         <!-- Presenciales -->
         <div class="col-md-3">
             <!-- Matriculados -->
@@ -212,7 +323,7 @@
             </div>
         </div>
 
-        
+
     </div>
 
 </div>
@@ -238,6 +349,19 @@
         const totalCursosSinAsistencia = document.getElementById('totalCursosSinAsistenciaLoteUno');
         const cursosSinAsistenciaListVirtual = document.getElementById('cursosSinAsistenciaListLoteUnoVirtual');
         const totalCursosSinAsistenciaVirtual = document.getElementById('totalCursosSinAsistenciaLoteUnoVirtual');
+
+        // Contrapartida: Presenciales Matriculados
+        const contrapartidaPresencialMatriculadosList = document.getElementById('contrapartidaPresencialMatriculadosList');
+        const contrapartidaPresencialMatriculadosTotal = document.getElementById('contrapartidaPresencialMatriculadosTotal');
+        // Contrapartida: Presenciales Aprobados
+        const contrapartidaPresencialAprobadosList = document.getElementById('contrapartidaPresencialAprobadosList');
+        const contrapartidaPresencialAprobadosTotal = document.getElementById('contrapartidaPresencialAprobadosTotal');
+        // Contrapartida: Virtuales Matriculados
+        const contrapartidaVirtualMatriculadosList = document.getElementById('contrapartidaVirtualMatriculadosList');
+        const contrapartidaVirtualMatriculadosTotal = document.getElementById('contrapartidaVirtualMatriculadosTotal');
+        // Contrapartida: Virtuales Aprobados
+        const contrapartidaVirtualAprobadosList = document.getElementById('contrapartidaVirtualAprobadosList');
+        const contrapartidaVirtualAprobadosTotal = document.getElementById('contrapartidaVirtualAprobadosTotal');
 
         async function cargarBootcampsPresenciales() {
             try {
@@ -518,6 +642,134 @@
             }
         }
 
+        async function cargarContrapartidaPresencialMatriculados() {
+            try {
+                const respuesta = await fetch('components/proyecciones/actualizarLote1.PHP');
+                const datos = await respuesta.json();
+                const bootcamps = datos.contrapartidaPresencialMatriculados;
+
+                if (!bootcamps || bootcamps.length === 0) {
+                    contrapartidaPresencialMatriculadosList.innerHTML = '<p class="text-muted text-center">No se encontraron datos.</p>';
+                    contrapartidaPresencialMatriculadosTotal.textContent = '0';
+                    return;
+                }
+
+                const total = bootcamps.reduce((sum, b) => sum + parseInt(b.cantidad), 0);
+                contrapartidaPresencialMatriculadosTotal.textContent = total;
+
+                let listHtml = '<ul class="list-group" style="max-height:220px;overflow-y:auto;">';
+                bootcamps.forEach((b) => {
+                    listHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.95rem;">${b.bootcamp}</span>
+                            <span class="badge badge-grupo">${b.cantidad}</span>
+                        </li>
+                    `;
+                });
+                listHtml += '</ul>';
+                contrapartidaPresencialMatriculadosList.innerHTML = listHtml;
+            } catch (error) {
+                contrapartidaPresencialMatriculadosList.innerHTML = '<p class="text-danger text-center">Error al cargar datos.</p>';
+                contrapartidaPresencialMatriculadosTotal.textContent = '0';
+            }
+        }
+
+        async function cargarContrapartidaPresencialAprobados() {
+            try {
+                const respuesta = await fetch('components/proyecciones/actualizarLote1.PHP');
+                const datos = await respuesta.json();
+                const bootcamps = datos.contrapartidaPresencialAprobados;
+
+                if (!bootcamps || bootcamps.length === 0) {
+                    contrapartidaPresencialAprobadosList.innerHTML = '<p class="text-muted text-center">No se encontraron datos.</p>';
+                    contrapartidaPresencialAprobadosTotal.textContent = '0';
+                    return;
+                }
+
+                const total = bootcamps.reduce((sum, b) => sum + parseInt(b.cantidad), 0);
+                contrapartidaPresencialAprobadosTotal.textContent = total;
+
+                let listHtml = '<ul class="list-group" style="max-height:220px;overflow-y:auto;">';
+                bootcamps.forEach((b) => {
+                    listHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.95rem;">${b.bootcamp}</span>
+                            <span class="badge badge-grupo">${b.cantidad}</span>
+                        </li>
+                    `;
+                });
+                listHtml += '</ul>';
+                contrapartidaPresencialAprobadosList.innerHTML = listHtml;
+            } catch (error) {
+                contrapartidaPresencialAprobadosList.innerHTML = '<p class="text-danger text-center">Error al cargar datos.</p>';
+                contrapartidaPresencialAprobadosTotal.textContent = '0';
+            }
+        }
+
+        async function cargarContrapartidaVirtualMatriculados() {
+            try {
+                const respuesta = await fetch('components/proyecciones/actualizarLote1.PHP');
+                const datos = await respuesta.json();
+                const bootcamps = datos.contrapartidaVirtualMatriculados;
+
+                if (!bootcamps || bootcamps.length === 0) {
+                    contrapartidaVirtualMatriculadosList.innerHTML = '<p class="text-muted text-center">No se encontraron datos.</p>';
+                    contrapartidaVirtualMatriculadosTotal.textContent = '0';
+                    return;
+                }
+
+                const total = bootcamps.reduce((sum, b) => sum + parseInt(b.cantidad), 0);
+                contrapartidaVirtualMatriculadosTotal.textContent = total;
+
+                let listHtml = '<ul class="list-group" style="max-height:220px;overflow-y:auto;">';
+                bootcamps.forEach((b) => {
+                    listHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.95rem;">${b.bootcamp}</span>
+                            <span class="badge badge-grupo">${b.cantidad}</span>
+                        </li>
+                    `;
+                });
+                listHtml += '</ul>';
+                contrapartidaVirtualMatriculadosList.innerHTML = listHtml;
+            } catch (error) {
+                contrapartidaVirtualMatriculadosList.innerHTML = '<p class="text-danger text-center">Error al cargar datos.</p>';
+                contrapartidaVirtualMatriculadosTotal.textContent = '0';
+            }
+        }
+
+        async function cargarContrapartidaVirtualAprobados() {
+            try {
+                const respuesta = await fetch('components/proyecciones/actualizarLote1.PHP');
+                const datos = await respuesta.json();
+                const bootcamps = datos.contrapartidaVirtualAprobados;
+
+                if (!bootcamps || bootcamps.length === 0) {
+                    contrapartidaVirtualAprobadosList.innerHTML = '<p class="text-muted text-center">No se encontraron datos.</p>';
+                    contrapartidaVirtualAprobadosTotal.textContent = '0';
+                    return;
+                }
+
+                const total = bootcamps.reduce((sum, b) => sum + parseInt(b.cantidad), 0);
+                contrapartidaVirtualAprobadosTotal.textContent = total;
+
+                let listHtml = '<ul class="list-group" style="max-height:220px;overflow-y:auto;">';
+                bootcamps.forEach((b) => {
+                    listHtml += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span style="font-size:0.95rem;">${b.bootcamp}</span>
+                            <span class="badge badge-grupo">${b.cantidad}</span>
+                        </li>
+                    `;
+                });
+                listHtml += '</ul>';
+                contrapartidaVirtualAprobadosList.innerHTML = listHtml;
+            } catch (error) {
+                contrapartidaVirtualAprobadosList.innerHTML = '<p class="text-danger text-center">Error al cargar datos.</p>';
+                contrapartidaVirtualAprobadosTotal.textContent = '0';
+            }
+        }
+
         // Inicial
         await cargarBootcampsPresenciales();
         await cargarBootcampsPresencialesAprobados();
@@ -527,6 +779,10 @@
         await cargarProgramasVirtualesPendientes();
         await cargarCursosSinAsistencia();
         await cargarCursosSinAsistenciaVirtual();
+        await cargarContrapartidaPresencialMatriculados();
+        await cargarContrapartidaPresencialAprobados();
+        await cargarContrapartidaVirtualMatriculados();
+        await cargarContrapartidaVirtualAprobados();
 
         setInterval(() => {
             cargarBootcampsPresenciales();
@@ -537,6 +793,10 @@
             cargarProgramasVirtualesPendientes();
             cargarCursosSinAsistencia();
             cargarCursosSinAsistenciaVirtual();
+            cargarContrapartidaPresencialMatriculados();
+            cargarContrapartidaPresencialAprobados();
+            cargarContrapartidaVirtualMatriculados();
+            cargarContrapartidaVirtualAprobados();
         }, 10000); // Actualiza todas cada 10 segundos
     });
 </script>

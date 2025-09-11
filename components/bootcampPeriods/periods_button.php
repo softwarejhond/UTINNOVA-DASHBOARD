@@ -15,7 +15,8 @@ if (isset($_GET['action'])) {
 }
 
 // Función para extraer el código base del curso
-function obtenerCodigoGrupo($nombreCurso) {
+function obtenerCodigoGrupo($nombreCurso)
+{
     // Buscar formato C{num}L{num}-G{num}{letra} primero
     if (preg_match('/(C\d+L\d+-G\d+[A-Z]?)/', $nombreCurso, $match)) {
         return $match[1];
@@ -28,7 +29,8 @@ function obtenerCodigoGrupo($nombreCurso) {
 }
 
 // Contar grupos de cursos sin periodo
-function contarGruposCursosSinPeriodo() {
+function contarGruposCursosSinPeriodo()
+{
     global $conn;
     $sql = "SELECT c.name, c.cohort
             FROM courses c
@@ -39,7 +41,7 @@ function contarGruposCursosSinPeriodo() {
             )";
     $result = $conn->query($sql);
     $gruposUnicos = [];
-    
+
     while ($row = $result->fetch_assoc()) {
         $codigoGrupo = obtenerCodigoGrupo($row['name']);
         if ($codigoGrupo) {
@@ -48,12 +50,13 @@ function contarGruposCursosSinPeriodo() {
             $gruposUnicos[$claveGrupo] = true;
         }
     }
-    
+
     return count($gruposUnicos);
 }
 
 // Listar grupos de cursos sin periodo
-function listarGruposCursosSinPeriodo() {
+function listarGruposCursosSinPeriodo()
+{
     global $conn;
     $sql = "SELECT c.id, c.code, c.name, c.cohort
             FROM courses c
@@ -93,14 +96,14 @@ function listarGruposCursosSinPeriodo() {
     return array_values($grupos);
 }
 
-$totalGruposSinPeriodo = contarGruposCursosSinPeriodo();
+//$totalGruposSinPeriodo = contarGruposCursosSinPeriodo();
 ?>
 
 <div class="periods-notification-container">
     <button id="periodsNotificationBtn" type="button" class="btn text-white bg-teal-dark position-relative">
         <i class="fas fa-calendar-times"></i>
         <span id="periodsCounter" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-orange-dark">
-            <?php echo $totalGruposSinPeriodo; ?>
+
         </span>
     </button>
     <div id="periodsDropdown" class="dropdown-menu periods-dropdown">
@@ -114,76 +117,98 @@ $totalGruposSinPeriodo = contarGruposCursosSinPeriodo();
 </div>
 
 <style>
-.periods-notification-container { position: relative; margin-right: 20px; }
-.periods-dropdown { width: 350px; max-height: 400px; overflow-y: auto; }
-.periods-list { max-height: 300px; overflow-y: auto; }
-.periods-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
-.periods-item:hover { background-color: #fffbe6; }
+    .periods-notification-container {
+        position: relative;
+        margin-right: 20px;
+    }
+
+    .periods-dropdown {
+        width: 350px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .periods-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .periods-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+
+    .periods-item:hover {
+        background-color: #fffbe6;
+    }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const btn = document.getElementById("periodsNotificationBtn");
-    const dropdown = document.getElementById("periodsDropdown");
-    let lastCount = <?php echo $totalGruposSinPeriodo; ?>;
+    document.addEventListener("DOMContentLoaded", function() {
+        const btn = document.getElementById("periodsNotificationBtn");
+        const dropdown = document.getElementById("periodsDropdown");
 
-    btn.addEventListener("click", function(e) {
-        e.stopPropagation();
-        dropdown.classList.toggle("show");
-        if (dropdown.classList.contains("show")) {
-            loadPeriods();
-        }
-    });
+        // Cargar el contador al iniciar
+        updatePeriodsCounter();
 
-    document.addEventListener("click", function(e) {
-        if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-            dropdown.classList.remove("show");
-        }
-    });
+        btn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle("show");
+            if (dropdown.classList.contains("show")) {
+                loadPeriods();
+            }
+        });
 
-    function loadPeriods() {
-        fetch("components/bootcampPeriods/periods_button.php?action=list")
-            .then(response => response.json())
-            .then(data => {
-                const list = document.getElementById("periodsList");
-                list.innerHTML = "";
-                if (data.length === 0) {
-                    list.innerHTML = '<div class="text-center p-3">Todos los cursos tienen periodo</div>';
-                    return;
-                }
-                data.forEach(grupo => {
-                    const item = document.createElement("div");
-                    item.className = "periods-item";
-                    item.innerHTML = `
+        document.addEventListener("click", function(e) {
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove("show");
+            }
+        });
+
+        function loadPeriods() {
+            fetch("components/bootcampPeriods/periods_button.php?action=list")
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById("periodsList");
+                    list.innerHTML = "";
+                    if (data.length === 0) {
+                        list.innerHTML = '<div class="text-center p-3">Todos los cursos tienen periodo</div>';
+                        return;
+                    }
+                    data.forEach(grupo => {
+                        const item = document.createElement("div");
+                        item.className = "periods-item";
+                        item.innerHTML = `
                         <strong>Grupo ${grupo.codigo_grupo}</strong> 
                         <small class="text-muted d-block">Cohorte: ${grupo.cohort}</small>
                         <small class="text-muted">${grupo.nombre}</small>
                     `;
-                    item.addEventListener("click", function() {
-                        // Redirige con parámetros para autocompletar el modal
-                        window.location.href = `bootcamp_period.php?modal=addPeriod&codigo_grupo=${encodeURIComponent(grupo.codigo_grupo)}&cohort=${encodeURIComponent(grupo.cohort)}&nombre=${encodeURIComponent(grupo.nombre)}`;
+                        item.addEventListener("click", function() {
+                            // Redirige con parámetros para autocompletar el modal
+                            window.location.href = `bootcamp_period.php?modal=addPeriod&codigo_grupo=${encodeURIComponent(grupo.codigo_grupo)}&cohort=${encodeURIComponent(grupo.cohort)}&nombre=${encodeURIComponent(grupo.nombre)}`;
+                        });
+                        list.appendChild(item);
                     });
-                    list.appendChild(item);
+                })
+                .catch(error => {
+                    console.error("Error al cargar cursos:", error);
                 });
-            })
-            .catch(error => {
-                console.error("Error al cargar cursos:", error);
-            });
-    }
+        }
 
-    function updatePeriodsCounter() {
-        fetch("components/bootcampPeriods/periods_button.php?action=count")
-            .then(response => response.json())
-            .then(data => {
-                const counter = document.getElementById("periodsCounter");
-                counter.textContent = data.count;
-                lastCount = data.count;
-            })
-            .catch(error => {
-                console.error("Error al actualizar contador:", error);
-            });
-    }
+        function updatePeriodsCounter() {
+            fetch("components/bootcampPeriods/periods_button.php?action=count")
+                .then(response => response.json())
+                .then(data => {
+                    const counter = document.getElementById("periodsCounter");
+                    counter.textContent = data.count;
+                    lastCount = data.count;
+                })
+                .catch(error => {
+                    console.error("Error al actualizar contador:", error);
+                });
+        }
 
-    setInterval(updatePeriodsCounter, 600000);
-});
+        setInterval(updatePeriodsCounter, 600000);
+    });
 </script>

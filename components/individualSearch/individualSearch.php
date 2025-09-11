@@ -434,7 +434,7 @@
                                                         }
                                                         ?>
 
-                                                        
+
                                                     </span>
                                                 </div>
                                             </div>
@@ -472,27 +472,64 @@
                                                 <?php
                                                 // Verificar condiciones para cada registro
                                                 $isAccepted = true;
-                                                if ($row['mode'] === 'Presencial') {
-                                                    if (
-                                                        $row['typeID'] === 'CC' && $row['age'] > 17 &&
-                                                        (strtoupper($row['department']) === '11')
-                                                    ) {
-                                                        $isAccepted = true;
-                                                    }
-                                                } elseif ($row['mode'] === 'Virtual') {
-                                                    if (
-                                                        $row['typeID'] === 'CC' && $row['age'] > 17 &&
-                                                        (strtoupper($row['department']) === '11') &&
-                                                        $row['internet'] === 'Sí'
-                                                    ) {
-                                                        $isAccepted = true;
+                                                $razonIncumplimiento = '';
+
+                                                // Validación de nombre: vocales con tilde o último carácter espacio
+                                                $nombreCompleto = $row['first_name'] . ' ' . $row['second_name'] . ' ' . $row['first_last'] . ' ' . $row['second_last'];
+                                                $tieneTilde = preg_match('/[áéíóúÁÉÍÓÚ]/u', $nombreCompleto);
+                                                $ultimoCaracterEspacio = substr(trim($nombreCompleto), -1) === ' ' || substr($nombreCompleto, -1) === ' ';
+
+                                                if ($tieneTilde) {
+                                                    $isAccepted = false;
+                                                    $razonIncumplimiento .= 'Nombre contiene tildes. ';
+                                                }
+                                                if ($ultimoCaracterEspacio) {
+                                                    $isAccepted = false;
+                                                    $razonIncumplimiento .= 'Nombre termina en espacio. ';
+                                                }
+
+                                                // NUEVO: Validar disponibilidad de compromiso
+                                                if ($row['availability'] !== 'Sí') {
+                                                    $isAccepted = false;
+                                                    $razonIncumplimiento .= 'No acepta compromiso. ';
+                                                }
+
+                                                if ($isAccepted) {
+                                                    if ($row['mode'] === 'Presencial') {
+                                                        if (
+                                                            $row['typeID'] === 'C.C' && $row['age'] > 17 &&
+                                                            in_array(strtoupper($row['department']), ['15', '25'])
+                                                        ) {
+                                                            $isAccepted = true;
+                                                        } else {
+                                                            $isAccepted = false;
+                                                            if ($row['typeID'] !== 'C.C') $razonIncumplimiento .= 'Tipo de documento no es C.C';
+                                                            if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
+                                                            if (!in_array(strtoupper($row['department']), ['15', '25'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
+                                                        }
+                                                    } elseif ($row['mode'] === 'Virtual') {
+                                                        if (
+                                                            $row['typeID'] === 'C.C' && $row['age'] > 17 &&
+                                                            (in_array(strtoupper($row['department']), ['15', '25'])) &&
+                                                            $row['internet'] === 'Sí'
+                                                        ) {
+                                                            $isAccepted = true;
+                                                        } else {
+                                                            $isAccepted = false;
+                                                            if ($row['typeID'] !== 'C.C') $razonIncumplimiento .= 'Tipo de documento no es CC. ';
+                                                            if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
+                                                            if (!in_array(strtoupper($row['department']), ['15', '25'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
+                                                            if ($row['internet'] !== 'Sí') $razonIncumplimiento .= 'No tiene internet. ';
+                                                        }
                                                     }
                                                 }
 
                                                 if ($isAccepted) {
                                                     echo '<span class="badge bg-teal-dark" data-bs-toggle="tooltip" data-bs-placement="top" title="Cumple con todos los requisitos"><i class="bi bi-check-circle"></i> CUMPLE</span>';
                                                 } else {
-                                                    echo '<span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="No cumple con los requisitos mínimos"><i class="bi bi-x-circle"></i> NO CUMPLE</span>';
+                                                    $tooltip = 'No cumple con los requisitos mínimos';
+                                                    if ($razonIncumplimiento) $tooltip .= ': ' . trim($razonIncumplimiento);
+                                                    echo '<span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="' . htmlspecialchars($tooltip) . '"><i class="bi bi-x-circle"></i> NO CUMPLE</span>';
                                                 }
                                                 ?>
                                             </span>
@@ -682,7 +719,51 @@
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                             <span class="text-muted">Acepta compromiso:</span>
-                                            <span class="text-end"><?= htmlspecialchars($row['availability']) ?></span>
+                                            <span class="text-end">
+                                                <?php if ($row['availability'] === 'Sí'): ?>
+                                                    <span class="badge bg-success">Sí</span>
+                                                <?php elseif ($row['availability'] === 'No'): ?>
+                                                    <span class="badge bg-danger">No</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary">Sin respuesta</span>
+                                                <?php endif; ?>
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                            <span class="text-muted">Acepta requerimientos:</span>
+                                            <span class="text-end">
+                                                <?php if ($row['accept_requirements'] === 'Sí'): ?>
+                                                    <span class="badge bg-success">Sí</span>
+                                                <?php elseif ($row['accept_requirements'] === 'No'): ?>
+                                                    <span class="badge bg-danger">No</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary">Sin respuesta</span>
+                                                <?php endif; ?>
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                            <span class="text-muted">Acepta Talento Tech:</span>
+                                            <span class="text-end">
+                                                <?php if ($row['accepts_tech_talent'] === 'Sí'): ?>
+                                                    <span class="badge bg-success">Sí</span>
+                                                <?php elseif ($row['accepts_tech_talent'] === 'No'): ?>
+                                                    <span class="badge bg-danger">No</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary">Sin respuesta</span>
+                                                <?php endif; ?>
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                            <span class="text-muted">Acepta política de datos:</span>
+                                            <span class="text-end">
+                                                <?php if ($row['accept_data_policies'] === 'Sí'): ?>
+                                                    <span class="badge bg-success">Sí</span>
+                                                <?php elseif ($row['accept_data_policies'] === 'No'): ?>
+                                                    <span class="badge bg-danger">No</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary">Sin respuesta</span>
+                                                <?php endif; ?>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -2660,8 +2741,8 @@
                                     <div class="form-group">
                                         <label for="nuevoEstado_${id}">Seleccionar nuevo estado:</label>
                                         <select class="form-control" id="nuevoEstado_${id}" name="nuevoEstado" required>
-                                            ${opcionBeneficiario}
                                             <option value="0">Sin estado</option>
+                                            ${opcionBeneficiario}
                                             <option value="2">Rechazado</option>
                                             <option value="3">Matriculado</option>
                                             <option value="4">Pendiente</option>
@@ -2808,7 +2889,7 @@
     function autoSelectRelatedCourses(id, courseId) {
         // Obtener el texto de la opción seleccionada
         const selectedOption = $(`#bootcamp_${id} option:selected`).text();
-    
+
         // Extraer el código del curso (formato C1L1-G1V o G100P/G202P/G301V)
         // Busca primero el formato C{num}L{num}-G{num}{letra}, si no lo encuentra busca G{num}{letra}
         let courseCodeMatch = selectedOption.match(/C\d+L\d+-G\d+[A-Z]?/);
