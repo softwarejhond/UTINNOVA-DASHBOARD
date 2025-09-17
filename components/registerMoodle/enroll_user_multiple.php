@@ -162,32 +162,32 @@ try {
         $userStmt->bind_param('s', $input['number_id']);
         $userStmt->execute();
         $userData = $userStmt->get_result()->fetch_assoc();
-        
+
         if ($userData) {
             // Incluir la conexión a plataforma_empleos (ahora usa $connEmpleos)
             require_once '../../controller/conexion_empleos.php';
-            
+
             // Verificar que la conexión de empleos esté disponible
             if (!$connEmpleos || $connEmpleos->connect_error) {
                 throw new Exception("Error en la conexión a base de datos de empleos");
             }
-            
+
             // Verificar si el usuario ya existe en plataforma_empleos
             $checkQuery = "SELECT id FROM usuarios WHERE numero_id = ? OR email = ?";
             $checkStmt = $connEmpleos->prepare($checkQuery);
             $checkStmt->bind_param('ss', $input['number_id'], $input['email']);
             $checkStmt->execute();
-            
+
             if ($checkStmt->get_result()->num_rows == 0) {
                 // Preparar datos para insertar
                 $hashedPassword = password_hash($input['number_id'], PASSWORD_DEFAULT);
-                
+
                 // Limpiar y normalizar nombres (remover tildes y convertir a mayúsculas)
-                $primer_nombre = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['first_name'])));
-                $segundo_nombre = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['second_name'])));
-                $primer_apellido = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['first_last'])));
-                $segundo_apellido = strtoupper(str_replace(['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'], ['A','E','I','O','U','N','A','E','I','O','U','N'], trim($userData['second_last'])));
-                
+                $primer_nombre = strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'ñ', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'], ['A', 'E', 'I', 'O', 'U', 'N', 'A', 'E', 'I', 'O', 'U', 'N'], trim($userData['first_name'])));
+                $segundo_nombre = strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'ñ', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'], ['A', 'E', 'I', 'O', 'U', 'N', 'A', 'E', 'I', 'O', 'U', 'N'], trim($userData['second_name'])));
+                $primer_apellido = strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'ñ', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'], ['A', 'E', 'I', 'O', 'U', 'N', 'A', 'E', 'I', 'O', 'U', 'N'], trim($userData['first_last'])));
+                $segundo_apellido = strtoupper(str_replace(['á', 'é', 'í', 'ó', 'ú', 'ñ', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'], ['A', 'E', 'I', 'O', 'U', 'N', 'A', 'E', 'I', 'O', 'U', 'N'], trim($userData['second_last'])));
+
                 $queryEmpleos = "INSERT INTO usuarios (
                     email,
                     numero_id,
@@ -200,7 +200,7 @@ try {
                     tipo,
                     foto_perfil
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'candidato', 'default.jpg')";
-                
+
                 $stmtEmpleos = $connEmpleos->prepare($queryEmpleos);
                 if (!$stmtEmpleos) {
                     error_log("Error preparando consulta empleos: " . $connEmpleos->error);
@@ -216,7 +216,7 @@ try {
                         $segundo_apellido,
                         $userData['first_phone']
                     );
-                    
+
                     if (!$stmtEmpleos->execute()) {
                         error_log("Error en INSERT a plataforma_empleos: " . $stmtEmpleos->error);
                         error_log("Datos enviados: " . json_encode([
@@ -231,23 +231,62 @@ try {
                     } else {
                         error_log("Usuario registrado exitosamente en plataforma de empleos: " . $input['number_id']);
                     }
-                    
+
                     $stmtEmpleos->close();
                 }
             } else {
                 error_log("Usuario ya existe en plataforma de empleos: " . $input['number_id']);
             }
-            
+
             $checkStmt->close();
             $connEmpleos->close();
         } else {
             error_log("No se encontraron datos del usuario en user_register: " . $input['number_id']);
         }
-        
+
         $userStmt->close();
     } catch (Exception $empleosError) {
         // Log del error pero no interrumpir el proceso principal
         error_log("Error al registrar en plataforma de empleos: " . $empleosError->getMessage());
+    }
+
+    // Verificación de fecha de matrícula vs inicio de curso
+    $bootcamp_code = $input['id_bootcamp'];
+    $user_id = $input['number_id'];
+
+    // Obtener start_date del curso
+    $stmtPeriod = $conn->prepare("SELECT start_date FROM course_periods WHERE bootcamp_code = ?");
+    if (!$stmtPeriod) {
+        throw new Exception("Error preparando consulta de periodo: " . $conn->error);
+    }
+    $stmtPeriod->bind_param('s', $bootcamp_code);
+    $stmtPeriod->execute();
+    $resultPeriod = $stmtPeriod->get_result();
+    if ($resultPeriod->num_rows === 0) {
+        throw new Exception("No se encontró periodo para el bootcamp seleccionado");
+    }
+    $periodData = $resultPeriod->fetch_assoc();
+    $start_date = $periodData['start_date'];
+    $stmtPeriod->close();
+
+    // Obtener creationDate del usuario
+    $stmtUser = $conn->prepare("SELECT creationDate FROM user_register WHERE number_id = ?");
+    if (!$stmtUser) {
+        throw new Exception("Error preparando consulta de usuario: " . $conn->error);
+    }
+    $stmtUser->bind_param('s', $user_id);
+    $stmtUser->execute();
+    $resultUser = $stmtUser->get_result();
+    if ($resultUser->num_rows === 0) {
+        throw new Exception("No se encontró el usuario en user_register");
+    }
+    $userData = $resultUser->fetch_assoc();
+    $creationDate = $userData['creationDate'];
+    $stmtUser->close();
+
+    // Comparar fechas
+    if (strtotime($creationDate) > strtotime($start_date)) {
+        throw new Exception("El usuario no puede ser matriculado porque el curso ya inició (fecha inicio: $start_date, fecha registro: $creationDate)");
     }
 
     // Confirmar transacción

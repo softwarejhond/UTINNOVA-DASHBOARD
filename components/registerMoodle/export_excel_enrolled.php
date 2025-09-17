@@ -59,8 +59,8 @@ $sheet->setCellValue('V1', 'Nivel Elegido');
 $sheet->setCellValue('W1', 'Puntaje de Prueba');
 $sheet->setCellValue('X1', 'Nivel Obtenido');
 
-// Query to get data
-$query = "SELECT 
+// Query to get data (agregando DISTINCT)
+$query = "SELECT DISTINCT
             g.*, 
             ur.first_phone, 
             ur.lote, 
@@ -74,7 +74,16 @@ $query = "SELECT
 $stmt = $conn->query($query);
 $row = 2;
 
+// Array para controlar los number_id ya procesados
+$procesados = [];
+
 while ($data = mysqli_fetch_assoc($stmt)) {
+    // Evitar duplicados por number_id
+    if (in_array($data['number_id'], $procesados)) {
+        continue;
+    }
+    $procesados[] = $data['number_id'];
+
     $sheet->setCellValue('A' . $row, $data['type_id']);
     $sheet->setCellValue('B' . $row, $data['number_id']);
     $sheet->setCellValue('C' . $row, str_replace(['Á','É','Í','Ó','Ú','á','é','í','ó','ú'], ['A','E','I','O','U','a','e','i','o','u'], mb_strtoupper($data['full_name'], 'UTF-8')));

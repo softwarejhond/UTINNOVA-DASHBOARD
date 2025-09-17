@@ -3,7 +3,6 @@
         display: flex;
         justify-content: center;
         gap: 10px;
-        margin-top: 20px;
     }
     .btn-paginador {
         padding: 0.75rem 2rem;

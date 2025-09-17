@@ -157,6 +157,90 @@
 
                         return $sedes;
                     }
+
+
+                    $isAccepted = true;
+                    $razonIncumplimiento = '';
+
+                    // Validación de nombre: vocales con tilde o último carácter espacio
+                    $nombreCompleto = $row['first_name'];
+                    if (!empty($row['second_name'])) {
+                        $nombreCompleto .= ' ' . $row['second_name'];
+                    }
+                    $nombreCompleto .= ' ' . $row['first_last'];
+                    if (!empty($row['second_last'])) {
+                        $nombreCompleto .= ' ' . $row['second_last'];
+                    }
+                    $tieneTilde = preg_match('/[áéíóúÁÉÍÓÚ]/u', $nombreCompleto);
+                    $ultimoCaracterEspacio = substr(trim($nombreCompleto), -1) === ' ' || substr($nombreCompleto, -1) === ' ';
+
+                    if ($tieneTilde) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'Nombre contiene tildes. ';
+                    }
+                    if ($ultimoCaracterEspacio) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'Nombre termina en espacio. ';
+                    }
+
+                    // Validar disponibilidad de compromiso
+                    if ($row['availability'] !== 'Sí') {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'No acepta compromiso. ';
+                    }
+
+                    // NUEVO: Validar si tiene prueba realizada
+                    if (!isset($nivelesUsuarios[$row['number_id']])) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'No tiene prueba realizada. ';
+                    }
+
+                    // NUEVO: Validar lote asignado
+                    if (empty($row['lote']) || intval($row['lote']) === 0) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'No tiene lote asignado válido. ';
+                    }
+
+                    if ($isAccepted) {
+                        if ($row['mode'] === 'Presencial') {
+                            if (
+                                $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                in_array(strtoupper($row['department']), ['11'])
+                            ) {
+                                $isAccepted = true;
+                            } else {
+                                $isAccepted = false;
+                                if ($row['typeID'] !== 'CC') $razonIncumplimiento .= 'Tipo de documento no es CC';
+                                if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
+                                if (!in_array(strtoupper($row['department']), ['11'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
+                            }
+                        } elseif ($row['mode'] === 'Virtual') {
+                            if (
+                                $row['typeID'] === 'CC' && $row['age'] > 17 &&
+                                (in_array(strtoupper($row['department']), ['11'])) &&
+                                $row['internet'] === 'Sí'
+                            ) {
+                                $isAccepted = true;
+                            } else {
+                                $isAccepted = false;
+                                if ($row['typeID'] !== 'CC') $razonIncumplimiento .= 'Tipo de documento no es CC. ';
+                                if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
+                                if (!in_array(strtoupper($row['department']), ['11'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
+                                if ($row['internet'] !== 'Sí') $razonIncumplimiento .= 'No tiene internet. ';
+                            }
+                        }
+                    }
+
+                    function badgeCumplimiento($isAccepted, $razonIncumplimiento = '')
+                    {
+                        if ($isAccepted) {
+                            return '<span class="badge bg-teal-dark" data-bs-toggle="tooltip" data-bs-placement="top" title="Cumple con todos los requisitos"><i class="bi bi-check-circle"></i> CUMPLE</span>';
+                        } else {
+                            $tooltip = 'No cumple con los requisitos mínimos';
+                            if ($razonIncumplimiento) $tooltip .= ': ' . trim($razonIncumplimiento);
+                            return '<span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="' . htmlspecialchars($tooltip) . '"><i class="bi bi-x-circle"></i> NO CUMPLE</span>';
+                        }
+                    }
                 ?>
             </div>
 
@@ -306,12 +390,6 @@
                                             <span class="text-muted">Dirección:</span>
                                             <span class="text-end"><?= htmlspecialchars($row['address']) ?></span>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center w-100 mt-1">
-                                            <span class="text-muted">Fecha de registro:</span>
-                                            <span class="text-end">
-                                                <?= !empty($row['creationDate']) ? date('d/m/Y H:i:s', strtotime($row['creationDate'])) : 'No especificada' ?>
-                                            </span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -335,6 +413,7 @@
                                             <li><a class="dropdown-item" href="#" onclick="mostrarModalActualizarPrograma(<?php echo $row['number_id']; ?>)">Cambiar Programa, Nivel, Sede y Lote</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="mostrarModalActualizarHorario(<?php echo $row['number_id']; ?>)">Actualizar Horarios</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="modalActualizarModalidad(<?php echo $row['number_id']; ?>)">Cambiar Modalidad</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="mostrarModalActualizarFechaInscripcion(<?= $row['number_id'] ?>, '<?= !empty($row['creationDate']) ? date('Y-m-d', strtotime($row['creationDate'])) : '' ?>')">Actualizar Fecha de Inscripción</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -358,12 +437,46 @@
 
                                                 <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                                     <span class="text-muted">Lote:</span>
-                                                    <span class="text-end"><?= htmlspecialchars($row['lote']) ?></span>
+                                                    <span class="text-end">
+                                                        <?php
+                                                        if (empty($row['lote']) || intval($row['lote']) === 0) {
+                                                            // Mostrar alerta con SweetAlert si el lote es 0 o vacío
+                                                            echo '<span class="badge bg-danger" id="loteAlerta_' . $row['number_id'] . '" style="cursor:pointer;">No asignado</span>';
+                                                            echo "
+                                                            <script>
+                                                                document.addEventListener('DOMContentLoaded', function() {
+                                                                    var loteBadge = document.getElementById('loteAlerta_" . $row['number_id'] . "');
+                                                                    if (loteBadge) {
+                                                                        loteBadge.addEventListener('click', function() {
+                                                                            Swal.fire({
+                                                                                icon: 'warning',
+                                                                                title: 'Lote no asignado',
+                                                                                html: '<div class=\"alert alert-warning\">Este estudiante <b>NO tiene lote asignado válido</b>.<br>Debe asignar un lote válido para continuar con el proceso.</div>',
+                                                                                confirmButtonText: 'Entendido',
+                                                                                confirmButtonColor: '#fd7e14'
+                                                                            });
+                                                                        });
+                                                                    }
+                                                                });
+                                                            </script>
+                                                            ";
+                                                        } else {
+                                                            echo htmlspecialchars($row['lote']);
+                                                        }
+                                                        ?>
+                                                    </span>
                                                 </div>
 
                                                 <div class="d-flex justify-content-between align-items-center w-100">
                                                     <span class="text-muted">Programa:</span>
                                                     <span class="text-end"><?= htmlspecialchars($row['program']) ?></span>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between align-items-center w-100">
+                                                    <span class="text-muted">Fecha de inscripción:</span>
+                                                    <span class="text-end">
+                                                        <?= !empty($row['creationDate']) ? date('d/m/Y', strtotime($row['creationDate'])) : 'No especificada' ?>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -459,7 +572,7 @@
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="#" onclick="mostrarModalActualizarAdmision(<?php echo $row['number_id']; ?>)">Cambiar Estado Admisión</a></li>
+                                            <a class="dropdown-item" href="#" onclick="mostrarModalActualizarAdmision(<?= $row['number_id'] ?>, <?= $isAccepted ? 'true' : 'false' ?>)">Cambiar Estado Admisión</a>
                                         </ul>
                                     </div>
                                 </div>
@@ -469,69 +582,7 @@
                                         <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                             <span class="text-muted">Estado:</span>
                                             <span class="text-end">
-                                                <?php
-                                                // Verificar condiciones para cada registro
-                                                $isAccepted = true;
-                                                $razonIncumplimiento = '';
-
-                                                // Validación de nombre: vocales con tilde o último carácter espacio
-                                                $nombreCompleto = $row['first_name'] . ' ' . $row['second_name'] . ' ' . $row['first_last'] . ' ' . $row['second_last'];
-                                                $tieneTilde = preg_match('/[áéíóúÁÉÍÓÚ]/u', $nombreCompleto);
-                                                $ultimoCaracterEspacio = substr(trim($nombreCompleto), -1) === ' ' || substr($nombreCompleto, -1) === ' ';
-
-                                                if ($tieneTilde) {
-                                                    $isAccepted = false;
-                                                    $razonIncumplimiento .= 'Nombre contiene tildes. ';
-                                                }
-                                                if ($ultimoCaracterEspacio) {
-                                                    $isAccepted = false;
-                                                    $razonIncumplimiento .= 'Nombre termina en espacio. ';
-                                                }
-
-                                                // NUEVO: Validar disponibilidad de compromiso
-                                                if ($row['availability'] !== 'Sí') {
-                                                    $isAccepted = false;
-                                                    $razonIncumplimiento .= 'No acepta compromiso. ';
-                                                }
-
-                                                if ($isAccepted) {
-                                                    if ($row['mode'] === 'Presencial') {
-                                                        if (
-                                                            $row['typeID'] === 'C.C' && $row['age'] > 17 &&
-                                                            in_array(strtoupper($row['department']), ['15', '25'])
-                                                        ) {
-                                                            $isAccepted = true;
-                                                        } else {
-                                                            $isAccepted = false;
-                                                            if ($row['typeID'] !== 'C.C') $razonIncumplimiento .= 'Tipo de documento no es C.C';
-                                                            if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
-                                                            if (!in_array(strtoupper($row['department']), ['15', '25'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
-                                                        }
-                                                    } elseif ($row['mode'] === 'Virtual') {
-                                                        if (
-                                                            $row['typeID'] === 'C.C' && $row['age'] > 17 &&
-                                                            (in_array(strtoupper($row['department']), ['15', '25'])) &&
-                                                            $row['internet'] === 'Sí'
-                                                        ) {
-                                                            $isAccepted = true;
-                                                        } else {
-                                                            $isAccepted = false;
-                                                            if ($row['typeID'] !== 'C.C') $razonIncumplimiento .= 'Tipo de documento no es CC. ';
-                                                            if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
-                                                            if (!in_array(strtoupper($row['department']), ['15', '25'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
-                                                            if ($row['internet'] !== 'Sí') $razonIncumplimiento .= 'No tiene internet. ';
-                                                        }
-                                                    }
-                                                }
-
-                                                if ($isAccepted) {
-                                                    echo '<span class="badge bg-teal-dark" data-bs-toggle="tooltip" data-bs-placement="top" title="Cumple con todos los requisitos"><i class="bi bi-check-circle"></i> CUMPLE</span>';
-                                                } else {
-                                                    $tooltip = 'No cumple con los requisitos mínimos';
-                                                    if ($razonIncumplimiento) $tooltip .= ': ' . trim($razonIncumplimiento);
-                                                    echo '<span class="badge bg-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="' . htmlspecialchars($tooltip) . '"><i class="bi bi-x-circle"></i> NO CUMPLE</span>';
-                                                }
-                                                ?>
+                                                <?= badgeCumplimiento($isAccepted, $razonIncumplimiento) ?>
                                             </span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center w-100">
@@ -573,7 +624,7 @@
                                                 } elseif ($row['statusAdmin'] == '11') {
                                                     echo '<span class="badge bg-red-dark text-white"><i class="bi bi-exclamation-triangle"></i> NO VÁLIDO</span>';
                                                 } elseif ($row['statusAdmin'] == '12') {
-                                                    echo '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> PENDIENTE MINTIC</span>';
+                                                    echo '<span class="badge bg-danger text-dark"><i class="bi bi-x-circle"></i> NO APROBADO</span>';
                                                 }
                                                 ?>
                                             </span>
@@ -660,9 +711,9 @@
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="#">Actualizar Dispositivos</a></li>
-                                            <li><a class="dropdown-item" href="#">Verificar Conexión Internet</a></li>
-                                            <li><a class="dropdown-item" href="#">Test de Compatibilidad</a></li>
+                                            <a class="dropdown-item" href="#" onclick="mostrarModalActualizarAvailability('<?= $row['number_id'] ?>', '<?= $row['availability'] ?>', '<?= $row['internet'] ?>')">
+                                                Actualizar disponibilidad de compromiso e internet
+                                            </a>
                                         </ul>
                                     </div>
                                 </div>
@@ -2274,6 +2325,30 @@
     </div>
 </div>
 
+<!-- Modal para actualizar fecha de inscripción -->
+<div id="modalActualizarFechaInscripcion" class="modal fade" aria-hidden="true" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-indigo-dark">
+                <h5 class="modal-title text-center">
+                    <i class="bi bi-calendar-plus"></i> Actualizar Fecha de Inscripción
+                </h5>
+                <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formActualizarFechaInscripcion">
+                    <div class="form-group mb-3">
+                        <label>Nueva fecha de inscripción:</label>
+                        <input type="date" class="form-control" name="nuevaFechaInscripcion" id="nuevaFechaInscripcion" required>
+                    </div>
+                    <input type="hidden" name="id" id="fechaInscripcion_id">
+                    <button type="submit" class="btn bg-indigo-dark text-white">Actualizar Fecha</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 </div>
 </div>
@@ -2708,26 +2783,54 @@
         return false;
     }
 
-    function mostrarModalActualizarAdmision(id) {
+    function mostrarModalActualizarAdmision(id, isAccepted) {
         // Remover cualquier modal previo del DOM
         $('#modalActualizarAdmision_' + id).remove();
 
-        // Primero verificamos si el estudiante tiene certificación anterior
+        // Verificar si el estudiante tiene certificación anterior
         fetch(`components/registrationsContact/verificar_participante.php?id=${id}`)
             .then(response => response.json())
             .then(data => {
-                // Preparar las opciones según si existe o no en participantes
-                let opcionBeneficiario = '';
+                // Preparar las opciones según si existe o no en participantes y si cumple los requisitos
+                let opcionesBeneficiario = '';
+                let opcionesEstado = '';
 
-                if (data.existe) {
-                    // Si existe en participantes, mostrar opción de Beneficiario para contrapartida
-                    opcionBeneficiario = `<option value="8">Beneficiario para contrapartida</option>`;
+                // Si isAccepted es false, mostrar solo estas opciones
+                if (!isAccepted) {
+                    opcionesEstado = `
+                        <option value="0">Sin estado</option>
+                        <option value="5">En proceso</option>
+                        <option value="4">Sin contacto</option>
+                        <option value="2">Rechazado</option>
+                        <option value="11">No válido</option>
+                    `;
                 } else {
-                    // Si no existe, mostrar opción regular de Beneficiario
-                    opcionBeneficiario = '<option value="1">Beneficiario</option>';
+                    // Si cumple con los requisitos, mostrar todas las opciones
+                    if (data.existe) {
+                        // Si existe en participantes, mostrar opción de Beneficiario para contrapartida
+                        opcionesBeneficiario = `<option value="8">Beneficiario para contrapartida</option>`;
+                    } else {
+                        // Si no existe, mostrar opción regular de Beneficiario
+                        opcionesBeneficiario = '<option value="1">Beneficiario</option>';
+                    }
+
+                    opcionesEstado = `
+                        <option value="0">Sin estado</option>
+                        ${opcionesBeneficiario}
+                        <option value="2">Rechazado</option>
+                        <option value="5">En proceso</option>
+                        <option value="3">Matriculado</option>
+                        <option value="4">Sin contacto</option>
+                        <option value="6">Certificado</option>
+                        <option value="7">Inactivo</option>
+                        <option value="9">Aplazado</option>
+                        <option value="10">Formado</option>
+                        <option value="11">No válido</option>
+                        <option value="12">No aprobado</option>
+                    `;
                 }
 
-                // Crear el modal dinámicamente con un identificador único
+                // Crear el modal dinámicamente con las opciones filtradas
                 const modalHtml = `
                 <div id="modalActualizarAdmision_${id}" class="modal fade" aria-hidden="true" aria-labelledby="modalActualizarAdmisionLabel" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
@@ -2737,22 +2840,18 @@
                                 <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
+                                ${!isAccepted ? 
+                                    `<div class="alert alert-warning mb-3">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <strong>Atención:</strong> Este estudiante no cumple con los requisitos. Solo puede seleccionar los estados: Sin estado, Rechazado, Sin contacto o No válido.
+                                    </div>` : ''
+                                }
                                 <form id="formActualizarAdmision_${id}">
                                     <div class="form-group">
                                         <label for="nuevoEstado_${id}">Seleccionar nuevo estado:</label>
                                         <select class="form-control" id="nuevoEstado_${id}" name="nuevoEstado" required>
-                                            <option value="0">Sin estado</option>
-                                            ${opcionBeneficiario}
-                                            <option value="2">Rechazado</option>
-                                            <option value="3">Matriculado</option>
-                                            <option value="4">Pendiente</option>
-                                            <option value="5">En proceso</option>
-                                            <option value="6">Certificado</option>
-                                            <option value="7">Inactivo</option>
-                                            <option value="9">Aplazado</option>
-                                            <option value="10">Formado</option>
-                                            <option value="11">No valido</option>
-                                            <option value="12">Pendiente MINTIC</option>
+                                            <option value="">Seleccionar estado...</option>
+                                            ${opcionesEstado}
                                         </select>
                                     </div>
                                     <br>
@@ -3610,15 +3709,17 @@
                                             </select>
                                         </div>
                                         
-                                        <div class="form-group mb-3">
-                                            <label for="nuevoLote_${id}">Lote actual: <strong>${data.lote || 'No asignado'}</strong></label>
-                                            <label for="nuevoLote_${id}">Seleccionar lote:</label>
-                                            <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
-                                                <option value="">Mantener actual (${data.lote || 'No asignado'})</option>
-                                                <option value="1" ${data.lote === '1' ? 'selected' : ''}>Lote 1</option>
-                                                <option value="2" ${data.lote === '2' ? 'selected' : ''}>Lote 2</option>
-                                            </select>
-                                        </div>
+                                        <?php if (!in_array($row['statusAdmin'], [3, 6, 10])): ?>
+                                            <div class="form-group mb-3">
+                                                <label for="nuevoLote_${id}">Lote actual: <strong>${data.lote || 'No asignado'}</strong></label>
+                                                <label for="nuevoLote_${id}">Seleccionar lote:</label>
+                                                <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
+                                                    <option value="">Mantener actual (${data.lote || 'No asignado'})</option>
+                                                    <option value="1" ${data.lote === '1' ? 'selected' : ''}>Lote 1</option>
+                                                    <option value="2" ${data.lote === '2' ? 'selected' : ''}>Lote 2</option>
+                                                </select>
+                                            </div>
+                                        <?php endif; ?>
                                         
                                         <div class="alert alert-warning">
                                             <i class="bi bi-exclamation-triangle"></i>
@@ -4712,6 +4813,179 @@
                 title: 'Error',
                 text: 'Error de conexión con el servidor'
             });
+        };
+
+        xhr.send(formData);
+    }
+
+    function mostrarModalActualizarAvailability(id, availabilityActual, internetActual) {
+        $('#modalActualizarAvailability_' + id).remove();
+
+        const modalHtml = `
+            <div id="modalActualizarAvailability_${id}" class="modal fade" aria-hidden="true" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-indigo-dark">
+                            <h5 class="modal-title text-center">
+                                <i class="bi bi-check2-circle"></i> Actualizar Disponibilidad de Compromiso e Internet
+                            </h5>
+                            <button type="button" class="btn-close bg-gray-light" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="formActualizarAvailability_${id}">
+                                <div class="form-group mb-3">
+                                    <label for="nuevaAvailability_${id}">¿Acepta compromiso?</label>
+                                    <select class="form-control" id="nuevaAvailability_${id}" name="nuevaAvailability" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="Sí" ${availabilityActual === 'Sí' ? 'selected' : ''}>Sí</option>
+                                        <option value="No" ${availabilityActual === 'No' ? 'selected' : ''}>No</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="nuevoInternet_${id}">¿Tiene Internet?</label>
+                                    <select class="form-control" id="nuevoInternet_${id}" name="nuevoInternet" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="Sí" ${internetActual === 'Sí' ? 'selected' : ''}>Sí</option>
+                                        <option value="No" ${internetActual === 'No' ? 'selected' : ''}>No</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="id" value="${id}">
+                                <button type="submit" class="btn bg-indigo-dark text-white">Actualizar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        $('#modalActualizarAvailability_' + id).modal('show');
+
+        $('#formActualizarAvailability_' + id).on('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "¿Desea actualizar la disponibilidad de compromiso e internet?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const nuevaAvailability = $('#nuevaAvailability_' + id).val();
+                    const nuevoInternet = $('#nuevoInternet_' + id).val();
+                    actualizarAvailability(id, nuevaAvailability, nuevoInternet);
+                    $('#modalActualizarAvailability_' + id).modal('hide');
+                }
+            });
+        });
+    }
+
+    function actualizarAvailability(id, nuevaAvailability, nuevoInternet) {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('nuevaAvailability', nuevaAvailability);
+        formData.append('nuevoInternet', nuevoInternet);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "components/individualSearch/actualizar_availability.php", true);
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    const response = xhr.responseText.trim();
+                    if (response === "success") {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Actualizado!',
+                            text: 'La disponibilidad e internet se han actualizado correctamente.',
+                            showConfirmButton: false,
+                            timer: 2000
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un problema al actualizar la información: ' + response
+                        });
+                    }
+                }
+            }
+        };
+
+        xhr.onerror = function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error de conexión con el servidor'
+            });
+        };
+
+        xhr.send(formData);
+    }
+
+    function mostrarModalActualizarFechaInscripcion(id, fechaActual) {
+        $('#fechaInscripcion_id').val(id);
+        $('#nuevaFechaInscripcion').val(fechaActual);
+        $('#modalActualizarFechaInscripcion').modal('show');
+
+        $('#formActualizarFechaInscripcion').off('submit').on('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "¿Desea actualizar la fecha de inscripción?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData(this);
+                    actualizarFechaInscripcion($('#fechaInscripcion_id').val(), formData);
+                    $('#modalActualizarFechaInscripcion').modal('hide');
+                }
+            });
+        });
+    }
+
+    function actualizarFechaInscripcion(id, formData) {
+        // Formatear la fecha para enviar como datetime
+        const fecha = formData.get('nuevaFechaInscripcion');
+        formData.set('nuevaFechaInscripcion', fecha + ' 00:00:00');
+        formData.append('id', id);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "components/individualSearch/actualizar_fecha_inscripcion.php", true);
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    const response = xhr.responseText.trim();
+                    if (response === "success") {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Actualizado!',
+                            text: 'La fecha de inscripción se ha actualizado correctamente.',
+                            showConfirmButton: false,
+                            timer: 2000
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Hubo un problema al actualizar la fecha de inscripción: ' + response
+                        });
+                    }
+                }
+            }
         };
 
         xhr.send(formData);

@@ -225,166 +225,25 @@ foreach ($data as $row) {
 
 <!-- Modal para seleccionar destinatarios -->
 <div class="modal fade" id="recipientsModal" tabindex="-1" aria-labelledby="recipientsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-magenta-dark text-white">
                 <h5 class="modal-title" id="recipientsModalLabel">
-                    <i class="bi bi-people-fill"></i> Seleccionar Destinatarios
+                    <i class="bi bi-search"></i> Buscar destinatario por Número de Identificación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center">
-                <!-- Filtros -->
-                <div class="card mb-2">
-                    <div class="card-header bg-indigo-dark text-white text-center">
-                        <i class="bi bi-funnel"></i> Filtros
-                    </div>
-                    <div class="card-body justify-content-center">
-                        <!-- Filtros en la parte superior -->
-                        <div class="row mb-2 justify-content-center">
-                            <div class="col-md-3 mb-2">
-                                <label for="filterStatus" class="form-label">Estado:</label>
-                                <select id="filterStatus" class="form-select form-select-sm">
-                                    <option value="">Todos</option>
-                                    <option value="1">Beneficiario</option>
-                                    <option value="8">Beneficiario Contrapartida</option>
-                                    <option value="3">Matriculado</option>
-                                    <option value="5">En Proceso</option>
-                                    <option value="4">Pendiente</option>
-                                    <option value="2">Rechazado</option>
-                                    <option value="7">Inactivo</option>
-                                    <option value="6">Certificado</option>
-                                    <option value="0">Sin Estado</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="filterSede" class="form-label">Sede:</label>
-                                <select id="filterSede" class="form-select form-select-sm">
-                                    <option value="">Todas</option>
-                                    <?php foreach ($sedes as $sede): ?>
-                                        <option value="<?= htmlspecialchars($sede) ?>"><?= htmlspecialchars($sede) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="filterPrograma" class="form-label">Programa:</label>
-                                <select id="filterPrograma" class="form-select form-select-sm">
-                                    <option value="">Todos</option>
-                                    <?php foreach ($programas as $programa): ?>
-                                        <option value="<?= htmlspecialchars($programa) ?>"><?= htmlspecialchars($programa) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label for="filterModalidad" class="form-label">Modalidad:</label>
-                                <select id="filterModalidad" class="form-select form-select-sm">
-                                    <option value="">Todas</option>
-                                    <?php foreach ($modalidades as $modalidad): ?>
-                                        <option value="<?= htmlspecialchars($modalidad) ?>"><?= htmlspecialchars($modalidad) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer text-center">
-                        <button id="aplicarFiltros" class="btn bg-indigo-dark text-white btn-sm me-1">
-                            <i class="bi bi-funnel"></i> Filtrar selección
-                        </button>
-                        <button id="limpiarFiltros" class="btn bg-silver btn-sm">
-                            <i class="bi bi-x-circle"></i> Limpiar filtros
-                        </button>
-                    </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" id="searchNumberId" class="form-control" placeholder="Ingrese el número de identificación">
+                    <button class="btn bg-indigo-dark text-white" type="button" id="btnSearchUser">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
                 </div>
-
-                <!-- Tabla de usuarios -->
-                <div class="table-container">
-                    <div class="table-wrapper">
-                        <table id="usersTable" class="table table-hover table-bordered">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th width="50" class="text-center">
-                                        <input type="checkbox" id="selectAll" class="form-check-input">
-                                    </th>
-                                    <th>Tipo ID</th>
-                                    <th>Número</th>
-                                    <th>Nombre Completo</th>
-                                    <th>Email</th>
-                                    <th width="60">Estado</th>
-                                    <th>Sede</th>
-                                    <th>Programa</th>
-                                    <th>Modalidad</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($data as $row):
-                                    // Procesar datos del usuario
-                                    $firstName   = ucwords(strtolower(trim($row['first_name'] ?? '')));
-                                    $secondName  = ucwords(strtolower(trim($row['second_name'] ?? '')));
-                                    $firstLast   = ucwords(strtolower(trim($row['first_last'] ?? '')));
-                                    $secondLast  = ucwords(strtolower(trim($row['second_last'] ?? '')));
-                                    $fullName    = $firstName . " " . $secondName . " " . $firstLast . " " . $secondLast;
-                                    $email       = $row['email'] ?? '';
-                                    $typeID      = $row['typeID'] ?? '';
-                                    $numberID    = $row['number_id'] ?? '';
-                                    $sede        = $row['headquarters'] ?? '';
-                                    $programa    = $row['program'] ?? '';
-                                    $modalidad   = $row['mode'] ?? '';
-                                ?>
-                                    <tr>
-                                        <td class="text-center">
-                                            <input type="checkbox" class="form-check-input user-checkbox"
-                                                data-email="<?= htmlspecialchars($email) ?>"
-                                                data-name="<?= htmlspecialchars($fullName) ?>"
-                                                style="width: 20px; height: 20px; cursor: pointer;">
-                                        </td>
-                                        <td><?= htmlspecialchars($typeID) ?></td>
-                                        <td><?= htmlspecialchars($numberID) ?></td>
-                                        <td><?= htmlspecialchars($fullName) ?></td>
-                                        <td><?= htmlspecialchars($email) ?></td>
-                                        <td class="text-center" data-status="<?= htmlspecialchars($row['statusAdmin'] ?? '') ?>">
-                                            <?php
-                                            if ($row['statusAdmin'] == '1') {
-                                                echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '0') {
-                                                echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '2') {
-                                                echo '<button class="btn bg-danger" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '3') {
-                                                echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '4') {
-                                                echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '5') {
-                                                echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
-                                            } elseif ($row['statusAdmin'] == '6') {
-                                                echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO"><i class="bi bi-patch-check-fill"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '7') {
-                                                echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
-                                            } elseif ($row['statusAdmin'] == '8') {
-                                                echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
-                                            }
-                                            ?>
-                                        </td>
-                                        <td><?= htmlspecialchars($sede) ?></td>
-                                        <td><?= htmlspecialchars($programa) ?></td>
-                                        <td><?= htmlspecialchars($modalidad) ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <span class="badge bg-magenta-dark">
-                        Usuarios seleccionados: <span id="selectedUsersCount">0</span>
-                    </span>
-                </div>
+                <div id="searchResult"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn bg-magenta-dark text-white" id="confirmRecipients" data-bs-dismiss="modal">
-                    <i class="bi bi-check-circle"></i> Confirmar Selección
-                </button>
             </div>
         </div>
     </div>
@@ -631,6 +490,26 @@ foreach ($data as $row) {
                 updateCountersFn();
             }
 
+            // Nueva función para procesar múltiples correos pegados
+            function processMultipleEmails(input) {
+                // Separar por salto de línea, coma o punto y coma
+                const emails = input.split(/[\n,;]+/).map(e => e.trim()).filter(e => e);
+                let added = 0;
+                emails.forEach(email => {
+                    if (isValidEmail(email) && !recipientsMap.has(email)) {
+                        recipientsMap.set(email, {
+                            email: email,
+                            name: 'Usuario Manual'
+                        });
+                        added++;
+                    }
+                });
+                if (added > 0) {
+                    renderRecipientTags();
+                    updateCountersFn();
+                }
+            }
+
             // Manejar entrada por Enter
             inputGroup.find('.manual-email-input').on('keypress', function(e) {
                 if (e.which === 13) {
@@ -649,6 +528,17 @@ foreach ($data as $row) {
                 if (email) {
                     addEmail(email);
                     inputGroup.find('.manual-email-input').val('');
+                }
+            });
+
+            // Manejar pegado múltiple en el input
+            inputGroup.find('.manual-email-input').on('paste', function(e) {
+                const clipboardData = e.originalEvent.clipboardData || window.clipboardData;
+                const pastedData = clipboardData.getData('Text');
+                if (pastedData) {
+                    e.preventDefault();
+                    processMultipleEmails(pastedData);
+                    $(this).val('');
                 }
             });
         }
@@ -932,6 +822,80 @@ foreach ($data as $row) {
                     Swal.fire('Sin plantillas', 'No hay plantillas guardadas', 'info');
                 }
             });
+        });
+
+        // Buscar usuario por number_id
+        $('#btnSearchUser').on('click', function() {
+            const numberId = $('#searchNumberId').val().trim();
+            if (!numberId) {
+                $('#searchResult').html('<div class="alert alert-warning">Ingrese un número de identificación.</div>');
+                return;
+            }
+            $('#searchResult').html('<div class="text-center"><span class="spinner-border"></span> Buscando...</div>');
+            $.ajax({
+                url: 'components/multipleEmail/get_user_by_numberid.php',
+                method: 'GET',
+                data: { number_id: numberId },
+                dataType: 'json'
+            }).done(function(response) {
+                if (response.success && response.user) {
+                    const user = response.user;
+                    $('#searchResult').html(`
+                        <div class="card">
+                            <div class="card-body d-flex flex-column gap-2">
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="fw-bold me-2">Nombre:</span>
+                                    <span>${user.fullName}</span>
+                                </div>
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="fw-bold me-2">Email:</span>
+                                    <span>${user.email}</span>
+                                </div>
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="fw-bold me-2">Programa:</span>
+                                    <span>${user.program}</span>
+                                </div>
+                                <div class="d-flex flex-row align-items-center">
+                                    <span class="fw-bold me-2">Sede:</span>
+                                    <span>${user.headquarters}</span>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn bg-magenta-dark text-white" id="addUserRecipient"
+                                        data-email="${user.email}" data-name="${user.fullName}">
+                                        <i class="bi bi-plus-circle"></i> Agregar destinatario
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    $('#searchResult').html('<div class="alert alert-danger">Usuario no encontrado.</div>');
+                }
+            }).fail(function() {
+                $('#searchResult').html('<div class="alert alert-danger">Error en la búsqueda.</div>');
+            });
+        });
+
+        // Agregar usuario buscado como destinatario
+        $(document).on('click', '#addUserRecipient', function() {
+            const email = $(this).data('email');
+            const name = $(this).data('name');
+            if (!selectedRecipients.has(email)) {
+                selectedRecipients.set(email, { email, name });
+                renderRecipientTags();
+                updateCounters();
+                Swal.fire('Agregado', 'El destinatario fue agregado correctamente', 'success');
+            } else {
+                Swal.fire('Advertencia', 'Este correo ya está en la lista', 'warning');
+            }
+        });
+
+        // Eliminar destinatario al hacer clic en la X
+        $(document).on('click', '.remove-tag', function() {
+            const email = $(this).data('email');
+            selectedRecipients.delete(email);
+            renderRecipientTags();
+            updateCounters();
         });
     });
 </script>

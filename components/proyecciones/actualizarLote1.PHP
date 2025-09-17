@@ -132,23 +132,27 @@ try {
             COUNT(ur.number_id) AS inscritos
         FROM groups g
         INNER JOIN user_register ur ON g.number_id = ur.number_id
+        LEFT JOIN participantes p ON ur.number_id = p.numero_documento
         WHERE ur.lote = 1
           AND g.mode = 'Presencial'
+          AND p.numero_documento IS NULL
           AND (
             (g.id_bootcamp IS NOT NULL AND g.id_bootcamp NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
           )
         GROUP BY g.bootcamp_name
         ORDER BY inscritos DESC
     ";
     $resultadoCursosSinAsistencia = $conn->query($queryCursosSinAsistenciaLote1);
     $cursosSinAsistenciaLote1 = [];
+    $totalSinAsistenciaPresencial = 0;
     while ($row = $resultadoCursosSinAsistencia->fetch_assoc()) {
         $cursosSinAsistenciaLote1[] = [
             'nombre' => $row['nombre'],
             'inscritos' => $row['inscritos']
         ];
+        $totalSinAsistenciaPresencial += intval($row['inscritos']);
     }
 
     // Cursos sin asistencia Lote 1 Virtuales
@@ -158,23 +162,27 @@ try {
             COUNT(ur.number_id) AS inscritos
         FROM groups g
         INNER JOIN user_register ur ON g.number_id = ur.number_id
+        LEFT JOIN participantes p ON ur.number_id = p.numero_documento
         WHERE ur.lote = 1
           AND g.mode = 'Virtual'
+          AND p.numero_documento IS NULL
           AND (
             (g.id_bootcamp IS NOT NULL AND g.id_bootcamp NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
           )
         GROUP BY g.bootcamp_name
         ORDER BY inscritos DESC
     ";
     $resultadoCursosSinAsistenciaVirtual = $conn->query($queryCursosSinAsistenciaLote1Virtual);
     $cursosSinAsistenciaLote1Virtual = [];
+    $totalSinAsistenciaVirtual = 0;
     while ($row = $resultadoCursosSinAsistenciaVirtual->fetch_assoc()) {
         $cursosSinAsistenciaLote1Virtual[] = [
             'nombre' => $row['nombre'],
             'inscritos' => $row['inscritos']
         ];
+        $totalSinAsistenciaVirtual += intval($row['inscritos']);
     }
 
     // Contrapartida Presenciales Matriculados
@@ -259,6 +267,9 @@ try {
         "programasVirtualesPendientes" => $programasVirtualesPendientes,
         "cursosSinAsistenciaLote1" => $cursosSinAsistenciaLote1,
         "cursosSinAsistenciaLote1Virtual" => $cursosSinAsistenciaLote1Virtual,
+        "totalSinAsistenciaPresencial" => $totalSinAsistenciaPresencial,
+        "totalSinAsistenciaVirtual" => $totalSinAsistenciaVirtual,
+        "totalSinAsistenciaGeneral" => $totalSinAsistenciaPresencial + $totalSinAsistenciaVirtual,
         // Contrapartida
         "contrapartidaPresencialMatriculados" => $contrapartidaPresencialMatriculados,
         "contrapartidaPresencialAprobados" => $contrapartidaPresencialAprobados,

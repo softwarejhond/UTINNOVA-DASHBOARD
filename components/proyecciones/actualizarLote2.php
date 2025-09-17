@@ -132,23 +132,27 @@ try {
             COUNT(ur.number_id) AS inscritos
         FROM groups g
         INNER JOIN user_register ur ON g.number_id = ur.number_id
+        LEFT JOIN participantes p ON ur.number_id = p.numero_documento
         WHERE ur.lote = 2
           AND g.mode = 'Presencial'
+          AND p.numero_documento IS NULL
           AND (
             (g.id_bootcamp IS NOT NULL AND g.id_bootcamp NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
           )
         GROUP BY g.bootcamp_name
         ORDER BY inscritos DESC
     ";
     $resultadoCursosSinAsistenciaLote2 = $conn->query($queryCursosSinAsistenciaLote2);
     $cursosSinAsistenciaLote2 = [];
+    $totalSinAsistenciaPresencialL2 = 0;
     while ($row = $resultadoCursosSinAsistenciaLote2->fetch_assoc()) {
         $cursosSinAsistenciaLote2[] = [
             'nombre' => $row['nombre'],
             'inscritos' => $row['inscritos']
         ];
+        $totalSinAsistenciaPresencialL2 += intval($row['inscritos']);
     }
 
     // Cursos sin asistencia Lote 2 (Virtual)
@@ -158,22 +162,98 @@ try {
             COUNT(ur.number_id) AS inscritos
         FROM groups g
         INNER JOIN user_register ur ON g.number_id = ur.number_id
+        LEFT JOIN participantes p ON ur.number_id = p.numero_documento
         WHERE ur.lote = 2
           AND g.mode = 'Virtual'
+          AND p.numero_documento IS NULL
           AND (
             (g.id_bootcamp IS NOT NULL AND g.id_bootcamp NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
-            OR (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_english_code IS NOT NULL AND g.id_english_code NOT IN (SELECT course_id FROM attendance_records))
+            AND (g.id_skills IS NOT NULL AND g.id_skills NOT IN (SELECT course_id FROM attendance_records))
           )
         GROUP BY g.bootcamp_name
         ORDER BY inscritos DESC
     ";
     $resultadoCursosSinAsistenciaLote2Virtual = $conn->query($queryCursosSinAsistenciaLote2Virtual);
     $cursosSinAsistenciaLote2Virtual = [];
+    $totalSinAsistenciaVirtualL2 = 0;
     while ($row = $resultadoCursosSinAsistenciaLote2Virtual->fetch_assoc()) {
         $cursosSinAsistenciaLote2Virtual[] = [
             'nombre' => $row['nombre'],
             'inscritos' => $row['inscritos']
+        ];
+        $totalSinAsistenciaVirtualL2 += intval($row['inscritos']);
+    }
+
+    // Contrapartida Presenciales Matriculados Lote 2
+    $queryContrapartidaPresencialMatriculadosL2 = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Presencial' AND ur.lote = 2 AND ur.statusAdmin = 3
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaPresencialMatriculadosL2 = [];
+    $resContrapartidaPresencialMatriculadosL2 = $conn->query($queryContrapartidaPresencialMatriculadosL2);
+    while ($row = $resContrapartidaPresencialMatriculadosL2->fetch_assoc()) {
+        $contrapartidaPresencialMatriculadosL2[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
+    // Contrapartida Presenciales Aprobados Lote 2
+    $queryContrapartidaPresencialAprobadosL2 = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Presencial' AND ur.lote = 2 AND ur.statusAdmin = 10
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaPresencialAprobadosL2 = [];
+    $resContrapartidaPresencialAprobadosL2 = $conn->query($queryContrapartidaPresencialAprobadosL2);
+    while ($row = $resContrapartidaPresencialAprobadosL2->fetch_assoc()) {
+        $contrapartidaPresencialAprobadosL2[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
+    // Contrapartida Virtuales Matriculados Lote 2
+    $queryContrapartidaVirtualMatriculadosL2 = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Virtual' AND ur.lote = 2 AND ur.statusAdmin = 3
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaVirtualMatriculadosL2 = [];
+    $resContrapartidaVirtualMatriculadosL2 = $conn->query($queryContrapartidaVirtualMatriculadosL2);
+    while ($row = $resContrapartidaVirtualMatriculadosL2->fetch_assoc()) {
+        $contrapartidaVirtualMatriculadosL2[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+
+    // Contrapartida Virtuales Aprobados Lote 2
+    $queryContrapartidaVirtualAprobadosL2 = "
+        SELECT g.bootcamp_name AS bootcamp, COUNT(*) AS cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.mode = 'Virtual' AND ur.lote = 2 AND ur.statusAdmin = 10
+        GROUP BY g.bootcamp_name
+        ORDER BY cantidad DESC
+    ";
+    $contrapartidaVirtualAprobadosL2 = [];
+    $resContrapartidaVirtualAprobadosL2 = $conn->query($queryContrapartidaVirtualAprobadosL2);
+    while ($row = $resContrapartidaVirtualAprobadosL2->fetch_assoc()) {
+        $contrapartidaVirtualAprobadosL2[] = [
+            'bootcamp' => $row['bootcamp'],
+            'cantidad' => $row['cantidad']
         ];
     }
 
@@ -186,7 +266,15 @@ try {
         "bootcampsVirtualesLote2Aprobados" => $bootcampsVirtualesLote2Aprobados,
         "programasVirtualesPendientesLote2" => $programasVirtualesPendientesLote2,
         "cursosSinAsistenciaLote2" => $cursosSinAsistenciaLote2,
-        "cursosSinAsistenciaLote2Virtual" => $cursosSinAsistenciaLote2Virtual
+        "cursosSinAsistenciaLote2Virtual" => $cursosSinAsistenciaLote2Virtual,
+        "totalSinAsistenciaPresencialL2" => $totalSinAsistenciaPresencialL2,
+        "totalSinAsistenciaVirtualL2" => $totalSinAsistenciaVirtualL2,
+        "totalSinAsistenciaGeneralL2" => $totalSinAsistenciaPresencialL2 + $totalSinAsistenciaVirtualL2,
+        // Contrapartida Lote 2
+        "contrapartidaPresencialMatriculadosL2" => $contrapartidaPresencialMatriculadosL2,
+        "contrapartidaPresencialAprobadosL2" => $contrapartidaPresencialAprobadosL2,
+        "contrapartidaVirtualMatriculadosL2" => $contrapartidaVirtualMatriculadosL2,
+        "contrapartidaVirtualAprobadosL2" => $contrapartidaVirtualAprobadosL2
     ]);
 } catch (Exception $e) {
     http_response_code(500);

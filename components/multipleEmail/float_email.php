@@ -66,7 +66,7 @@ foreach ($data as $row) {
                             <label class="form-label fw-bold">Destinatarios: <span id="floatRecipientCount" class="badge bg-teal-dark">0</span></label>
                             <div id="floatRecipientsContainer" class="mb-2"></div>
                             <div class="d-flex align-items-center justify-content-center mb-2">
-                                <button type="button" class="btn bg-indigo-dark text-white me-2 btn-sm" id="openFloatRecipientsSwal">
+                                <button type="button" class="btn bg-indigo-dark text-white me-2 btn-sm" data-bs-toggle="modal" data-bs-target="#floatRecipientsModal">
                                     <i class="bi bi-people-fill"></i> Seleccionar
                                 </button>
                                 <button type="button" class="btn bg-red-dark text-white me-2 btn-sm" id="floatClearRecipients">
@@ -111,24 +111,32 @@ foreach ($data as $row) {
                 </div>
             </div>
         </div>
-        
-        <!-- Botón flotante para abrir la ventana de correo -->
-        <!-- <div id="email-chat-button" class="chat-closed">
-            <div class="buttonWave"></div>
-            <button type="button" 
-                   id="email-button-body" 
-                   class="chrome" 
-                   tabindex="0" 
-                   aria-label="Abrir editor de correo"
-                   style="background: linear-gradient(135deg, #00976a, #006a4e); box-shadow: rgba(0, 151, 106, 0.5) 0px 4px 24px;">
-                <i class="material-icons type1 for-closed active" style="color: rgb(255, 255, 255);">
-                    <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"></path>
-                        <path d="M0 0h24v24H0z" fill="none"></path>
-                    </svg>
-                </i>
-            </button>
-        </div> -->
+    </div>
+</div>
+
+<!-- Modal para seleccionar destinatarios en ventana flotante -->
+<div class="modal fade" id="floatRecipientsModal" tabindex="-1" aria-labelledby="floatRecipientsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-magenta-dark text-white">
+                <h5 class="modal-title" id="floatRecipientsModalLabel">
+                    <i class="bi bi-search"></i> Buscar destinatario por Número de Identificación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" id="floatSearchNumberId" class="form-control" placeholder="Ingrese el número de identificación">
+                    <button class="btn bg-indigo-dark text-white" type="button" id="btnFloatSearchUser">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+                <div id="floatSearchResult"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -477,6 +485,26 @@ foreach ($data as $row) {
     .input-group {
         order: 1;
     }
+
+    /* Estilos para el modal de búsqueda individual */
+    #floatSearchResult .card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+    
+    #floatSearchResult .card-body {
+        padding: 1rem;
+    }
+    
+    #floatSearchResult .fw-bold {
+        color: #495057;
+        min-width: 80px;
+    }
+    
+    .spinner-border {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
 </style>
 
 <!-- Crear un archivo JavaScript separado para el editor de correo -->
@@ -529,11 +557,8 @@ foreach ($data as $row) {
     
     // Función para inicializar el editor cuando todo esté listo
     function initializeEmailChat() {
-        // IMPORTANTE: NO usar jQuery.noConflict(true) para evitar problemas con Bootstrap
-        // Guardamos una referencia local pero mantenemos jQuery global para Bootstrap
         var $j = jQuery;
         
-        // Todo el código que usa jQuery debe estar dentro de esta función
         $j(function() {
             console.log("Inicializando chat de email con Summernote disponible");
             
@@ -542,11 +567,9 @@ foreach ($data as $row) {
             const emailChatContainer = document.getElementById("emailChatContainer");
             const minimizeEmailButton = document.getElementById("minimize-email-button");
             const headerEmailButton = document.getElementById('header-email-button');
-            const openRecipientsButton = document.getElementById('openFloatRecipientsSwal');
             
             // Variables para mantener el estado
             const selectedRecipients = new Map();
-            let swalTable = null;
             
             // Configurar el editor Summernote
             try {
@@ -558,10 +581,10 @@ foreach ($data as $row) {
                         ['style', ['bold', 'italic', 'underline']],
                         ['color', ['color']],
                         ['para', ['ul', 'ol']],
-                        ['insert', ['link', 'picture']], // Mantener 'picture' para imágenes
+                        ['insert', ['link', 'picture']],
                     ],
                     dialogsInBody: true,
-                    dialogsFade: false, // Desactivar el efecto fade
+                    dialogsFade: false,
                     callbacks: {
                         onInit: function() {
                             $j('.note-editable').css('min-height', '180px');
@@ -680,16 +703,15 @@ foreach ($data as $row) {
             // Función para actualizar contadores de destinatarios
             function updateFloatCounters() {
                 $j('#floatRecipientCount').text(selectedRecipients.size);
-                $j('#floatSelectedUsersCount').text(selectedRecipients.size);
             }
             
-            // Modificar la función renderFloatRecipientTags
+            // Función para renderizar las etiquetas de destinatarios
             function renderFloatRecipientTags() {
                 const container = $j('#floatRecipientsContainer');
-                const inputGroup = container.find('.input-group'); // Guardar referencia al input
+                const inputGroup = container.find('.input-group');
                 
-                container.empty(); // Limpiar el contenedor
-                container.append(inputGroup); // Volver a añadir el input al principio
+                container.empty();
+                container.append(inputGroup);
 
                 selectedRecipients.forEach((recipient) => {
                     const tag = $j(`
@@ -717,326 +739,94 @@ foreach ($data as $row) {
                 selectedRecipients.clear();
                 $j('#floatRecipientsContainer').empty();
                 updateFloatCounters();
+                
+                // Volver a agregar el campo de entrada manual
+                addEmailInputField('floatRecipientsContainer', selectedRecipients, updateFloatCounters);
             });
             
-            // Función para crear el contenido HTML para SweetAlert
-            function createSwalRecipientsContent() {
-                const departamentosOptions = <?php echo json_encode($departamentos); ?>;
-                const sedesOptions = <?php echo json_encode($sedes); ?>;
-                const programasOptions = <?php echo json_encode($programas); ?>;
-                const modalidadesOptions = <?php echo json_encode($modalidades); ?>;
+            // Buscar usuario por number_id (nueva funcionalidad)
+            $j('#btnFloatSearchUser').on('click', function() {
+                const numberId = $j('#floatSearchNumberId').val().trim();
+                if (!numberId) {
+                    $j('#floatSearchResult').html('<div class="alert alert-warning">Ingrese un número de identificación.</div>');
+                    return;
+                }
                 
-                let departamentosHTML = '<option value="">Todos</option>';
-                departamentosOptions.forEach(dept => {
-                    departamentosHTML += `<option value="${dept}">${dept}</option>`;
-                });
+                $j('#floatSearchResult').html('<div class="text-center"><span class="spinner-border"></span> Buscando...</div>');
                 
-                let sedesHTML = '<option value="">Todas</option>';
-                sedesOptions.forEach(sede => {
-                    sedesHTML += `<option value="${sede}">${sede}</option>`;
-                });
-                
-                let programasHTML = '<option value="">Todos</option>';
-                programasOptions.forEach(prog => {
-                    programasHTML += `<option value="${prog}">${prog}</option>`;
-                });
-                
-                let modalidadesHTML = '<option value="">Todas</option>';
-                modalidadesOptions.forEach(mod => {
-                    modalidadesHTML += `<option value="${mod}">${mod}</option>`;
-                });
-                
-                return `
-                    <!-- Filtros -->
-                    <div class="card mb-2">
-                        <div class="card-header bg-indigo-dark text-white text-center">
-                            <i class="bi bi-funnel"></i> Filtros
-                        </div>
-                        <div class="card-body justify-content-center">
-                            <!-- Filtros en la parte superior -->
-                            <div class="row mb-2 justify-content-center">
-                                <div class="col-md-3 mb-2">
-                                    <label for="swalFilterStatus" class="form-label">Estado:</label>
-                                    <select id="swalFilterStatus" class="form-select form-select-sm">
-                                        <option value="">Todos</option>
-                                        <option value="1">Beneficiario</option>
-                                        <option value="8">Beneficiario Contrapartida</option>
-                                        <option value="3">Matriculado</option>
-                                        <option value="5">En Proceso</option>
-                                        <option value="4">Pendiente</option>
-                                        <option value="2">Rechazado</option>
-                                        <option value="7">Inactivo</option>
-                                        <option value="6">Certificado</option>
-                                        <option value="0">Sin Estado</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 mb-2">
-                                    <label for="swalFilterSede" class="form-label">Sede:</label>
-                                    <select id="swalFilterSede" class="form-select form-select-sm">
-                                        ${sedesHTML}
-                                    </select>
-                                </div>
-                                <div class="col-md-3 mb-2">
-                                    <label for="swalFilterPrograma" class="form-label">Programa:</label>
-                                    <select id="swalFilterPrograma" class="form-select form-select-sm">
-                                        ${programasHTML}
-                                    </select>
-                                </div>
-                                <div class="col-md-3 mb-2">
-                                    <label for="swalFilterModalidad" class="form-label">Modalidad:</label>
-                                    <select id="swalFilterModalidad" class="form-select form-select-sm">
-                                        ${modalidadesHTML}
-                                    </select>
+                $j.ajax({
+                    url: 'components/multipleEmail/get_user_by_numberid.php',
+                    method: 'GET',
+                    data: { number_id: numberId },
+                    dataType: 'json'
+                }).done(function(response) {
+                    if (response.success && response.user) {
+                        const user = response.user;
+                        $j('#floatSearchResult').html(`
+                            <div class="card">
+                                <div class="card-body d-flex flex-column gap-2">
+                                    <div class="d-flex flex-row align-items-center">
+                                        <span class="fw-bold me-2">Nombre:</span>
+                                        <span>${user.fullName}</span>
+                                    </div>
+                                    <div class="d-flex flex-row align-items-center">
+                                        <span class="fw-bold me-2">Email:</span>
+                                        <span>${user.email}</span>
+                                    </div>
+                                    <div class="d-flex flex-row align-items-center">
+                                        <span class="fw-bold me-2">Programa:</span>
+                                        <span>${user.program}</span>
+                                    </div>
+                                    <div class="d-flex flex-row align-items-center">
+                                        <span class="fw-bold me-2">Sede:</span>
+                                        <span>${user.headquarters}</span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <button class="btn bg-magenta-dark text-white" id="addFloatUserRecipient"
+                                            data-email="${user.email}" data-name="${user.fullName}">
+                                            <i class="bi bi-plus-circle"></i> Agregar destinatario
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card-footer text-center">
-                            <button id="swalAplicarFiltros" class="btn bg-indigo-dark text-white btn-sm me-1">
-                                <i class="bi bi-funnel"></i> Filtrar selección
-                            </button>
-                            <button id="swalLimpiarFiltros" class="btn bg-silver btn-sm">
-                                <i class="bi bi-x-circle"></i> Limpiar filtros
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Tabla de usuarios -->
-                    <div class="table-container-swal">
-                        <div class="table-wrapper-swal">
-                            <table id="swalUsersTable" class="table table-hover table-bordered">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th width="50" class="text-center">
-                                            <input type="checkbox" id="swalSelectAll" class="form-check-input">
-                                        </th>
-                                        <th>Tipo ID</th>
-                                        <th>Número</th>
-                                        <th>Nombre Completo</th>
-                                        <th>Email</th>
-                                        <th width="60">Estado</th>
-                                        <th>Sede</th>
-                                        <th>Programa</th>
-                                        <th>Modalidad</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($data as $row):
-                                        // Procesar datos del usuario
-                                        $firstName   = ucwords(strtolower(trim($row['first_name'] ?? '')));
-                                        $secondName  = ucwords(strtolower(trim($row['second_name'] ?? '')));
-                                        $firstLast   = ucwords(strtolower(trim($row['first_last'] ?? '')));
-                                        $secondLast  = ucwords(strtolower(trim($row['second_last'] ?? '')));
-                                        $fullName    = $firstName . " " . $secondName . " " . $firstLast . " " . $secondLast;
-                                        $email       = $row['email'] ?? '';
-                                        $typeID      = $row['typeID'] ?? '';
-                                        $numberID    = $row['number_id'] ?? '';
-                                        $sede        = $row['headquarters'] ?? '';
-                                        $programa    = $row['program'] ?? '';
-                                        $modalidad   = $row['mode'] ?? '';
-                                    ?>
-                                        <tr>
-                                            <td class="text-center">
-                                                <input type="checkbox" class="form-check-input swal-user-checkbox"
-                                                    data-email="<?= htmlspecialchars($email) ?>"
-                                                    data-name="<?= htmlspecialchars($fullName) ?>"
-                                                    style="width: 20px; height: 20px; cursor: pointer;">
-                                            </td>
-                                            <td><?= htmlspecialchars($typeID) ?></td>
-                                            <td><?= htmlspecialchars($numberID) ?></td>
-                                            <td><?= htmlspecialchars($fullName) ?></td>
-                                            <td><?= htmlspecialchars($email) ?></td>
-                                            <td class="text-center" data-status="<?= htmlspecialchars($row['statusAdmin'] ?? '') ?>">
-                                                <?php
-                                                if ($row['statusAdmin'] == '1') {
-                                                    echo '<button class="btn bg-teal-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO"><i class="bi bi-check-circle"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '0') {
-                                                    echo '<button class="btn bg-indigo-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="SIN ESTADO"><i class="bi bi-question-circle"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '2') {
-                                                    echo '<button class="btn bg-danger" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="RECHAZADO"><i class="bi bi-x-circle"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '3') {
-                                                    echo '<button class="btn bg-success text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="MATRICULADO"><i class="fa-solid fa-pencil"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '4') {
-                                                    echo '<button class="btn bg-secondary text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="PENDIENTE"><i class="bi bi-telephone-x"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '5') {
-                                                    echo '<button class="btn bg-warning text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="EN PROCESO"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden"></span></div></button>';
-                                                } elseif ($row['statusAdmin'] == '6') {
-                                                    echo '<button class="btn bg-orange-dark text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="CERTIFICADO"><i class="bi bi-patch-check-fill"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '7') {
-                                                    echo '<button class="btn bg-silver text-white" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="INACTIVO"><i class="bi bi-person-x"></i></button>';
-                                                } elseif ($row['statusAdmin'] == '8') {
-                                                    echo '<button class="btn bg-amber-dark text-dark" style="width:43px" tabindex="0" role="button" data-bs-toggle="popover" data-bs-trigger="hover focus" title="BENEFICIARIO CONTRAPARTIDA"><i class="bi bi-check-circle-fill"></i></button>';
-                                                }
-                                                ?>
-                                            </td>
-                                            <td><?= htmlspecialchars($sede) ?></td>
-                                            <td><?= htmlspecialchars($programa) ?></td>
-                                            <td><?= htmlspecialchars($modalidad) ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="mt-3 text-center">
-                        <span class="badge bg-magenta-dark">
-                            Usuarios seleccionados: <span id="swalSelectedUsersCount">0</span>
-                        </span>
-                    </div>
-                `;
-            }
-            
-            // Función para manejar la apertura del SweetAlert de destinatarios
-            function openRecipientsSelector() {
-                Swal.fire({
-                    title: '<i class="bi bi-people-fill"></i> Seleccionar Destinatarios',
-                    html: createSwalRecipientsContent(),
-                    customClass: {
-                        popup: 'recipients-swal'
-                    },
-                    showCancelButton: true,
-                    confirmButtonText: '<i class="bi bi-check-circle"></i> Confirmar Selección',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#30336b',
-                    cancelButtonColor: '#6c757d',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    },
-                    width: '90%',
-                    didOpen: () => {
-                        // Inicializar DataTable
-                        swalTable = $j('#swalUsersTable').DataTable({
-                            pageLength: 50,
-                            lengthMenu: [
-                                [50, 100, -1],
-                                [50, 100, "Todos"]
-                            ],
-                            columnDefs: [{
-                                orderable: false,
-                                targets: 0
-                            }],
-                            responsive: true,
-                            language: {
-                                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-                            },
-                            pagingType: "simple",
-                            dom: 'frtip',
-                            order: [
-                                [3, 'asc']
-                            ]
-                        });
-                        
-                        // Marcar usuarios ya seleccionados
-                        $j('.swal-user-checkbox').each(function() {
-                            const email = $j(this).data('email');
-                            if (selectedRecipients.has(email)) {
-                                $j(this).prop('checked', true);
-                            }
-                        });
-                        
-                        // Actualizar contador
-                        $j('#swalSelectedUsersCount').text(selectedRecipients.size);
-                        
-                        // Manejar selección de todos
-                        $j('#swalSelectAll').on('change', function() {
-                            const isChecked = $j(this).prop('checked');
-                            $j('.swal-user-checkbox:visible').prop('checked', isChecked).trigger('change');
-                        });
-                        
-                        // Manejar selección individual
-                        $j(document).on('change', '.swal-user-checkbox', function() {
-                            const email = $j(this).data('email');
-                            const name = $j(this).data('name');
-
-                            if ($j(this).prop('checked')) {
-                                selectedRecipients.set(email, {
-                                    email,
-                                    name
-                                });
-                            } else {
-                                selectedRecipients.delete(email);
-                            }
-
-                            $j('#swalSelectedUsersCount').text(selectedRecipients.size);
-                        });
-                        
-                        // Filtro personalizado para DataTables
-                        $j.fn.dataTable.ext.search.push(
-                            function(settings, data, dataIndex) {
-                                // Asegurarse de que este filtro solo se aplique a la tabla correcta
-                                if (settings.nTable.id !== 'swalUsersTable') {
-                                    return true;
-                                }
-
-                                var filterStatusVal = $j('#swalFilterStatus').val();
-                                var filterSedeVal = $j('#swalFilterSede').val();
-                                var filterProgramaVal = $j('#swalFilterPrograma').val();
-                                var filterModalidadVal = $j('#swalFilterModalidad').val();
-
-                                // Obtener el nodo de la fila (tr) para acceder a atributos data-*
-                                var rowNode = swalTable.row(dataIndex).node();
-                                
-                                // Columna Estado (índice 5) - Leer desde data-status
-                                var rowStatus = $j(rowNode).find('td:eq(5)').attr('data-status');
-                                
-                                // Columnas Sede (6), Programa (7), Modalidad (8)
-                                var rowSede = data[6]; 
-                                var rowPrograma = data[7];
-                                var rowModalidad = data[8];
-
-                                // Aplicar filtros
-                                if (filterStatusVal && filterStatusVal !== "" && (rowStatus === undefined || rowStatus != filterStatusVal)) {
-                                    return false;
-                                }
-                                if (filterSedeVal && filterSedeVal !== "" && rowSede != filterSedeVal) {
-                                    return false;
-                                }
-                                if (filterProgramaVal && filterProgramaVal !== "" && rowPrograma != filterProgramaVal) {
-                                    return false;
-                                }
-                                if (filterModalidadVal && filterModalidadVal !== "" && rowModalidad != filterModalidadVal) {
-                                    return false;
-                                }
-
-                                return true;
-                            }
-                        );
-                        
-                        // Aplicar filtros
-                        $j('#swalAplicarFiltros').on('click', function() {
-                            swalTable.draw();
-                        });
-                        
-                        // Limpiar filtros
-                        $j('#swalLimpiarFiltros').on('click', function() {
-                            $j('#swalFilterStatus, #swalFilterSede, #swalFilterPrograma, #swalFilterModalidad').val('');
-                            swalTable.draw();
-                        });
+                        `);
+                    } else {
+                        $j('#floatSearchResult').html('<div class="alert alert-danger">Usuario no encontrado.</div>');
                     }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        renderFloatRecipientTags();
-                        updateFloatCounters();
-                    }
-                    
-                    // Eliminar el filtro personalizado para evitar que afecte a otras tablas
-                    var filterIndex = $j.fn.dataTable.ext.search.indexOf(
-                        $j.fn.dataTable.ext.search.find(f => 
-                            f.toString().includes('swalUsersTable')
-                        )
-                    );
-                    if (filterIndex !== -1) {
-                        $j.fn.dataTable.ext.search.splice(filterIndex, 1);
-                    }
+                }).fail(function() {
+                    $j('#floatSearchResult').html('<div class="alert alert-danger">Error en la búsqueda.</div>');
                 });
-            }
-            
-            // Manejar evento de clic en el botón de seleccionar destinatarios
-            $j('#openFloatRecipientsSwal').on('click', function() {
-                openRecipientsSelector();
+            });
+
+            // Agregar usuario buscado como destinatario
+            $j(document).on('click', '#addFloatUserRecipient', function() {
+                const email = $j(this).data('email');
+                const name = $j(this).data('name');
+                
+                if (!selectedRecipients.has(email)) {
+                    selectedRecipients.set(email, { email, name });
+                    renderFloatRecipientTags();
+                    updateFloatCounters();
+                    
+                    // Cerrar el modal
+                    $j('#floatRecipientsModal').modal('hide');
+                    
+                    // Limpiar el resultado de búsqueda
+                    $j('#floatSearchNumberId').val('');
+                    $j('#floatSearchResult').html('');
+                    
+                    Swal.fire('Agregado', 'El destinatario fue agregado correctamente', 'success');
+                } else {
+                    Swal.fire('Advertencia', 'Este correo ya está en la lista', 'warning');
+                }
+            });
+
+            // Permitir búsqueda con Enter
+            $j('#floatSearchNumberId').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $j('#btnFloatSearchUser').click();
+                }
             });
             
             // Envío del formulario
@@ -1211,7 +1001,7 @@ foreach ($data as $row) {
                 }
             };
             
-            // Manejar clic en botón flotante para abrir chat
+            // Manejar eventos de abrir/cerrar ventana flotante
             if (emailChatButton) {
                 emailChatButton.addEventListener("click", function() {
                     if (emailChatContainer) {
@@ -1220,7 +1010,6 @@ foreach ($data as $row) {
                 });
             }
             
-            // Manejar clic en botón para minimizar chat
             if (minimizeEmailButton) {
                 minimizeEmailButton.addEventListener("click", function() {
                     if (emailChatContainer) {
@@ -1229,16 +1018,123 @@ foreach ($data as $row) {
                 });
             }
             
-            // Conectar el botón del header con la ventana flotante
             if (headerEmailButton) {
                 headerEmailButton.addEventListener("click", function(e) {
-                    e.preventDefault(); // Prevenir el comportamiento predeterminado del botón
+                    e.preventDefault();
                     if (emailChatContainer) {
                         emailChatContainer.classList.add("open");
                     }
                 });
-            } else {
-                console.warn("No se encontró el botón en el header con ID 'header-email-button'");
+            }
+
+            // Función para agregar campo de entrada manual de correos electrónicos
+            function addEmailInputField(containerId, recipientsMap, updateCountersFn) {
+                const $j = jQuery;
+                const container = $j(`#${containerId}`);
+                const inputGroup = $j(`
+                    <div class="input-group input-group-sm mt-2 mb-2">
+                        <input type="email" class="form-control form-control-sm manual-email-input" 
+                            placeholder="Ingrese correo electrónico y presione Enter">
+                        <button class="btn btn-outline-secondary add-manual-email" type="button">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                `);
+
+                container.prepend(inputGroup);
+
+                // Validar email
+                function isValidEmail(email) {
+                    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                }
+
+                // Agregar email
+                function addEmail(email) {
+                    if (!isValidEmail(email)) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Por favor ingrese un correo electrónico válido',
+                            icon: 'error',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        return;
+                    }
+
+                    if (recipientsMap.has(email)) {
+                        Swal.fire({
+                            title: 'Advertencia',
+                            text: 'Este correo ya está en la lista',
+                            icon: 'warning',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        return;
+                    }
+
+                    recipientsMap.set(email, {
+                        email: email,
+                        name: 'Usuario Manual'
+                    });
+
+                    renderFloatRecipientTags();
+                    updateCountersFn();
+                }
+
+                // Procesar múltiples correos pegados
+                function processMultipleEmails(input) {
+                    const emails = input.split(/[\n,;]+/).map(e => e.trim()).filter(e => e);
+                    let added = 0;
+                    emails.forEach(email => {
+                        if (isValidEmail(email) && !recipientsMap.has(email)) {
+                            recipientsMap.set(email, {
+                                email: email,
+                                name: 'Usuario Manual'
+                            });
+                            added++;
+                        }
+                    });
+                    if (added > 0) {
+                        renderFloatRecipientTags();
+                        updateCountersFn();
+                    }
+                }
+
+                // Enter para agregar
+                inputGroup.find('.manual-email-input').on('keypress', function(e) {
+                    if (e.which === 13) {
+                        e.preventDefault();
+                        const email = $j(this).val().trim();
+                        if (email) {
+                            addEmail(email);
+                            $j(this).val('');
+                        }
+                    }
+                });
+
+                // Botón para agregar
+                inputGroup.find('.add-manual-email').on('click', function() {
+                    const email = inputGroup.find('.manual-email-input').val().trim();
+                    if (email) {
+                        addEmail(email);
+                        inputGroup.find('.manual-email-input').val('');
+                    }
+                });
+
+                // Pegado múltiple
+                inputGroup.find('.manual-email-input').on('paste', function(e) {
+                    const clipboardData = e.originalEvent.clipboardData || window.clipboardData;
+                    const pastedData = clipboardData.getData('Text');
+                    if (pastedData) {
+                        e.preventDefault();
+                        processMultipleEmails(pastedData);
+                        $j(this).val('');
+                    }
+                });
             }
 
             // Agregar campo de entrada manual de correos
@@ -1246,95 +1142,7 @@ foreach ($data as $row) {
         });
     }
     
-    // Función para agregar campo de entrada manual de correos
-    function addEmailInputField(containerId, recipientsMap, updateCountersFn) {
-        const container = $(`#${containerId}`);
-        const inputGroup = $(`
-            <div class="input-group input-group-sm mt-2 mb-2">
-                <input type="email" class="form-control form-control-sm manual-email-input" 
-                       placeholder="Ingrese correo electrónico y presione Enter">
-                <button class="btn btn-outline-secondary add-manual-email" type="button">
-                    <i class="bi bi-plus-circle"></i>
-                </button>
-            </div>
-        `);
-        
-        container.prepend(inputGroup);
-
-        // Función para validar email
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
-        // Función para agregar email
-        function addEmail(email) {
-            if (!isValidEmail(email)) {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Por favor ingrese un correo electrónico válido',
-                    icon: 'error',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return;
-            }
-
-            if (recipientsMap.has(email)) {
-                Swal.fire({
-                    title: 'Advertencia',
-                    text: 'Este correo ya está en la lista',
-                    icon: 'warning',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return;
-            }
-
-            recipientsMap.set(email, {
-                email: email,
-                name: 'Usuario Manual'
-            });
-
-            const tag = $(`
-                <div class="recipient-tag manual-entry">
-                    &lt;${email}&gt;
-                    <span class="remove-tag" data-email="${email}">
-                        <i class="bi bi-x-circle"></i>
-                    </span>
-                </div>
-            `);
-
-            tag.insertAfter(inputGroup);
-            updateCountersFn();
-        }
-
-        // Manejar entrada por Enter
-        inputGroup.find('.manual-email-input').on('keypress', function(e) {
-            if (e.which === 13) {
-                e.preventDefault();
-                const email = $(this).val().trim();
-                if (email) {
-                    addEmail(email);
-                    $(this).val('');
-                }
-            }
-        });
-
-        // Manejar clic en botón añadir
-        inputGroup.find('.add-manual-email').on('click', function() {
-            const email = inputGroup.find('.manual-email-input').val().trim();
-            if (email) {
-                addEmail(email);
-                inputGroup.find('.manual-email-input').val('');
-            }
-        });
-    }
-    
-    // Iniciar la carga de recursos necesarios
+    // Función para cargar recursos dinámicamente
     function startLoading() {
         const dependencies = [];
         
