@@ -97,12 +97,16 @@ function exportDataToExcel($conn)
     WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
     AND user_register.lote = '1'
+    AND user_register.statusAdmin NOT IN ('2', '7', '11')
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
     AND user_register.number_id NOT IN (
-        SELECT p.numero_documento 
-        FROM participantes p
-        INNER JOIN user_register ur ON p.numero_documento = ur.number_id
+        user_register.number_id IN (
+            SELECT p.numero_documento 
+            FROM participantes p
+            INNER JOIN user_register ur ON p.numero_documento = ur.number_id
+        )
+        OR user_register.directed_base = '1'
     )
     ORDER BY user_register.first_name ASC";
 
@@ -275,24 +279,24 @@ function exportDataToExcel($conn)
                 'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'], // Cambio: normalizar CC
                 'Número_documento' => $row['number_id'],
                 'Nombre1' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['first_name']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['first_name'])
                 )),
                 'Nombre2' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['second_name']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['second_name'])
                 )),
                 'Apellido1' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['first_last']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['first_last'])
                 )),
                 'Apellido2' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['second_last']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['second_last'])
                 )),
                 'Fecha_nacimiento' => fechaAExcel($row['birthdate']),
                 'Correo' => $row['email'],
@@ -406,7 +410,7 @@ function exportDataToExcel($conn)
                     '9' => 'APLAZADO',
                     '10' => 'FORMADO',
                     '11' => 'NO VALIDO',
-                    '12' => 'Pendiente MINTIC',
+                    '12' => 'NO APROBADO',
                     default => ''
                 },
                 'Fecha de matricula' => $row['creation_date'] ? fechaAExcel($row['creation_date']) : '',

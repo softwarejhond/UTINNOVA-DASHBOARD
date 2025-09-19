@@ -3708,6 +3708,27 @@
                                                 <option value="">Cargando sedes...</option>
                                             </select>
                                         </div>
+
+                                        <div id="horariosContainer_${id}" style="display: none;">
+                                            <div class="alert alert-info">
+                                                <i class="bi bi-info-circle"></i>
+                                                <strong>Al cambiar la sede, debe seleccionar nuevos horarios disponibles.</strong>
+                                            </div>
+                                            
+                                            <div class="form-group mb-3">
+                                                <label for="nuevoHorarioPrincipal_${id}">Nuevo Horario Principal: <span class="text-danger">*</span></label>
+                                                <select class="form-control" id="nuevoHorarioPrincipal_${id}" name="nuevoHorarioPrincipal">
+                                                    <option value="">Seleccionar horario principal</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="form-group mb-3">
+                                                <label for="nuevoHorarioAlternativo_${id}">Nuevo Horario Alternativo:</label>
+                                                <select class="form-control" id="nuevoHorarioAlternativo_${id}" name="nuevoHorarioAlternativo">
+                                                    <option value="">Seleccionar horario alternativo (opcional)</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                         
                                         <?php if (!in_array($row['statusAdmin'], [3, 6, 10])): ?>
                                             <div class="form-group mb-3">
@@ -3745,15 +3766,47 @@
                     // Cargar las sedes después de mostrar el modal
                     cargarSedesParaModal(id, data.mode, data.headquarters);
 
-                    // Manejar el envío del formulario
+                    // NUEVO: Agregar event listener para el cambio de sede
+                    $(`#nuevoSede_${id}`).on('change', function() {
+                        const nuevaSede = $(this).val();
+                        const programa = data.program; // Usar el programa actual del usuario
+
+                        if (nuevaSede && nuevaSede !== data.headquarters) {
+                            // Si cambia la sede, mostrar el contenedor de horarios y cargar horarios
+                            $(`#horariosContainer_${id}`).show();
+                            cargarHorariosPorSede(id, programa, nuevaSede, data.mode);
+
+                            // Hacer obligatorio el horario principal
+                            $(`#nuevoHorarioPrincipal_${id}`).attr('required', true);
+                        } else {
+                            // Si vuelve a la sede original o no selecciona, ocultar horarios
+                            $(`#horariosContainer_${id}`).hide();
+                            $(`#nuevoHorarioPrincipal_${id}`).removeAttr('required');
+                        }
+                    });
+
+                    // MODIFICAR: Actualizar la validación del formulario
                     $('#formActualizarPrograma_' + id).on('submit', function(e) {
                         e.preventDefault();
 
-                        // Obtener los valores seleccionados
                         const nuevoPrograma = $('#nuevoPrograma_' + id).val();
                         const nuevoNivel = $('#nuevoNivel_' + id).val();
                         const nuevoSede = $('#nuevoSede_' + id).val();
                         const nuevoLote = $('#nuevoLote_' + id).val();
+                        const nuevoHorarioPrincipal = $('#nuevoHorarioPrincipal_' + id).val();
+                        const nuevoHorarioAlternativo = $('#nuevoHorarioAlternativo_' + id).val();
+
+                        // Verificar si se cambió la sede y validar horarios
+                        if (nuevoSede && nuevoSede !== data.headquarters) {
+                            if (!nuevoHorarioPrincipal) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Horario requerido',
+                                    text: 'Al cambiar la sede debe seleccionar al menos un horario principal.'
+                                });
+                                return;
+                            }
+                        }
 
                         // Verificar si se ha seleccionado al menos un campo para actualizar
                         if (!nuevoPrograma && !nuevoNivel && !nuevoSede && !nuevoLote) {
@@ -3768,14 +3821,16 @@
                         Swal.fire({
                             title: '¿Está seguro?',
                             html: `
-                                <div class="text-start">
-                                    <p><strong>Se actualizará:</strong></p>
-                                    ${nuevoPrograma ? `<p>• Programa: ${nuevoPrograma}</p>` : ''}
-                                    ${nuevoNivel ? `<p>• Nivel: ${nuevoNivel}</p>` : ''}
-                                    ${nuevoSede ? `<p>• Sede: ${nuevoSede}</p>` : ''}
-                                    ${nuevoLote ? `<p>• Lote: ${nuevoLote}</p>` : ''}
-                                </div>
-                            `,
+                                    <div class="text-start">
+                                        <p><strong>Se actualizará:</strong></p>
+                                        ${nuevoPrograma ? `<p>• Programa: ${nuevoPrograma}</p>` : ''}
+                                        ${nuevoNivel ? `<p>• Nivel: ${nuevoNivel}</p>` : ''}
+                                        ${nuevoSede ? `<p>• Sede: ${nuevoSede}</p>` : ''}
+                                        ${nuevoLote ? `<p>• Lote: ${nuevoLote}</p>` : ''}
+                                        ${nuevoHorarioPrincipal ? `<p>• Horario Principal: ${nuevoHorarioPrincipal}</p>` : ''}
+                                        ${nuevoHorarioAlternativo ? `<p>• Horario Alternativo: ${nuevoHorarioAlternativo}</p>` : ''}
+                                    </div>
+                                `,
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonColor: '#3085d6',
@@ -3784,7 +3839,7 @@
                             cancelButtonText: 'Cancelar'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote);
+                                actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote, nuevoHorarioPrincipal, nuevoHorarioAlternativo);
                                 $('#modalActualizarPrograma_' + id).modal('hide');
                             }
                         });
@@ -3860,7 +3915,55 @@
         });
     }
 
-    function actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote) {
+    function cargarHorariosPorSede(id, programa, sede, mode) {
+        // Mostrar indicador de carga
+        $(`#nuevoHorarioPrincipal_${id}`).html('<option value="">Cargando horarios...</option>');
+        $(`#nuevoHorarioAlternativo_${id}`).html('<option value="">Cargando horarios...</option>');
+
+        $.ajax({
+            url: 'components/individualSearch/get_horarios_filtrados.php',
+            type: 'POST',
+            data: {
+                id: id,
+                programa: programa,
+                sede: sede,
+                mode: mode
+            },
+            dataType: 'json',
+            success: function(response) {
+                console.log('Horarios cargados:', response);
+
+                if (response.success && response.horarios && response.horarios.length > 0) {
+                    let optionsPrincipal = '<option value="">Seleccionar horario principal</option>';
+                    let optionsAlternativo = '<option value="">Seleccionar horario alternativo (opcional)</option>';
+
+                    response.horarios.forEach(horario => {
+                        optionsPrincipal += `<option value="${horario}">${horario}</option>`;
+                        optionsAlternativo += `<option value="${horario}">${horario}</option>`;
+                    });
+
+                    $(`#nuevoHorarioPrincipal_${id}`).html(optionsPrincipal);
+                    $(`#nuevoHorarioAlternativo_${id}`).html(optionsAlternativo);
+                } else {
+                    $(`#nuevoHorarioPrincipal_${id}`).html('<option value="">No hay horarios disponibles</option>');
+                    $(`#nuevoHorarioAlternativo_${id}`).html('<option value="">No hay horarios disponibles</option>');
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sin horarios disponibles',
+                        text: 'No se encontraron horarios para la sede y programa seleccionados.'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al cargar horarios:', error);
+                $(`#nuevoHorarioPrincipal_${id}`).html('<option value="">Error al cargar horarios</option>');
+                $(`#nuevoHorarioAlternativo_${id}`).html('<option value="">Error al cargar horarios</option>');
+            }
+        });
+    }
+
+    function actualizarProgramaNivel(id, nuevoPrograma, nuevoNivel, nuevoSede, nuevoLote, nuevoHorarioPrincipal, nuevoHorarioAlternativo) {
         const formData = new FormData();
         formData.append('id', id);
 
@@ -3869,6 +3972,10 @@
         if (nuevoNivel) formData.append('nuevoNivel', nuevoNivel);
         if (nuevoSede) formData.append('nuevoSede', nuevoSede);
         if (nuevoLote) formData.append('nuevoLote', nuevoLote);
+
+        // NUEVO: Agregar horarios si se seleccionaron
+        if (nuevoHorarioPrincipal) formData.append('nuevoHorarioPrincipal', nuevoHorarioPrincipal);
+        if (nuevoHorarioAlternativo) formData.append('nuevoHorarioAlternativo', nuevoHorarioAlternativo);
 
         // Mostrar indicador de carga
         Swal.fire({

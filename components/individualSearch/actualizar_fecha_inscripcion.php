@@ -30,6 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('si', $fecha, $id);
 
             if ($stmt->execute()) {
+                // Actualizar fecha_registro en la tabla usuarios
+                $updateUsuariosSql = "UPDATE usuarios SET fecha_registro = ? WHERE cedula = ?";
+                $stmtUsuarios = $conn->prepare($updateUsuariosSql);
+                if ($stmtUsuarios) {
+                    $stmtUsuarios->bind_param('si', $fecha, $id);
+                    if (!$stmtUsuarios->execute()) {
+                        throw new Exception("Error al actualizar fecha_registro en usuarios");
+                    }
+                    $stmtUsuarios->close();
+                } else {
+                    throw new Exception("Error al preparar la consulta para usuarios");
+                }
+
                 // Registrar en historial
                 $historialSql = "INSERT INTO change_history (student_id, user_change, change_made) VALUES (?, ?, ?)";
                 $stmtHistorial = $conn->prepare($historialSql);
