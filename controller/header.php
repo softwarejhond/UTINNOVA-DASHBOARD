@@ -85,30 +85,43 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         </a>
                         <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                             <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
+
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_lote2', 'semanal_lote2')">Informe semanal Lote 2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote1', 'certificadosLote1')">Informe contrapartida L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote2', 'certificadosLote2')">Informe contrapartida L2</a></li>
+
+
+                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li> -->
                             <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li> -->
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
+                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li> -->
+                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li> -->
                         <?php endif; ?>
 
                         <?php if ($rol === 'Control maestro'): ?>
                             <!-- NUEVAS EXPORTACIONES AGREGADAS -->
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/to_approve/export_excel_general_all.php', 'notas_general')">Informe de notas general</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 L1</a></li>
+                            <li>
+                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
+                                    <b>Subir informe semanal</b>
+                                </a>
+                            </li>
+                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 L1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 L1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF L1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li> -->
                         <?php endif; ?>
 
-                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li>
+                        <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li> -->
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistencia', 'asistencia')">Informe de asistencia</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistenciaLE', 'asistenciaLE')">Informe de asistencia LE</a></li>
                         <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAbsence.php?action=export', 'ausencias')">Registros de ausencia</a></li>
                         <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/to_approve/export_excel_general_all.php', 'notas_general')">Informe de notas general</a></li>
 
@@ -212,6 +225,35 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
         </button>
     </div>
 </nav>
+
+<!-- Modal para subir archivo e informe de prueba -->
+<div class="modal fade" id="modalSubirInforme" tabindex="-1" aria-labelledby="modalSubirInformeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="formSubirInforme" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalSubirInformeLabel">Subir archivo de informe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" name="archivo_informe" id="archivo_informe" class="form-control" accept=".xlsx,.xls" required>
+                    <small class="form-text text-muted mt-2">
+                        Asegúrese de que el archivo corresponda al formato de <strong>informe semanal</strong> actualizado antes de subirlo.
+                    </small>
+                    <div id="archivoSubidoMsg" class="mt-2 text-success" style="display:none;">
+                        Archivo subido correctamente.
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" class="btn bg-magenta-dark text-white">Subir archivo</button>
+                    <button type="button" class="btn bg-teal-dark text-white" id="btnGenerarE20" style="display:none;">Generar Informe E20</button>
+                    <button type="button" class="btn bg-indigo-dark text-white" id="btnGenerarE21" style="display:none;">Generar Informe E21</button>
+                    <button type="button" class="btn bg-purple-dark text-white" id="btnGenerarE19VF" style="display:none;">Generar Informe E19 VF</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Start of HubSpot Embed Code -->
 <script type="text/javascript" id="hs-script-loader" async defer src="//js-na2.hs-scripts.com/243394779.js"></script>
@@ -353,41 +395,50 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         if (!response.ok) {
                             throw new Error(`Error ${response.status}: ${response.statusText}`);
                         }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        // Calcular tiempo transcurrido
-                        const elapsedTime = 300 - timeLeft;
-                        const elapsedMinutes = Math.floor(elapsedTime / 60);
-                        const elapsedSeconds = elapsedTime % 60;
-                        const elapsedFormatted = `${elapsedMinutes}:${elapsedSeconds.toString().padStart(2, '0')}`;
 
+                        // Obtener el nombre del archivo desde el header
+                        const contentDisposition = response.headers.get('Content-Disposition');
+                        let fileName = 'informe_' + tipo + '_' + new Date().toISOString().split('T')[0] + '.xlsx';
+                        if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+                            fileName = contentDisposition
+                                .split('filename=')[1]
+                                .replace(/["']/g, '')
+                                .trim();
+                        }
+
+                        return response.blob().then(blob => ({
+                            blob,
+                            fileName
+                        }));
+                    })
+                    .then(({
+                        blob,
+                        fileName
+                    }) => {
                         // Crear URL del blob
                         const blobUrl = window.URL.createObjectURL(blob);
                         // Crear enlace temporal
                         const a = document.createElement('a');
                         a.href = blobUrl;
-                        a.download = `informe_${tipo}_${new Date().toISOString().split('T')[0]}.xlsx`;
-                        // Simular clic
+                        a.download = fileName;
                         document.body.appendChild(a);
                         a.click();
-                        // Limpiar
                         window.URL.revokeObjectURL(blobUrl);
                         document.body.removeChild(a);
 
-                        // Mostrar mensaje de éxito con tiempo transcurrido
+                        // Mostrar mensaje de éxito con nombre de archivo
                         Swal.fire({
                             icon: 'success',
                             title: '¡Descarga completada!',
                             html: `<div class="text-center">
-                            <i class="bi bi-download text-success" style="font-size: 3em;"></i>
-                            <p class="mt-3">El informe de <strong>${tipo}</strong> se ha descargado correctamente</p>
-                            <div class="alert alert-success mt-3">
-                                <i class="bi bi-stopwatch"></i>
-                                <strong>Tiempo de procesamiento:</strong> ${elapsedFormatted}
-                            </div>
-                            <small class="text-muted">El archivo se ha guardado en su carpeta de descargas</small>
-                        </div>`,
+            <i class="bi bi-download text-success" style="font-size: 3em;"></i>
+            <p class="mt-3">El informe de <strong>${tipo}</strong> se ha descargado correctamente</p>
+            <div class="alert alert-success mt-3">
+                <i class="bi bi-file-earmark-excel"></i>
+                <strong>Archivo:</strong> ${fileName}
+            </div>
+            <small class="text-muted">El archivo se ha guardado en su carpeta de descargas</small>
+        </div>`,
                             showConfirmButton: true,
                             confirmButtonColor: '#30336b',
                             confirmButtonText: 'Perfecto'
@@ -536,6 +587,81 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             }
         });
     }
+
+    document.getElementById('formSubirInforme').onsubmit = function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        // Mostrar Swal de carga
+        Swal.fire({
+            title: 'Subiendo archivo...',
+            html: `<div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3">Por favor, espere mientras se sube el archivo.</p>
+                </div>`,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        fetch('components/infoWeek/upload_informe.php', {
+                method: 'POST',
+                body: formData
+            }).then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('archivoSubidoMsg').style.display = 'block';
+                    document.getElementById('btnGenerarE20').style.display = 'inline-block';
+                    document.getElementById('btnGenerarE21').style.display = 'inline-block';
+                    document.getElementById('btnGenerarE19VF').style.display = 'inline-block';
+
+                    // Cambiar el botón de subir archivo a gris y texto a "Reemplazar"
+                    var btnSubir = document.querySelector('#formSubirInforme button[type="submit"]');
+                    btnSubir.classList.remove('bg-magenta-dark');
+                    btnSubir.classList.add('btn-secondary');
+                    btnSubir.textContent = 'Reemplazar';
+                    btnSubir.disabled = false; // Por si acaso
+
+                    // Asignar eventos después de mostrar los botones
+                    document.getElementById('btnGenerarE20').onclick = function() {
+                        descargarInforme('components/infoWeek/exportAll_from_file.php?action=export_E20', 'E20');
+                    };
+                    document.getElementById('btnGenerarE21').onclick = function() {
+                        descargarInforme('components/infoWeek/exportAll_from_file.php?action=export_E21', 'E21');
+                    };
+                    document.getElementById('btnGenerarE19VF').onclick = function() {
+                        descargarInforme('components/infoWeek/exportAll_from_file.php?action=export_E19_VF', 'E19 VF');
+                    };
+
+                    // Mostrar Swal de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Archivo subido correctamente',
+                        text: 'Ahora puedes generar los informes.',
+                        confirmButtonColor: '#30336b'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al subir el archivo',
+                        text: data.message || 'Intenta nuevamente.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de red',
+                    text: 'No se pudo subir el archivo. Intenta nuevamente.',
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+    };
 </script>
 
 <style>
