@@ -50,7 +50,7 @@ try {
 
     // Detectar entorno y configurar rutas
     $isProduction = (strpos($_SERVER['HTTP_HOST'], 'localhost') === false);
-    $baseDir = $isProduction ? '/dashboard/' : '/DASBOARD-ADMIN-MINTICS/';
+    $baseDir = $isProduction ? '/dashboard/' : '/UTINNOVA-DASHBOARD/';
     $pdfFolder = $_SERVER['DOCUMENT_ROOT'] . $baseDir . 'cedulas/';
     $pdfFile = $pdfFolder . "cedula_{$number_id}.pdf";
 
@@ -179,6 +179,7 @@ try {
                 height: 100%;
                 display: block;
                 max-height: 200px;
+                margin-top: 50px;
             }
             .footer-img {
                 width: 100%;
@@ -191,10 +192,10 @@ try {
             }
             .contenido {
                 position: absolute;
-                top: 150px;
+                top: 180px;
                 left: 30px;
                 right: 0;
-                bottom: 75px;
+                bottom: 65px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -249,7 +250,7 @@ try {
         </style>
     </head>
     <body>
-        <img src="https://dashboard.uttalento.co/dashboard/img/header_documento.png" alt="Header" class="header-img">
+        <img src="https://dashboard.utinnova.co/dashboard/img/header_documentos.png" alt="Header" class="header-img">
         
         <div class="contenido">
             <div class="imagenes-container">
@@ -267,7 +268,7 @@ try {
             </div>
         </div>
         
-        <img src="https://dashboard.uttalento.co/img/InscripcionCajica_footer.jpg" alt="Footer" class="footer-img">
+        <img src="https://dashboard.utinnova.co/dashboard/img/footer_documentos.png" alt="Footer" class="footer-img">
     </body>
     </html>
     ';

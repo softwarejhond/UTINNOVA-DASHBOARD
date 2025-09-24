@@ -1,18 +1,4 @@
 <?php
-/**
- * ============================================
- * Gestión de usuarios activos en Moodle (activeMoodle.php)
- * ============================================
- * Este componente muestra el listado y gestión de usuarios actualmente matriculados en la plataforma Moodle.
- * Permite filtrar, visualizar y administrar las matrículas activas, así como realizar acciones sobre los usuarios.
- * 
- * - Verifica la sesión y el rol del usuario antes de mostrar la información.
- * - Integra filtros por bootcamp, sede, programa y modalidad.
- * - Utiliza DataTables para la visualización dinámica y responsiva de los datos.
- * - Incluye componentes para agregar usuarios, asesores y gestionar matrículas.
- * - El diseño es responsivo y utiliza Bootstrap.
- */
-
 session_start();
 include("conexion.php");
 // Habilitar la visualización de errores
@@ -95,41 +81,26 @@ $rol = $infoUsuario['rol'];
 <script src="js/dataTables.js?v=0.2"></script>
 
 <script>
-    $(document).ready(function() {
-        $('#link-dashboard').addClass('pagina-activa');
+    // $(document).ready(function() {
+    //     $('#link-dashboard').addClass('pagina-activa');
 
-        var table = $('#listaInscritos').DataTable({
-            responsive: true,
-            language: {
-                url: "controller/datatable_esp.json"
-            },
-            pagingType: "simple"
-        });
+    //     $('#listaInscritos').DataTable({
+    //         responsive: true,
+    //         language: {
+    //             url: "controller/datatable_esp.json"
+    //         },
+    //         paging: false, // Desactiva paginado
+    //         info: false, // Oculta info de paginación
+    //         ordering: false, // Desactiva la organización de columnas
+    //         drawCallback: function(settings) {
+    //             // Silencia el error de columnas desconocidas
+    //             $.fn.dataTable.ext.errMode = 'none';
+    //         }
+    //     });
 
-        $('#filterBootcamp, #filterHeadquarters, #filterProgram, #filterMode').on('change', function() {
-            table.draw();
-        });
-
-        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-            var selectedBootcamp = $('#filterBootcamp').val();
-            var selectedHeadquarters = $('#filterHeadquarters').val();
-            var selectedProgram = $('#filterProgram').val();
-            var selectedMode = $('#filterMode').val();
-
-            var row = table.row(dataIndex).node();
-            var rowBootcamp = $(row).data('bootcamp');
-            var rowHeadquarters = $(row).data('headquarters');
-            var rowProgram = $(row).data('program');
-            var rowMode = $(row).data('mode');
-
-            var bootcampMatch = !selectedBootcamp || rowBootcamp === selectedBootcamp;
-            var headquartersMatch = !selectedHeadquarters || rowHeadquarters === selectedHeadquarters;
-            var programMatch = !selectedProgram || rowProgram === selectedProgram;
-            var modeMatch = !selectedMode || rowMode === selectedMode;
-
-            return bootcampMatch && headquartersMatch && programMatch && modeMatch;
-        });
-    });
+    //     // Silencia el error globalmente
+    //     $.fn.dataTable.ext.errMode = 'none';
+    // });
 </script>
 
 </body>

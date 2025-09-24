@@ -158,6 +158,22 @@
                         return $sedes;
                     }
 
+                    // Después de obtener los datos del usuario y antes del cálculo de $isAccepted
+                    $verificacion = [
+                        'name_verified' => 0,
+                        'document_number_verified' => 0,
+                        'birth_date_verified' => 0,
+                        'document_type_verified' => 0,
+                        'notes' => ''
+                    ];
+                    $stmt = $conn->prepare("SELECT name_verified, document_number_verified, birth_date_verified, document_type_verified, notes FROM document_verifications WHERE number_id = ? ORDER BY verification_date DESC LIMIT 1");
+                    $stmt->bind_param("s", $row['number_id']);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    if ($result->num_rows > 0) {
+                        $verificacion = $result->fetch_assoc();
+                    }
+                    $stmt->close();
 
                     $isAccepted = true;
                     $razonIncumplimiento = '';
@@ -201,6 +217,25 @@
                         $razonIncumplimiento .= 'No tiene lote asignado válido. ';
                     }
 
+                    // NUEVO: Validar verificación de documento
+                    if ($verificacion['name_verified'] != 1) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'Nombre no verificado en documento. ';
+                    }
+                    if ($verificacion['document_number_verified'] != 1) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'Número de documento no verificado. ';
+                    }
+                    if ($verificacion['birth_date_verified'] != 1) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'Fecha de nacimiento no verificada en documento. ';
+                    }
+                    if ($verificacion['document_type_verified'] != 1) {
+                        $isAccepted = false;
+                        $razonIncumplimiento .= 'Tipo de documento no verificado. ';
+                    }
+
+                    // Continuar con las validaciones existentes (modalidad, edad, etc.)
                     if ($isAccepted) {
                         if ($row['mode'] === 'Presencial') {
                             if (
@@ -212,7 +247,7 @@
                                 $isAccepted = false;
                                 if ($row['typeID'] !== 'CC') $razonIncumplimiento .= 'Tipo de documento no es CC';
                                 if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
-                                if (!in_array(strtoupper($row['department']), ['11'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
+                                if (!in_array(strtoupper($row['department']), ['11'])) $razonIncumplimiento .= 'Departamento diferente de BOGOTÁ.';
                             }
                         } elseif ($row['mode'] === 'Virtual') {
                             if (
@@ -225,7 +260,7 @@
                                 $isAccepted = false;
                                 if ($row['typeID'] !== 'CC') $razonIncumplimiento .= 'Tipo de documento no es CC. ';
                                 if ($row['age'] <= 17) $razonIncumplimiento .= 'Edad menor o igual a 17. ';
-                                if (!in_array(strtoupper($row['department']), ['11'])) $razonIncumplimiento .= 'Departamento diferente de BOYACA, CUNDINAMARCA';
+                                if (!in_array(strtoupper($row['department']), ['11'])) $razonIncumplimiento .= 'Departamento diferente de BOGOTÁ.';
                                 if ($row['internet'] !== 'Sí') $razonIncumplimiento .= 'No tiene internet. ';
                             }
                         }
@@ -286,6 +321,22 @@
                                         <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                             <span class="text-muted">Ver documento:</span>
                                             <span class="text-end"><?php include 'showPictureId.php'; ?></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                            <span class="text-muted">Documento verificado:</span>
+                                            <span class="text-end">
+                                                <?php
+                                                $todosVerificados = $verificacion['name_verified'] &&
+                                                    $verificacion['document_number_verified'] &&
+                                                    $verificacion['birth_date_verified'] &&
+                                                    $verificacion['document_type_verified'];
+
+                                                if ($todosVerificados): ?>
+                                                    <span class="badge bg-success"><i class="bi bi-shield-check"></i> Verificado</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-warning"><i class="bi bi-shield-exclamation"></i> Pendiente</span>
+                                                <?php endif; ?>
+                                            </span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center w-100 mt-1">
                                             <span class="text-muted">Edad:</span>
@@ -2800,6 +2851,7 @@
                     opcionesEstado = `
                         <option value="0">Sin estado</option>
                         <option value="5">En proceso</option>
+                        <option value="9">Aplazado</option>
                         <option value="4">Sin contacto</option>
                         <option value="2">Rechazado</option>
                         <option value="11">No válido</option>
@@ -3708,11 +3760,11 @@
                                                 <option value="">Cargando sedes...</option>
                                             </select>
                                         </div>
-
+    
                                         <div id="horariosContainer_${id}" style="display: none;">
                                             <div class="alert alert-info">
                                                 <i class="bi bi-info-circle"></i>
-                                                <strong>Al cambiar la sede, debe seleccionar nuevos horarios disponibles.</strong>
+                                                <strong>Al cambiar la sede o programa, debe seleccionar nuevos horarios disponibles.</strong>
                                             </div>
                                             
                                             <div class="form-group mb-3">
@@ -3730,17 +3782,15 @@
                                             </div>
                                         </div>
                                         
-                                        <?php if (!in_array($row['statusAdmin'], [3, 6, 10])): ?>
-                                            <div class="form-group mb-3">
-                                                <label for="nuevoLote_${id}">Lote actual: <strong>${data.lote || 'No asignado'}</strong></label>
-                                                <label for="nuevoLote_${id}">Seleccionar lote:</label>
-                                                <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
-                                                    <option value="">Mantener actual (${data.lote || 'No asignado'})</option>
-                                                    <option value="1" ${data.lote === '1' ? 'selected' : ''}>Lote 1</option>
-                                                    <option value="2" ${data.lote === '2' ? 'selected' : ''}>Lote 2</option>
-                                                </select>
-                                            </div>
-                                        <?php endif; ?>
+                                        <div class="form-group mb-3">
+                                            <label for="nuevoLote_${id}">Lote actual: <strong>${data.lote || 'No asignado'}</strong></label>
+                                            <label for="nuevoLote_${id}">Seleccionar lote:</label>
+                                            <select class="form-control" id="nuevoLote_${id}" name="nuevoLote">
+                                                <option value="">Mantener actual (${data.lote || 'No asignado'})</option>
+                                                <option value="1" ${data.lote === '1' ? 'selected' : ''}>Lote 1</option>
+                                                <option value="2" ${data.lote === '2' ? 'selected' : ''}>Lote 2</option>
+                                            </select>
+                                        </div>
                                         
                                         <div class="alert alert-warning">
                                             <i class="bi bi-exclamation-triangle"></i>
@@ -3766,26 +3816,47 @@
                     // Cargar las sedes después de mostrar el modal
                     cargarSedesParaModal(id, data.mode, data.headquarters);
 
-                    // NUEVO: Agregar event listener para el cambio de sede
-                    $(`#nuevoSede_${id}`).on('change', function() {
-                        const nuevaSede = $(this).val();
-                        const programa = data.program; // Usar el programa actual del usuario
+                    // NUEVO: Función para actualizar horarios según programa y sede seleccionados
+                    function actualizarHorariosSegunSeleccion() {
+                        const programaSeleccionado = $(`#nuevoPrograma_${id}`).val() || data.program;
+                        const sedeSeleccionada = $(`#nuevoSede_${id}`).val() || data.headquarters;
 
-                        if (nuevaSede && nuevaSede !== data.headquarters) {
-                            // Si cambia la sede, mostrar el contenedor de horarios y cargar horarios
+                        // Verificar si se ha cambiado el programa o la sede
+                        const programaCambiado = programaSeleccionado !== data.program;
+                        const sedeCambiada = sedeSeleccionada !== data.headquarters;
+
+                        if (programaCambiado || sedeCambiada) {
+                            // Mostrar el contenedor de horarios
                             $(`#horariosContainer_${id}`).show();
-                            cargarHorariosPorSede(id, programa, nuevaSede, data.mode);
 
                             // Hacer obligatorio el horario principal
                             $(`#nuevoHorarioPrincipal_${id}`).attr('required', true);
+
+                            // Cargar horarios con el programa y sede seleccionados
+                            if (programaSeleccionado && sedeSeleccionada) {
+                                cargarHorariosPorSede(id, programaSeleccionado, sedeSeleccionada, data.mode);
+                            } else {
+                                // Limpiar horarios si no se han seleccionado ambos
+                                $(`#nuevoHorarioPrincipal_${id}`).html('<option value="">Seleccione primero programa y sede</option>');
+                                $(`#nuevoHorarioAlternativo_${id}`).html('<option value="">Seleccione primero programa y sede</option>');
+                            }
                         } else {
-                            // Si vuelve a la sede original o no selecciona, ocultar horarios
+                            // Si vuelve a los valores originales, ocultar horarios
                             $(`#horariosContainer_${id}`).hide();
                             $(`#nuevoHorarioPrincipal_${id}`).removeAttr('required');
                         }
+                    }
+
+                    // Agregar event listeners para programa Y sede
+                    $(`#nuevoPrograma_${id}`).on('change', function() {
+                        actualizarHorariosSegunSeleccion();
                     });
 
-                    // MODIFICAR: Actualizar la validación del formulario
+                    $(`#nuevoSede_${id}`).on('change', function() {
+                        actualizarHorariosSegunSeleccion();
+                    });
+
+                    // Validación del formulario actualizada
                     $('#formActualizarPrograma_' + id).on('submit', function(e) {
                         e.preventDefault();
 
@@ -3796,13 +3867,16 @@
                         const nuevoHorarioPrincipal = $('#nuevoHorarioPrincipal_' + id).val();
                         const nuevoHorarioAlternativo = $('#nuevoHorarioAlternativo_' + id).val();
 
-                        // Verificar si se cambió la sede y validar horarios
-                        if (nuevoSede && nuevoSede !== data.headquarters) {
+                        // Verificar si se cambió la sede O el programa y validar horarios
+                        const programaCambiado = nuevoPrograma && nuevoPrograma !== data.program;
+                        const sedeCambiada = nuevoSede && nuevoSede !== data.headquarters;
+
+                        if (programaCambiado || sedeCambiada) {
                             if (!nuevoHorarioPrincipal) {
                                 Swal.fire({
                                     icon: 'warning',
                                     title: 'Horario requerido',
-                                    text: 'Al cambiar la sede debe seleccionar al menos un horario principal.'
+                                    text: 'Al cambiar el programa o la sede debe seleccionar al menos un horario principal.'
                                 });
                                 return;
                             }
@@ -3821,16 +3895,16 @@
                         Swal.fire({
                             title: '¿Está seguro?',
                             html: `
-                                    <div class="text-start">
-                                        <p><strong>Se actualizará:</strong></p>
-                                        ${nuevoPrograma ? `<p>• Programa: ${nuevoPrograma}</p>` : ''}
-                                        ${nuevoNivel ? `<p>• Nivel: ${nuevoNivel}</p>` : ''}
-                                        ${nuevoSede ? `<p>• Sede: ${nuevoSede}</p>` : ''}
-                                        ${nuevoLote ? `<p>• Lote: ${nuevoLote}</p>` : ''}
-                                        ${nuevoHorarioPrincipal ? `<p>• Horario Principal: ${nuevoHorarioPrincipal}</p>` : ''}
-                                        ${nuevoHorarioAlternativo ? `<p>• Horario Alternativo: ${nuevoHorarioAlternativo}</p>` : ''}
-                                    </div>
-                                `,
+                                <div class="text-start">
+                                    <p><strong>Se actualizará:</strong></p>
+                                    ${nuevoPrograma ? `<p>• Programa: ${nuevoPrograma}</p>` : ''}
+                                    ${nuevoNivel ? `<p>• Nivel: ${nuevoNivel}</p>` : ''}
+                                    ${nuevoSede ? `<p>• Sede: ${nuevoSede}</p>` : ''}
+                                    ${nuevoLote ? `<p>• Lote: ${nuevoLote}</p>` : ''}
+                                    ${nuevoHorarioPrincipal ? `<p>• Horario Principal: ${nuevoHorarioPrincipal}</p>` : ''}
+                                    ${nuevoHorarioAlternativo ? `<p>• Horario Alternativo: ${nuevoHorarioAlternativo}</p>` : ''}
+                                </div>
+                            `,
                             icon: 'warning',
                             showCancelButton: true,
                             confirmButtonColor: '#3085d6',

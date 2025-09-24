@@ -1,77 +1,26 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 
-$sql = "SELECT 
-            g.*, 
-            ur.*, 
-            g.password AS group_password, 
-            cp.cohort AS course_cohort 
-        FROM groups g 
-        LEFT JOIN user_register ur ON g.number_id = ur.number_id
-        LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code";
+// Solo obtener datos para los filtros iniciales
+$sql = "SELECT DISTINCT g.headquarters, g.bootcamp_name FROM groups g ORDER BY g.headquarters, g.bootcamp_name";
 $result = $conn->query($sql);
-$data = [];
 
-// Llenar $data con los resultados de la consulta
+$sedes = [];
+$bootcamps = [];
+
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-}
-
-// Reiniciar el puntero del resultado para usarlo después en la tabla
-$result = $conn->query($sql);
-
-// Función para obtener los niveles de los usuarios 
-function obtenerNivelesUsuarios($conn)
-{
-    $sql = "SELECT cedula, nivel FROM usuarios";
-    $result = $conn->query($sql);
-
-    $niveles = array();
-    if ($result && $result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $niveles[$row['cedula']] = $row['nivel'];
+        if (!in_array($row['headquarters'], $sedes)) {
+            $sedes[] = $row['headquarters'];
+        }
+        if (!in_array($row['bootcamp_name'], $bootcamps)) {
+            $bootcamps[] = $row['bootcamp_name'];
         }
     }
-
-    return $niveles;
 }
 
-// Obtener los niveles de usuarios
-$nivelesUsuarios = obtenerNivelesUsuarios($conn);
-
-// Obtener datos únicos para los filtros
-$departamentos = ['BOGOTÁ, D.C.'];
-$programas = [];
-$modalidades = [];
-$sedes = [];
-$bootcamps = []; // Nuevo array para bootcamps
-
-foreach ($data as $row) {
-    $sede = $row['headquarters'];
-    if (!in_array($sede, $sedes)) {
-        $sedes[] = $sede;
-    }
-    if (!in_array($row['program'], $programas)) {
-        $programas[] = $row['program'];
-    }
-    if (!in_array($row['mode'], $modalidades)) {
-        $modalidades[] = $row['mode'];
-    }
-    // Agregar bootcamps únicos
-    $bootcamp = $row['id_bootcamp'] . ' - ' . $row['bootcamp_name'];
-    if (!in_array($bootcamp, $bootcamps)) {
-        $bootcamps[] = $bootcamp;
-    }
-}
-
-// Ordenar los arrays para mejor visualización
 sort($sedes);
-sort($programas);
-sort($modalidades);
-sort($bootcamps); // Ordenar bootcamps
-
+sort($bootcamps);
 ?>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -79,28 +28,10 @@ sort($bootcamps); // Ordenar bootcamps
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-    function copiarCodigo(id) {
-        const codigoInput = document.getElementById('securityCode' + id);
-        navigator.clipboard.writeText(codigoInput.value).then(() => {
-            const copyBtn = document.getElementById('copyBtn' + id);
-            const originalContent = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copiado';
-            copyBtn.classList.replace('btn-outline-secondary', 'btn-success');
-            setTimeout(function() {
-                copyBtn.innerHTML = originalContent;
-                copyBtn.classList.replace('btn-success', 'btn-outline-secondary');
-            }, 1500);
-        }).catch(err => {
-            console.error('Error al copiar: ', err);
-        });
-    }
-</script>
-
 <div class="row p-3 mb-1">
     <b class="text-left mb-1"><i class="bi bi-filter-circle"></i> Filtrar beneficiario</b>
 
-    <div class="col-md-6 col-sm-12 col-lg-3">
+    <div class="col-md-6 col-sm-12 col-lg-4">
         <div class="filter-title"><i class="bi bi-building"></i> Sede</div>
         <div class="card filter-card card-headquarters" data-icon="🏫">
             <div class="card-body">
@@ -114,36 +45,9 @@ sort($bootcamps); // Ordenar bootcamps
         </div>
     </div>
 
-    <div class="col-md-6 col-sm-12 col-lg-3">
-        <div class="filter-title"><i class="bi bi-mortarboard"></i> Programa</div>
-        <div class="card filter-card card-program" data-icon="🎓">
-            <div class="card-body">
-                <select id="filterProgram" class="form-select">
-                    <option value="">Todos los programas</option>
-                    <?php foreach ($programas as $programa): ?>
-                        <option value="<?= htmlspecialchars($programa) ?>"><?= htmlspecialchars($programa) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-sm-12 col-lg-3">
-        <div class="filter-title"><i class="bi bi-laptop"></i> Modalidad</div>
-        <div class="card filter-card card-mode" data-icon="💻">
-            <div class="card-body">
-                <select id="filterMode" class="form-select">
-                    <option value="">Todas las modalidades</option>
-                    <option value="Virtual">Virtual</option>
-                    <option value="Presencial">Presencial</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-sm-12 col-lg-3">
-        <div class="filter-title"><i class="bi bi-laptop"></i> Bootcamp</div>
-        <div class="card filter-card card-bootcamp" data-icon="💻">
+    <div class="col-md-6 col-sm-12 col-lg-4">
+        <div class="filter-title"><i class="bi bi-mortarboard"></i> Bootcamp</div>
+        <div class="card filter-card card-bootcamp" data-icon="🎓">
             <div class="card-body">
                 <select id="filterBootcamp" class="form-select">
                     <option value="">Todos los bootcamps</option>
@@ -151,6 +55,20 @@ sort($bootcamps); // Ordenar bootcamps
                         <option value="<?= htmlspecialchars($bootcamp) ?>"><?= htmlspecialchars($bootcamp) ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-12 col-lg-4">
+        <div class="filter-title"><i class="bi bi-search"></i> Buscar por CC</div>
+        <div class="card filter-card card-search-id" data-icon="🔎">
+            <div class="card-body d-flex align-items-center">
+                <input type="text" id="searchNumberId" class="form-control mr-2" placeholder="Número de CC"
+                    maxlength="15"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <button type="button" class="btn bg-indigo-dark" id="btnSearchId">
+                    <i class="bi bi-search"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -162,290 +80,315 @@ sort($bootcamps); // Ordenar bootcamps
             onclick="window.location.href='components/registerMoodle/export_excel_enrolled.php?action=export'">
             <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
         </button>
+        
+        <div id="loadingIndicator" class="text-center" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Cargando...</span>
+            </div>
+            <p>Cargando datos...</p>
+        </div>
+        
+        <div id="resultCount" class="mb-2"></div>
+        
         <table id="listaInscritos" class="table table-hover table-bordered">
             <thead class="thead-dark text-center">
-                <tr class="text-center">
-                    <th>Tipo ID</th>
-                    <th>Numero de ID</th>
-                    <th>Nombre completo</th>
-                    <th>Telefono</th>
-                    <th>Correo personal</th>
-                    <th>Correo institucional</th>
-                    <th>Contraseña</th>
-                    <th>Departamento</th>
-                    <th>Sede</th>
-                    <th>Modalidad</th>
-                    <th>Cohorte</th>
-                    <th>Bootcamp</th>
-                    <th>Ingles Nivelatorio</th>
-                    <th>English Code</th>
-                    <th>Habilidades</th>
-                    <th>Nivel elegido</th>
-                    <th>Puntaje de prueba</th>
-                    <th>Nivel obtenido</th>
-                    <th>Fecha de matricula</th>
-                    <th>Desmatricular</th>
+                <tr class="text-center" style="white-space:nowrap;">
+                    <th style="white-space:nowrap;">Tipo ID</th>
+                    <th style="white-space:nowrap;">Numero de ID</th>
+                    <th style="white-space:nowrap;">Nombre completo</th>
+                    <th style="white-space:nowrap;">Telefono</th>
+                    <th style="white-space:nowrap;">Correo personal</th>
+                    <th style="white-space:nowrap;">Correo institucional</th>
+                    <th style="white-space:nowrap;">Departamento</th>
+                    <th style="white-space:nowrap;">Sede</th>
+                    <th style="white-space:nowrap;">Modalidad</th>
+                    <th style="white-space:nowrap;">Bootcamp</th>
+                    <th style="white-space:nowrap;">Ingles Nivelatorio</th>
+                    <th style="white-space:nowrap;">English Code</th>
+                    <th style="white-space:nowrap;">Habilidades</th>
+                    <th style="white-space:nowrap;">Fecha de matricula</th>
+                    <th style="white-space:nowrap;">Desmatricular</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <tr data-bootcamp="<?= htmlspecialchars($row['id_bootcamp'] . ' - ' . $row['bootcamp_name']) ?>"
-                        data-headquarters="<?= htmlspecialchars($row['headquarters']) ?>"
-                        data-program="<?= htmlspecialchars($row['program']) ?>"
-                        data-mode="<?= htmlspecialchars($row['mode']) ?>">
-
-                        <td><?php echo htmlspecialchars($row['type_id']); ?></td>
-                        <td><?php echo htmlspecialchars($row['number_id']); ?></td>
-                        <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars(string: $row['first_phone']); ?></td>
-                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                        <td><?php echo htmlspecialchars($row['institutional_email']); ?></td>
-                        <td><?php echo htmlspecialchars($row['group_password']); ?></td>
-                        <td>
-                            <?php
-                            $departamento = htmlspecialchars($row['department']);
-                            if ($departamento === 'CUNDINAMARCA') {
-                                echo "<button class='btn bg-lime-light w-100'><b>{$departamento}</b></button>"; // Botón verde para CUNDINAMARCA
-                            } elseif ($departamento === 'BOYACÁ') {
-                                echo "<button class='btn bg-indigo-light w-100'><b>{$departamento}</b></button>"; // Botón azul para BOYACÁ
-                            } elseif ($departamento === '11') {
-                                echo "<button class='btn bg-teal-light w-100'><b>BOGOTA</b></button>"; // Botón teal para 11 (BOGOTA)
-                            } else {
-                                echo "<span>{$departamento}</span>"; // Texto normal para otros valores
-                            }
-                            ?>
-                        </td>
-                        <td><b class="text-center"><?php echo htmlspecialchars($row['headquarters']); ?></b></td>
-                        <td><?php echo htmlspecialchars($row['mode']); ?></td>
-                        <td><?php echo isset($row['course_cohort']) && $row['course_cohort'] !== null ? htmlspecialchars($row['course_cohort']) : '-'; ?></td>
-                        <td><?php echo htmlspecialchars($row['id_bootcamp'] . ' - ' . $row['bootcamp_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['id_leveling_english'] . ' - ' . $row['leveling_english_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['id_english_code'] . ' - ' . $row['english_code_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['id_skills'] . ' - ' . $row['skills_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['level']); ?></td>
-                        <td>
-                            <?php
-                            if (isset($nivelesUsuarios[$row['number_id']])) {
-                                $puntaje = $nivelesUsuarios[$row['number_id']];
-                                if ($puntaje >= 0 && $puntaje <= 5) {
-                                    echo '<button class="btn bg-magenta-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
-                                } elseif ($puntaje >= 6 && $puntaje <= 10) {
-                                    echo '<button class="btn bg-orange-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
-                                } elseif ($puntaje >= 11 && $puntaje <= 15) {
-                                    echo '<button class="btn bg-teal-dark w-100" role="alert">' . htmlspecialchars($nivelesUsuarios[$row['number_id']]) . '</button>';
-                                }
-                            } else {
-                                echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba">
-                                    <i class="bi bi-ban"></i>
-                                </a>';
-                            }
-                            ?>
-                        </td>
-                        <td>
-                            <?php
-                            if (isset($nivelesUsuarios[$row['number_id']])) {
-                                $puntaje = $nivelesUsuarios[$row['number_id']];
-                                if ($puntaje >= 0 && $puntaje <= 5) {
-                                    echo '<button class="btn bg-magenta-dark w-100" role="alert">Básico</button>';
-                                } elseif ($puntaje >= 6 && $puntaje <= 10) {
-                                    echo '<button class="btn bg-orange-dark w-100" role="alert">Intermedio</button>';
-                                } elseif ($puntaje >= 11 && $puntaje <= 15) {
-                                    echo '<button class="btn bg-teal-dark w-100" role="alert">Avanzado</button>';
-                                }
-                            } else {
-                                echo '<a class="btn bg-silver w-100" tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="top" title="No ha presentado la prueba">
-                                    <i class="bi bi-ban"></i>
-                                </a>';
-                            }
-                            ?>
-                        </td>
-                        <td>
-                            <?php
-                            $fecha = $row['creation_date'];
-                            if ($fecha) {
-                                echo date('d/m/Y', strtotime($fecha));
-                            } else {
-                                echo '';
-                            }
-                            ?>
-                        </td>
-                        <td class="text-center">
-                            <?php
-                            switch ($rol) {
-                                case 'Academico':
-                                case 'Administrador':
-                                case 'Control maestro':
-                                    echo '<button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal' . $row['number_id'] . '">
-                                            <i class="bi bi-trash"></i>
-                                          </button>';
-                                    break;
-                                default:
-                                    echo '<button class="btn btn-danger btn-sm" 
-                                            data-toggle="popover" 
-                                            data-placement="top"
-                                            title="Acceso Denegado" 
-                                            data-content="No tienes permisos para realizar esta acción">
-                                            <i class="bi bi-slash-circle"></i>
-                                          </button>';
-                                    echo '<script>
-                                        $(document).ready(function(){
-                                            $("[data-toggle=popover]").popover();
-                                        });
-                                    </script>';
-                            }
-                            ?>
-                        </td>
-                    </tr>
-                <?php } ?>
+            <tbody id="tableBody">
+                <tr>
+                    <td class="text-center" colspan="15">
+                        <i class="bi bi-info-circle"></i> Selecciona un filtro para cargar los datos
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<?php
-// Reiniciar el puntero de resultados para los modales
-$result = $conn->query($sql);
-while ($row = mysqli_fetch_assoc($result)) {
-    $number_id = $row['number_id'];
-    $full_name = $row['full_name'];
-?>
-    <div class="modal fade" id="deleteModal<?php echo $number_id; ?>" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel<?php echo $number_id; ?>" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-magenta-dark text-white item-align-center">
-                    <h5 class="modal-title text-center" id="deleteModalLabel<?php echo $number_id; ?>">
-                        <i class="bi bi-exclamation-circle"></i> ATENCIÓN
-                    </h5>
-                </div>
-                <div class="modal-body">
-                    <h5>Nombre: <strong><?php echo htmlspecialchars($full_name); ?></strong></h5>
-                    <h5>Número ID: <strong><?php echo htmlspecialchars($number_id); ?></strong></h5>
+<!-- Modal para confirmación de eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-magenta-dark text-white item-align-center">
+                <h5 class="modal-title text-center" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-circle"></i> ATENCIÓN
+                </h5>
+            </div>
+            <div class="modal-body">
+                <h5>Nombre: <strong id="deleteUserName"></strong></h5>
+                <h5>Número ID: <strong id="deleteUserId"></strong></h5>
 
-                    <hr>
-                    <div class="card shadow-lg p-3 mb-5 bg-body-tertiary rounded">
-                        <p class="mb-1">Para confirmar la eliminación, ingresa el código de seguridad:</p>
-                        <div class="code-container mt-2 mb-3 p-2 bg-light">
-                            <div class="input-group">
-                                <input type="text" class="form-control security-code" id="securityCode<?php echo $number_id; ?>"
-                                    readonly value="" style="font-family: monospace; letter-spacing: 3px; text-align: center; font-weight: bold;">
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary bg-indigo-dark" type="button" id="copyBtn<?php echo $number_id; ?>"
-                                        onclick="copiarCodigo('<?php echo $number_id; ?>')">
-                                        <i class="bi bi-clipboard"></i> Copiar
-                                    </button>
-                                </div>
+                <hr>
+                <div class="card shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+                    <p class="mb-1">Para confirmar la eliminación, ingresa el código de seguridad:</p>
+                    <div class="code-container mt-2 mb-3 p-2 bg-light">
+                        <div class="input-group">
+                            <input type="text" class="form-control security-code" id="securityCode"
+                                readonly value="" style="font-family: monospace; letter-spacing: 3px; text-align: center; font-weight: bold;">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary bg-indigo-dark" type="button" id="copyBtn"
+                                    onclick="copiarCodigo()">
+                                    <i class="bi bi-clipboard"></i> Copiar
+                                </button>
                             </div>
-                            <small class="text-muted text-center d-block mt-1">Este código cambiará en <span id="codeTimer<?php echo $number_id; ?>">15</span> segundos</small>
                         </div>
-                        <div class="form-group">
-                            <label for="confirmCode<?php echo $number_id; ?>">Ingresa el código</label>
-                            <input type="text" class="form-control-lg text-center w-100" id="confirmCode<?php echo $number_id; ?>" placeholder="Código">
-                        </div>
+                        <small class="text-muted text-center d-block mt-1">Este código cambiará en <span id="codeTimer">15</span> segundos</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmCode">Ingresa el código</label>
+                        <input type="text" class="form-control-lg text-center w-100" id="confirmCode" placeholder="Código">
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn bg-magenta-dark text-white" id="deleteBtn<?php echo $number_id; ?>" disabled>Eliminar</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn bg-magenta-dark text-white" id="deleteBtn" disabled>Eliminar</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        $(document).ready(function() {
-            const modalId = <?php echo json_encode($number_id); ?>;
-            let securityCode = '';
-            let timer = 15;
-            let interval;
+<script>
+let currentUserId = '';
+let securityCode = '';
+let timer = 15;
+let interval;
 
-            function generateCode() {
-                const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-                let result = '';
-                for (let i = 0; i < 6; i++) {
-                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+function copiarCodigo() {
+    const codigoInput = document.getElementById('securityCode');
+    navigator.clipboard.writeText(codigoInput.value).then(() => {
+        const copyBtn = document.getElementById('copyBtn');
+        const originalContent = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copiado';
+        copyBtn.classList.replace('btn-outline-secondary', 'btn-success');
+        setTimeout(function() {
+            copyBtn.innerHTML = originalContent;
+            copyBtn.classList.replace('btn-success', 'btn-outline-secondary');
+        }, 1500);
+    }).catch(err => {
+        console.error('Error al copiar: ', err);
+    });
+}
+
+function generateCode() {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function updateTimer() {
+    timer--;
+    $("#codeTimer").text(timer);
+
+    if (timer <= 0) {
+        timer = 15;
+        securityCode = generateCode();
+        $("#securityCode").val(securityCode);
+    }
+}
+
+function loadData() {
+    const headquarters = $('#filterHeadquarters').val();
+    const bootcamp = $('#filterBootcamp').val();
+    const numberId = $('#searchNumberId').val();
+
+    if (!headquarters && !bootcamp && !numberId) {
+        $('#tableBody').html('<tr><td colspan="15" class="text-center"><i class="bi bi-info-circle"></i> Selecciona un filtro para cargar los datos</td></tr>');
+        $('#resultCount').html('');
+        return;
+    }
+
+    Swal.fire({
+        title: 'Cargando datos...',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    $.ajax({
+        url: 'components/activeMoodle/filterActiveMoodle.php',
+        type: 'POST',
+        data: {
+            headquarters: headquarters,
+            bootcamp: bootcamp,
+            number_id: numberId
+        },
+        dataType: 'json',
+        success: function(response) {
+            Swal.close();
+            if (response.success) {
+                $('#tableBody').html(response.html);
+                $('[data-toggle="popover"]').popover();
+
+                // Destruye el DataTable si ya existe
+                if ($.fn.DataTable.isDataTable('#listaInscritos')) {
+                    $('#listaInscritos').DataTable().destroy();
                 }
-                return result;
+                // Inicializa de nuevo DataTable
+                $('#listaInscritos').DataTable({
+                    responsive: true,
+                    language: {
+                        url: "controller/datatable_esp.json"
+                    },
+                    paging: false,
+                    info: false,
+                    drawCallback: function(settings) {
+                        $.fn.dataTable.ext.errMode = 'none';
+                    }
+                });
+            } else {
+                $('#tableBody').html('<tr><td colspan="15" class="text-center text-danger">' + (response.error ? response.error : 'Error al cargar los datos') + '</td></tr>');
             }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            Swal.close();
+            $('#tableBody').html('<tr><td colspan="15" class="text-center text-danger">Error de conexión: ' + textStatus + '</td></tr>');
+        }
+    });
+}
 
-            function updateTimer() {
-                timer--;
-                $("#codeTimer" + modalId).text(timer);
+$(document).ready(function() {
+    // Cuando cambia la sede, reinicia bootcamp y CC
+    $('#filterHeadquarters').change(function() {
+        $('#filterBootcamp').val('');
+        $('#searchNumberId').val('');
+        loadData();
+    });
 
-                if (timer <= 0) {
-                    timer = 15;
-                    securityCode = generateCode();
-                    $("#securityCode" + modalId).val(securityCode);
-                }
-            }
+    // Cuando cambia el bootcamp, reinicia sede y CC
+    $('#filterBootcamp').change(function() {
+        $('#filterHeadquarters').val('');
+        $('#searchNumberId').val('');
+        loadData();
+    });
 
-            $("#deleteModal" + modalId).on('shown.bs.modal', function() {
-                securityCode = generateCode();
-                $("#securityCode" + modalId).val(securityCode);
-                timer = 15;
-                $("#codeTimer" + modalId).text(timer);
-                clearInterval(interval);
-                interval = setInterval(updateTimer, 1000);
-            });
+    // Cuando busca por CC, reinicia sede y bootcamp
+    $('#btnSearchId').click(function() {
+        $('#filterHeadquarters').val('');
+        $('#filterBootcamp').val('');
+        loadData();
+    });
 
-            $("#deleteModal" + modalId).on('hidden.bs.modal', function() {
-                clearInterval(interval);
-                $("#confirmCode" + modalId).val('');
-                $("#deleteBtn" + modalId).prop('disabled', true);
-            });
+    $('#searchNumberId').keypress(function(e) {
+        if (e.which == 13) {
+            $('#filterHeadquarters').val('');
+            $('#filterBootcamp').val('');
+            loadData();
+        }
+    });
+    
+    // Event listener para botones de eliminar (delegado)
+    $(document).on('click', '.btn-delete', function() {
+        currentUserId = $(this).data('id');
+        const userName = $(this).data('name');
+        
+        $('#deleteUserId').text(currentUserId);
+        $('#deleteUserName').text(userName);
+        $('#deleteModal').modal('show');
+    });
+    
+    // Modal events
+    $('#deleteModal').on('shown.bs.modal', function() {
+        securityCode = generateCode();
+        $("#securityCode").val(securityCode);
+        timer = 15;
+        $("#codeTimer").text(timer);
+        clearInterval(interval);
+        interval = setInterval(updateTimer, 1000);
+    });
 
-            $("#confirmCode" + modalId).on('input', function() {
-                const inputCode = $(this).val();
-                $("#deleteBtn" + modalId).prop('disabled', inputCode !== securityCode);
-            });
+    $('#deleteModal').on('hidden.bs.modal', function() {
+        clearInterval(interval);
+        $("#confirmCode").val('');
+        $("#deleteBtn").prop('disabled', true);
+    });
 
-            $("#deleteBtn" + modalId).click(function() {
+    $("#confirmCode").on('input', function() {
+        const inputCode = $(this).val();
+        $("#deleteBtn").prop('disabled', inputCode !== securityCode);
+    });
+
+    $("#deleteBtn").click(function() {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción eliminará permanentemente la matrícula del usuario con ID " + currentUserId,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
                 Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "Esta acción eliminará permanentemente la matrícula del usuario con ID " + modalId,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Aquí deberás implementar la llamada AJAX a tu endpoint de eliminación
-                        $.ajax({
-                            url: 'components/activeMoodle/deleteMatricula.php',
-                            type: 'POST',
-                            data: {
-                                number_id: modalId
-                            },
-                            dataType: 'json',
-                            success: function(response) {
-                                if (response.success) {
-                                    Swal.fire(
-                                        '¡Eliminado!',
-                                        'La matrícula ha sido eliminada correctamente.',
-                                        'success'
-                                    ).then(() => {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire(
-                                        'Error',
-                                        response.message || 'Ocurrió un error al eliminar la matrícula.',
-                                        'error'
-                                    );
-                                }
-                            },
-                            error: function() {
-                                Swal.fire(
-                                    'Error',
-                                    'Ocurrió un error en la comunicación con el servidor.',
-                                    'error'
-                                );
-                            }
+                    title: 'Procesando desmatriculación',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                $.ajax({
+                    url: 'components/activeMoodle/deleteMatricula.php',
+                    type: 'POST',
+                    data: {
+                        number_id: currentUserId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: 'La matrícula ha sido eliminada correctamente.',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                $('#deleteModal').modal('hide');
+                                loadData(); // Recargar datos
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Ocurrió un error al eliminar la matrícula.'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Ocurrió un error en la comunicación con el servidor.'
                         });
                     }
                 });
-            });
+            }
         });
-    </script>
-<?php } ?>
+    });
+});
+</script>
