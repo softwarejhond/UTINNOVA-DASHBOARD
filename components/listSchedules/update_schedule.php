@@ -10,13 +10,14 @@ try {
     $mode = $_POST['mode'];
     $headquarters = $_POST['headquarters'];
     $department = $_POST['department'];
+    $available = isset($_POST['available']) ? intval($_POST['available']) : 0;
 
     $sql = "UPDATE schedules 
-            SET schedule = ?, program = ?, mode = ?, headquarters = ?, department = ? 
+            SET schedule = ?, program = ?, mode = ?, headquarters = ?, department = ?, available = ?
             WHERE id = ?";
     
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssi", $schedule, $program, $mode, $headquarters, $department, $id);
+    $stmt->bind_param("ssssssi", $schedule, $program, $mode, $headquarters, $department, $available, $id);
     
     if ($stmt->execute()) {
         $response['success'] = true;

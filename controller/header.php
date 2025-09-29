@@ -86,19 +86,19 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                             <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
 
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_lote2', 'semanal_lote2')">Informe semanal Lote 2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote1', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote2', 'certificadosLote2')">Informe contrapartida L2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote2', 'certificadosLote2')">Informe contrapartida L2</a></li> -->
 
 
-                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li> -->
-                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li> -->
-                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li> -->
-                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li> -->
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
                         <?php endif; ?>
 
                         <?php if ($rol === 'Control maestro'): ?>
@@ -108,23 +108,26 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                     <b>Subir informe semanal</b>
                                 </a>
                             </li>
-                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 L1</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 L1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 L1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF L1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF L2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li> -->
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
                         <?php endif; ?>
 
-                        <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li> -->
-                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistencia', 'asistencia')">Informe de asistencia</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistenciaLE', 'asistenciaLE')">Informe de asistencia LE</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li>
+                        <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistencia', 'asistencia')">Informe de asistencia</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistenciaLE', 'asistenciaLE')">Informe de asistencia LE</a></li> -->
                         <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAbsence.php?action=export', 'ausencias')">Registros de ausencia</a></li>
                         <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/to_approve/export_excel_general_all.php', 'notas_general')">Informe de notas general</a></li>
-
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico  L1</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico  L2</a></li>
                     </ul>
                 </li>
 
@@ -662,6 +665,155 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 });
             });
     };
+
+    function abrirSwalInformeE29() {
+        Swal.fire({
+            title: 'Generar Informe E29 Específico',
+            html: `
+        <div style="margin-bottom:15px;">
+            <p style="font-weight:bold; color:#006d68;">Ingrese los números de documento para generar el informe E29:</p>
+        </div>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docPasteE29" style="font-weight:bold;">Números de Documento</label>
+                <textarea id="docPasteE29" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento (uno por línea)"></textarea>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docResultE29" style="font-weight:bold;">Vista Previa SQL</label>
+                <textarea id="docResultE29" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled placeholder="Aquí verás la consulta SQL generada"></textarea>
+            </div>
+        </div>
+        `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Generar Informe',
+            confirmButtonColor: '#006d68',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#dc3545',
+            width: 700,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPasteE29');
+                const resultArea = document.getElementById('docResultE29');
+
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0 && !isNaN(l));
+
+                    if (lines.length > 0) {
+                        const sqlPreview = `WHERE number_id IN (${lines.join(', ')})`;
+                        resultArea.value = sqlPreview;
+                    } else {
+                        resultArea.value = '';
+                    }
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPasteE29');
+                const documentos = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0 && !isNaN(l));
+
+                if (documentos.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debes ingresar al menos un número de documento válido.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                // Llamar a la función de descarga con los documentos específicos
+                descargarInformeE29Especifico(documentos);
+            }
+        });
+    }
+
+    function abrirSwalInformeE29_L2() {
+        Swal.fire({
+            title: 'Generar Informe E29 Específico L2',
+            html: `
+        <div style="margin-bottom:15px;">
+            <p style="font-weight:bold; color:#006d68;">Ingrese los números de documento para generar el informe E29 Lote 2:</p>
+        </div>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docPasteE29L2" style="font-weight:bold;">Números de Documento</label>
+                <textarea id="docPasteE29L2" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento (uno por línea)"></textarea>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docResultE29L2" style="font-weight:bold;">Vista Previa SQL</label>
+                <textarea id="docResultE29L2" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled placeholder="Aquí verás la consulta SQL generada"></textarea>
+            </div>
+        </div>
+        `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Generar Informe L2',
+            confirmButtonColor: '#006d68',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#dc3545',
+            width: 700,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPasteE29L2');
+                const resultArea = document.getElementById('docResultE29L2');
+
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0 && !isNaN(l));
+
+                    if (lines.length > 0) {
+                        const sqlPreview = `WHERE number_id IN (${lines.join(', ')})`;
+                        resultArea.value = sqlPreview;
+                    } else {
+                        resultArea.value = '';
+                    }
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPasteE29L2');
+                const documentos = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0 && !isNaN(l));
+
+                if (documentos.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debes ingresar al menos un número de documento válido.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                // Llamar a la función de descarga con los documentos específicos para L2
+                descargarInformeE29EspecificoL2(documentos);
+            }
+        });
+    }
+
+    function descargarInformeE29Especifico(documentos) {
+        // Convertir array a string para enviar por GET
+        const docsString = documentos.join(',');
+        const url = `components/infoWeek/export_E_29_specific.php?action=export&docs=${encodeURIComponent(docsString)}`;
+
+        descargarInforme(url, `E29_especifico_${documentos.length}_docs`);
+    }
+
+    function descargarInformeE29EspecificoL2(documentos) {
+        // Convertir array a string para enviar por GET
+        const docsString = documentos.join(',');
+        const url = `components/infoWeek/export_E29_specific_L2.php?action=export&docs=${encodeURIComponent(docsString)}`;
+
+        descargarInforme(url, `E29_especifico_L2_${documentos.length}_docs`);
+    }
+    
+
+    
 </script>
 
 <style>

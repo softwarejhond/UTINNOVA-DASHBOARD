@@ -49,13 +49,12 @@ if ($result->num_rows > 0) {
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid">
     <?php if ($rol === 'Administrador' || $rol === 'Control maestro') { ?>
         <button class="btn bg-magenta-dark text-white mb-4" data-bs-toggle="modal" data-bs-target="#addPeriodModal">
+            
             <i class="bi bi-plus-circle"></i> Nuevo Período
         </button>
     <?php } ?>

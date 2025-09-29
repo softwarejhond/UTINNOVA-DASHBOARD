@@ -118,15 +118,24 @@
                         $row['contact_logs'] = [];
                     }
 
-                    function obtenerHorarios($conn, $mode)
+                    function obtenerHorarios($conn, $mode, $headquarters = null)
                     {
                         $sql = "SELECT DISTINCT schedule 
-                                FROM schedules 
-                                WHERE mode = ?
-                                ORDER BY schedule ASC";
+                        FROM schedules 
+                        WHERE mode = ?";
+                        $params = [$mode];
+                        $types = "s";
+
+                        if ($headquarters !== null) {
+                            $sql .= " AND headquarters = ?";
+                            $params[] = $headquarters;
+                            $types .= "s";
+                        }
+
+                        $sql .= " ORDER BY schedule ASC";
 
                         $stmt = $conn->prepare($sql);
-                        $stmt->bind_param("s", $mode);
+                        $stmt->bind_param($types, ...$params);
                         $stmt->execute();
                         $result = $stmt->get_result();
 
@@ -1945,7 +1954,7 @@
                         <select class="form-control" id="nuevoHorario_<?php echo $row['number_id']; ?>" name="nuevoHorario">
                             <option value="">Seleccionar horario</option>
                             <?php
-                            $horarios = obtenerHorarios($conn, $row['mode']);
+                            $horarios = obtenerHorarios($conn, $row['mode'], $row['headquarters']);
                             foreach ($horarios as $horario):
                             ?>
                                 <option value="<?php echo htmlspecialchars($horario); ?>">

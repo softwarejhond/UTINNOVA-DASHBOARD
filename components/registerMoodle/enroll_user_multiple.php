@@ -56,6 +56,46 @@ try {
         }
     }
 
+    // Verificación de fecha de matrícula vs inicio de curso
+    $bootcamp_code = $input['id_bootcamp'];
+    $user_id = $input['number_id'];
+
+    // Obtener start_date del curso
+    $stmtPeriod = $conn->prepare("SELECT start_date FROM course_periods WHERE bootcamp_code = ?");
+    if (!$stmtPeriod) {
+        throw new Exception("Error preparando consulta de periodo: " . $conn->error);
+    }
+    $stmtPeriod->bind_param('s', $bootcamp_code);
+    $stmtPeriod->execute();
+    $resultPeriod = $stmtPeriod->get_result();
+    if ($resultPeriod->num_rows === 0) {
+        throw new Exception("No se encontró periodo para el bootcamp seleccionado");
+    }
+    $periodData = $resultPeriod->fetch_assoc();
+    $start_date = $periodData['start_date'];
+    $stmtPeriod->close();
+
+    // Obtener creationDate del usuario
+    $stmtUser = $conn->prepare("SELECT creationDate FROM user_register WHERE number_id = ?");
+    if (!$stmtUser) {
+        throw new Exception("Error preparando consulta de usuario: " . $conn->error);
+    }
+    $stmtUser->bind_param('s', $user_id);
+    $stmtUser->execute();
+    $resultUser = $stmtUser->get_result();
+    if ($resultUser->num_rows === 0) {
+        throw new Exception("No se encontró el usuario en user_register");
+    }
+    $userData = $resultUser->fetch_assoc();
+    $creationDate = $userData['creationDate'];
+    $stmtUser->close();
+
+    // Comparar fechas
+    if (strtotime($creationDate) > strtotime($start_date)) {
+        throw new Exception("El usuario no puede ser matriculado porque el curso ya inició (fecha inicio: $start_date, fecha registro: $creationDate)");
+    }
+
+    // --- A PARTIR DE AQUÍ CONTINÚA EL PROCESO NORMAL ---
     // Iniciar transacción
     $conn->begin_transaction();
 
@@ -248,45 +288,6 @@ try {
     } catch (Exception $empleosError) {
         // Log del error pero no interrumpir el proceso principal
         error_log("Error al registrar en plataforma de empleos: " . $empleosError->getMessage());
-    }
-
-    // Verificación de fecha de matrícula vs inicio de curso
-    $bootcamp_code = $input['id_bootcamp'];
-    $user_id = $input['number_id'];
-
-    // Obtener start_date del curso
-    $stmtPeriod = $conn->prepare("SELECT start_date FROM course_periods WHERE bootcamp_code = ?");
-    if (!$stmtPeriod) {
-        throw new Exception("Error preparando consulta de periodo: " . $conn->error);
-    }
-    $stmtPeriod->bind_param('s', $bootcamp_code);
-    $stmtPeriod->execute();
-    $resultPeriod = $stmtPeriod->get_result();
-    if ($resultPeriod->num_rows === 0) {
-        throw new Exception("No se encontró periodo para el bootcamp seleccionado");
-    }
-    $periodData = $resultPeriod->fetch_assoc();
-    $start_date = $periodData['start_date'];
-    $stmtPeriod->close();
-
-    // Obtener creationDate del usuario
-    $stmtUser = $conn->prepare("SELECT creationDate FROM user_register WHERE number_id = ?");
-    if (!$stmtUser) {
-        throw new Exception("Error preparando consulta de usuario: " . $conn->error);
-    }
-    $stmtUser->bind_param('s', $user_id);
-    $stmtUser->execute();
-    $resultUser = $stmtUser->get_result();
-    if ($resultUser->num_rows === 0) {
-        throw new Exception("No se encontró el usuario en user_register");
-    }
-    $userData = $resultUser->fetch_assoc();
-    $creationDate = $userData['creationDate'];
-    $stmtUser->close();
-
-    // Comparar fechas
-    if (strtotime($creationDate) > strtotime($start_date)) {
-        throw new Exception("El usuario no puede ser matriculado porque el curso ya inició (fecha inicio: $start_date, fecha registro: $creationDate)");
     }
 
     // Confirmar transacción

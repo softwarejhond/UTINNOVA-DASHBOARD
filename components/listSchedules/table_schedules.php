@@ -29,6 +29,7 @@ if ($result->num_rows > 0) {
                     <th>Programa</th>
                     <th>Modalidad</th>
                     <th>Sede</th>
+                    <th>Disponible</th>
                     <th>Departamento</th>
                     <th>Fecha Creación</th>
                     <th>Acciones</th>
@@ -42,6 +43,7 @@ if ($result->num_rows > 0) {
                         <td><?php echo $schedule['program']; ?></td>
                         <td><?php echo $schedule['mode']; ?></td>
                         <td><?php echo $schedule['headquarters']; ?></td>
+                        <td class="text-center"><?php echo $schedule['available'] ? 'Sí' : 'No'; ?></td>
                         <td><?php echo $schedule['department']; ?></td>
                         <td class="text-center"><?php echo date('d/m/Y H:i', strtotime($schedule['created_at'])); ?></td>
                         <td class="text-center">
@@ -182,6 +184,36 @@ if ($result->num_rows > 0) {
                                 <option value="No aplica" <?php echo ($schedule['department'] == 'No aplica') ? 'selected' : ''; ?>>No aplica</option>
                             </select>
                         </div>
+                        <div class="mb-3 text-center">
+                            <label class="form-label d-block mb-2" style="font-weight: bold;">Disponible al público</label>
+                            <div class="form-check form-switch d-inline-block" style="transform: scale(1.5);">
+                                <style>
+                                    /* Estilo para el switch */
+                                    .form-check-input:checked {
+                                        background-color: #30336b;
+                                        border-color: #30336b;
+                                    }
+
+                                    .form-check-input {
+                                        cursor: pointer;
+                                        border-color: #30336b;
+                                    }
+                                </style>
+                                <input class="form-check-input" type="checkbox" id="available<?php echo $schedule['id']; ?>"
+                                    name="available" value="1" <?php echo ($schedule['available'] == 1) ? 'checked' : ''; ?>
+                                    onchange="updateAvailableLabel(<?php echo $schedule['id']; ?>)">
+                                <label class="form-check-label ms-2" id="availableLabel<?php echo $schedule['id']; ?>" for="available<?php echo $schedule['id']; ?>">
+                                    <?php echo ($schedule['available'] == 1) ? 'Disponible' : 'No disponible'; ?>
+                                </label>
+                                <script>
+                                    function updateAvailableLabel(id) {
+                                        const checkbox = document.getElementById('available' + id);
+                                        const label = document.getElementById('availableLabel' + id);
+                                        label.textContent = checkbox.checked ? 'Disponible' : 'No disponible';
+                                    }
+                                </script>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -284,6 +316,10 @@ if ($result->num_rows > 0) {
             formData.set('headquarters', 'No aplica');
             formData.set('department', 'No aplica');
         }
+
+        // Obtener el valor del switch
+        const available = document.getElementById(`available${id}`).checked ? 1 : 0;
+        formData.set('available', available);
 
         $.ajax({
             url: 'components/listSchedules/update_schedule.php',
