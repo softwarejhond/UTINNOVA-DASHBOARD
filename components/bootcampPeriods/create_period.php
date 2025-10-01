@@ -7,6 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Obtener datos del formulario
         $period_name = trim($_POST['period_name'] ?? '');
         $cohort = intval($_POST['cohort'] ?? 0);
+        $payment_number = intval($_POST['payment_number'] ?? 0); // <-- NUEVO CAMPO
         $start_date = $_POST['start_date'] ?? '';
         $end_date = $_POST['end_date'] ?? '';
         $created_by = $_SESSION['username'] ?? ''; // Usar el username de la sesión
@@ -48,12 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Preparar la consulta de inserción
         $sql = "INSERT INTO course_periods (
-            period_name, cohort, start_date, end_date, created_by, status,
+            period_name, cohort, payment_number, start_date, end_date, created_by, status,
             bootcamp_code, bootcamp_name, 
             leveling_english_code, leveling_english_name,
             english_code_code, english_code_name,
             skills_code, skills_name
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         
@@ -71,8 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $skills_code = $skills_code ?: null;
         $skills_name = $skills_name ?: null;
 
-        $stmt->bind_param("sisssissssssss", 
-            $period_name, $cohort, $start_date, $end_date, $created_by, $status,
+        $stmt->bind_param("siiississssssss", 
+            $period_name, $cohort, $payment_number, $start_date, $end_date, $created_by, $status,
             $bootcamp_code, $bootcamp_name,
             $leveling_english_code, $leveling_english_name,
             $english_code_code, $english_code_name,

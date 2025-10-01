@@ -85,7 +85,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         </a>
                         <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                             <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
-
+                            <li><a class="dropdown-item" href="metasDePagos.php"><b>Metas y pagos</b></a></li>
                             <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_lote2', 'semanal_lote2')">Informe semanal Lote 2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote1', 'certificadosLote1')">Informe contrapartida L1</a></li>

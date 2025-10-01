@@ -54,7 +54,7 @@ if ($result->num_rows > 0) {
 <div class="container-fluid">
     <?php if ($rol === 'Administrador' || $rol === 'Control maestro') { ?>
         <button class="btn bg-magenta-dark text-white mb-4" data-bs-toggle="modal" data-bs-target="#addPeriodModal">
-            
+
             <i class="bi bi-plus-circle"></i> Nuevo Período
         </button>
     <?php } ?>
@@ -65,6 +65,7 @@ if ($result->num_rows > 0) {
                 <tr>
                     <th class="text-center">Período</th>
                     <th class="text-center">Cohorte</th>
+                    <th class="text-center"># Pago</th>
                     <th class="text-center">Código Bootcamp</th>
                     <th class="text-center">Nombre Bootcamp</th>
                     <th class="text-center">Fecha Inicio</th>
@@ -87,6 +88,11 @@ if ($result->num_rows > 0) {
                         <tr>
                             <td class="text-center"><?php echo htmlspecialchars($period['period_name']); ?></td>
                             <td class="text-center"><?php echo htmlspecialchars($period['cohort']); ?></td>
+                            <td class="text-center">
+                                <span class="badge bg-magenta-dark text-white">
+                                    <?php echo htmlspecialchars($period['payment_number']); ?>
+                                </span>
+                            </td>
                             <td class="text-center"><?php echo htmlspecialchars($period['bootcamp_code']); ?></td>
                             <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                 <?php echo htmlspecialchars($period['bootcamp_name']); ?>
@@ -276,8 +282,13 @@ if ($result->num_rows > 0) {
                         </div>
                     </div>
 
-                    <!-- Estado -->
-                    <div class="row mb-3 justify-content-center">
+                    <!-- Número de Pago y Estado (alineados en una sola línea) -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="payment_number_create" class="form-label">Número de Pago</label>
+                            <input type="number" class="form-control" id="payment_number_create" name="payment_number"
+                                placeholder="Ej: 1" min="0" max="99">
+                        </div>
                         <div class="col-md-6">
                             <label for="status_create" class="form-label">Estado</label>
                             <select class="form-select" id="status_create" name="status">
@@ -345,7 +356,18 @@ if ($result->num_rows > 0) {
                                     value="<?php echo htmlspecialchars($period['cohort']); ?>"
                                     min="1" max="99" required>
                             </div>
+
                             <div class="col-md-6">
+                                <label for="payment_number_edit_<?php echo $period['id']; ?>" class="form-label">Número de Pago</label>
+                                <input type="number"
+                                    class="form-control"
+                                    id="payment_number_edit_<?php echo $period['id']; ?>"
+                                    name="payment_number"
+                                    value="<?php echo htmlspecialchars($period['payment_number'] ?? 0); ?>"
+                                    min="0" max="99">
+                            </div>
+
+                            <div class="col-12">
                                 <label for="status_edit_<?php echo $period['id']; ?>" class="form-label">Estado</label>
                                 <select class="form-select" id="status_edit_<?php echo $period['id']; ?>" name="status">
                                     <option value="1" <?php echo $period['status'] == 1 ? 'selected' : ''; ?>>Activo</option>
@@ -379,7 +401,7 @@ if ($result->num_rows > 0) {
 
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle"></i>
-                            <strong>Nota:</strong> Solo se pueden editar las fechas, cohorte y estado del período.
+                            <strong>Nota:</strong> Solo se pueden editar las fechas, cohorte, número de pago y estado del período.
                             Los cursos asignados no se pueden modificar desde aquí.
                         </div>
                     </form>
@@ -670,19 +692,18 @@ if ($result->num_rows > 0) {
             });
         };
 
-        // Reemplazar la función updatePeriod existente
         window.updatePeriod = function(periodId) {
             var form = $('#editPeriodForm' + periodId)[0];
-
+        
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
-
+        
             // Validar fechas antes de enviar
             var startDate = $('#start_date_edit_' + periodId).val();
             var endDate = $('#end_date_edit_' + periodId).val();
-
+        
             if (new Date(endDate) <= new Date(startDate)) {
                 Swal.fire({
                     icon: 'error',
@@ -692,8 +713,7 @@ if ($result->num_rows > 0) {
                 });
                 return;
             }
-
-            // Mostrar confirmación antes de actualizar
+        
             Swal.fire({
                 title: '¿Confirmar actualización?',
                 text: 'Se actualizarán las fechas, cohorte y estado del período',
@@ -705,14 +725,14 @@ if ($result->num_rows > 0) {
                 cancelButtonText: '<i class="bi bi-x-circle"></i> Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Proceder con la actualización
                     var formData = new FormData();
                     formData.append('period_id', periodId);
                     formData.append('cohort', $('#cohort_edit_' + periodId).val());
+                    formData.append('payment_number', $('#payment_number_edit_' + periodId).val()); // <-- AGREGAR ESTO
                     formData.append('start_date', startDate);
                     formData.append('end_date', endDate);
                     formData.append('status', $('#status_edit_' + periodId).val());
-
+        
                     $.ajax({
                         url: 'components/bootcampPeriods/update_period.php',
                         type: 'POST',

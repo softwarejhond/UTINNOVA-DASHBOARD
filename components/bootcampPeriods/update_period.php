@@ -7,6 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Obtener datos del formulario
         $period_id = intval($_POST['period_id'] ?? 0);
         $cohort = intval($_POST['cohort'] ?? 0);
+        $payment_number = intval($_POST['payment_number'] ?? 0); // <-- NUEVO CAMPO
         $start_date = $_POST['start_date'] ?? '';
         $end_date = $_POST['end_date'] ?? '';
         $status = intval($_POST['status'] ?? 1);
@@ -38,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Preparar la consulta de actualización (solo campos permitidos)
         $sql = "UPDATE course_periods SET 
             cohort = ?, 
+            payment_number = ?, 
             start_date = ?, 
             end_date = ?, 
             status = ?,
@@ -50,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Error en la preparación de la consulta: " . $conn->error);
         }
 
-        $stmt->bind_param("issii", $cohort, $start_date, $end_date, $status, $period_id);
+        $stmt->bind_param("iissii", $cohort, $payment_number, $start_date, $end_date, $status, $period_id);
 
         if ($stmt->execute()) {
             if ($stmt->affected_rows > 0) {

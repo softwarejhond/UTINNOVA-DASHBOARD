@@ -84,31 +84,32 @@ function configurarEncabezados($sheet)
     $sheet->setCellValue('E1', 'Teléfono Principal');
     $sheet->setCellValue('F1', 'Teléfono Secundario');
     $sheet->setCellValue('G1', 'Programa');
+    $sheet->setCellValue('H1', 'Modalidad');
 
-    // Títulos específicos por área
-    $sheet->setCellValue('H1', 'Técnico - Horas Actuales');
-    $sheet->setCellValue('I1', 'Técnico - Horas Reales');
-    $sheet->setCellValue('J1', 'Técnico - Total Horas');
+    // Títulos específicos por área (desplazados una columna)
+    $sheet->setCellValue('I1', 'Técnico - Horas Actuales');
+    $sheet->setCellValue('J1', 'Técnico - Horas Reales');
+    $sheet->setCellValue('K1', 'Técnico - Total Horas');
 
-    $sheet->setCellValue('K1', 'Inglés Nivelador - Horas Actuales');
-    $sheet->setCellValue('L1', 'Inglés Nivelador - Horas Reales');
-    $sheet->setCellValue('M1', 'Inglés Nivelador - Total Horas');
+    $sheet->setCellValue('L1', 'Inglés Nivelador - Horas Actuales');
+    $sheet->setCellValue('M1', 'Inglés Nivelador - Horas Reales');
+    $sheet->setCellValue('N1', 'Inglés Nivelador - Total Horas');
 
-    $sheet->setCellValue('N1', 'Inglés - Horas Actuales');
-    $sheet->setCellValue('O1', 'Inglés - Horas Reales');
-    $sheet->setCellValue('P1', 'Inglés - Total Horas');
+    $sheet->setCellValue('O1', 'Inglés - Horas Actuales');
+    $sheet->setCellValue('P1', 'Inglés - Horas Reales');
+    $sheet->setCellValue('Q1', 'Inglés - Total Horas');
 
-    $sheet->setCellValue('Q1', 'Habilidades - Horas Actuales');
-    $sheet->setCellValue('R1', 'Habilidades - Horas Reales');
-    $sheet->setCellValue('S1', 'Habilidades - Total Horas');
+    $sheet->setCellValue('R1', 'Habilidades - Horas Actuales');
+    $sheet->setCellValue('S1', 'Habilidades - Horas Reales');
+    $sheet->setCellValue('T1', 'Habilidades - Total Horas');
 
-    $sheet->setCellValue('T1', 'Total - Horas Actuales');
-    $sheet->setCellValue('U1', 'Total - Horas Reales');
-    $sheet->setCellValue('V1', 'Total - Horas Programa');
+    $sheet->setCellValue('U1', 'Total - Horas Actuales');
+    $sheet->setCellValue('V1', 'Total - Horas Reales');
+    $sheet->setCellValue('W1', 'Total - Horas Programa');
 
-    $sheet->setCellValue('W1', 'Porcentaje Actuales');
-    $sheet->setCellValue('X1', 'Porcentaje Reales');
-    $sheet->setCellValue('Y1', 'Porcentaje Faltante');
+    $sheet->setCellValue('X1', 'Porcentaje Actuales');
+    $sheet->setCellValue('Y1', 'Porcentaje Reales');
+    $sheet->setCellValue('Z1', 'Porcentaje Faltante');
 }
 
 // Función para aplicar estilos a una hoja
@@ -175,34 +176,34 @@ function aplicarEstilos($sheet, $lastRow)
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFF2']], // Amarillo más claro para datos
     ]);
 
-    // Aplicar estilos específicos por área - Headers
-    $sheet->getStyle('A1:G1')->applyFromArray($basicHeaderStyle); // Información básica
-    $sheet->getStyle('H1:J1')->applyFromArray($tecnicoHeaderStyle);     // Técnico
-    $sheet->getStyle('K1:M1')->applyFromArray($niveladordHeaderStyle);  // Inglés Nivelador
-    $sheet->getStyle('N1:P1')->applyFromArray($inglesHeaderStyle);     // Inglés
-    $sheet->getStyle('Q1:S1')->applyFromArray($habilidadesHeaderStyle); // Habilidades
-    $sheet->getStyle('T1:V1')->applyFromArray($totalesHeaderStyle);    // Totales
-    $sheet->getStyle('W1:Y1')->applyFromArray($porcentajesHeaderStyle); // Porcentajes
+    // Aplicar estilos específicos por área - Headers (actualizado para incluir modalidad)
+    $sheet->getStyle('A1:H1')->applyFromArray($basicHeaderStyle); // Información básica
+    $sheet->getStyle('I1:K1')->applyFromArray($tecnicoHeaderStyle);     // Técnico
+    $sheet->getStyle('L1:N1')->applyFromArray($niveladordHeaderStyle);  // Inglés Nivelador
+    $sheet->getStyle('O1:Q1')->applyFromArray($inglesHeaderStyle);     // Inglés
+    $sheet->getStyle('R1:T1')->applyFromArray($habilidadesHeaderStyle); // Habilidades
+    $sheet->getStyle('U1:W1')->applyFromArray($totalesHeaderStyle);    // Totales
+    $sheet->getStyle('X1:Z1')->applyFromArray($porcentajesHeaderStyle); // Porcentajes
 
     // Aplicar estilos específicos por área - Datos
     if ($lastRow >= 2) {
-        $sheet->getStyle('A2:G' . $lastRow)->applyFromArray($basicDataStyle); // Información básica
-        $sheet->getStyle('H2:J' . $lastRow)->applyFromArray($tecnicoDataStyle);     // Técnico
-        $sheet->getStyle('K2:M' . $lastRow)->applyFromArray($niveladordDataStyle);  // Inglés Nivelador
-        $sheet->getStyle('N2:P' . $lastRow)->applyFromArray($inglesDataStyle);     // Inglés
-        $sheet->getStyle('Q2:S' . $lastRow)->applyFromArray($habilidadesDataStyle); // Habilidades
-        $sheet->getStyle('T2:V' . $lastRow)->applyFromArray($totalesDataStyle);    // Totales
-        $sheet->getStyle('W2:Y' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
+        $sheet->getStyle('A2:H' . $lastRow)->applyFromArray($basicDataStyle); // Información básica
+        $sheet->getStyle('I2:K' . $lastRow)->applyFromArray($tecnicoDataStyle);     // Técnico
+        $sheet->getStyle('L2:N' . $lastRow)->applyFromArray($niveladordDataStyle);  // Inglés Nivelador
+        $sheet->getStyle('O2:Q' . $lastRow)->applyFromArray($inglesDataStyle);     // Inglés
+        $sheet->getStyle('R2:T' . $lastRow)->applyFromArray($habilidadesDataStyle); // Habilidades
+        $sheet->getStyle('U2:W' . $lastRow)->applyFromArray($totalesDataStyle);    // Totales
+        $sheet->getStyle('X2:Z' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
     }
 
-    // Aplicar formato de porcentaje a las columnas W, X y Y
+    // Aplicar formato de porcentaje a las columnas X, Y y Z
     if ($lastRow >= 2) {
-        $sheet->getStyle('W2:Y' . $lastRow)->getNumberFormat()
+        $sheet->getStyle('X2:Z' . $lastRow)->getNumberFormat()
             ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
     }
 
     // Autoajustar columnas
-    foreach (range('A', 'Y') as $col) {
+    foreach (range('A', 'Z') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 }
@@ -242,6 +243,7 @@ function llenarDatosLote($conn, $sheet, $lote)
         $sheet->setCellValue('E' . $row, str_replace('+57', '', $data['first_phone'] ?? ''));
         $sheet->setCellValue('F' . $row, str_replace('+57', '', $data['second_phone'] ?? ''));
         $sheet->setCellValue('G' . $row, ($data['id_bootcamp'] ?? '') . ' - ' . ($data['bootcamp_name'] ?? ''));
+        $sheet->setCellValue('H' . $row, $data['mode'] ?? '');
 
         // Obtener horas reales con comprobación explícita de valores nulos
         $horasTecnico = isset($data['bootcamp_hours']) ? intval($data['bootcamp_hours']) : 0;
@@ -262,25 +264,25 @@ function llenarDatosLote($conn, $sheet, $lote)
         $horasActualesHabilidades = isset($data['skills_code']) && !empty($data['skills_code']) ?
             calcularHorasAsistencia($conn, $data['number_id'], $data['skills_code']) : 0;
 
-        // Técnico
-        $sheet->setCellValue('H' . $row, $horasActualesTecnico);
-        $sheet->setCellValue('I' . $row, isset($data['bootcamp_hours']) && $data['bootcamp_hours'] > 0 ? $data['bootcamp_hours'] : 0);
-        $sheet->setCellValue('J' . $row, 120);
+        // Técnico (desplazado una columna)
+        $sheet->setCellValue('I' . $row, $horasActualesTecnico);
+        $sheet->setCellValue('J' . $row, isset($data['bootcamp_hours']) && $data['bootcamp_hours'] > 0 ? $data['bootcamp_hours'] : 0);
+        $sheet->setCellValue('K' . $row, 120);
 
         // Inglés Nivelador
-        $sheet->setCellValue('K' . $row, $horasActualesNivelador);
-        $sheet->setCellValue('L' . $row, isset($data['leveling_hours']) && $data['leveling_hours'] > 0 ? $data['leveling_hours'] : 0);
-        $sheet->setCellValue('M' . $row, 20);
+        $sheet->setCellValue('L' . $row, $horasActualesNivelador);
+        $sheet->setCellValue('M' . $row, isset($data['leveling_hours']) && $data['leveling_hours'] > 0 ? $data['leveling_hours'] : 0);
+        $sheet->setCellValue('N' . $row, 20);
 
         // Inglés
-        $sheet->setCellValue('N' . $row, $horasActualesIngles);
-        $sheet->setCellValue('O' . $row, isset($data['english_hours']) && $data['english_hours'] > 0 ? $data['english_hours'] : 0);
-        $sheet->setCellValue('P' . $row, 24);
+        $sheet->setCellValue('O' . $row, $horasActualesIngles);
+        $sheet->setCellValue('P' . $row, isset($data['english_hours']) && $data['english_hours'] > 0 ? $data['english_hours'] : 0);
+        $sheet->setCellValue('Q' . $row, 24);
 
         // Habilidades
-        $sheet->setCellValue('Q' . $row, $horasActualesHabilidades);
-        $sheet->setCellValue('R' . $row, isset($data['skills_hours']) && $data['skills_hours'] > 0 ? $data['skills_hours'] : 0);
-        $sheet->setCellValue('S' . $row, 15);
+        $sheet->setCellValue('R' . $row, $horasActualesHabilidades);
+        $sheet->setCellValue('S' . $row, isset($data['skills_hours']) && $data['skills_hours'] > 0 ? $data['skills_hours'] : 0);
+        $sheet->setCellValue('T' . $row, 15);
 
         // Totales
         $totalActual = intval($horasActualesTecnico) + intval($horasActualesNivelador) +
@@ -289,14 +291,14 @@ function llenarDatosLote($conn, $sheet, $lote)
         $totalReales = intval($horasTecnico) + intval($horasNivelador) +
             intval($horasIngles) + intval($horasHabilidades);
 
-        $sheet->setCellValue('T' . $row, $totalActual);
-        $sheet->setCellValue('U' . $row, $totalReales);
-        $sheet->setCellValue('V' . $row, 159);
+        $sheet->setCellValue('U' . $row, $totalActual);
+        $sheet->setCellValue('V' . $row, $totalReales);
+        $sheet->setCellValue('W' . $row, 179);
 
         // Porcentajes con validación (0% - 100%)
-        $sheet->setCellValue('W' . $row, '=MIN(1,MAX(0,T' . $row . '/V' . $row . '))');
-        $sheet->setCellValue('X' . $row, '=MIN(1,MAX(0,U' . $row . '/V' . $row . '))');
-        $sheet->setCellValue('Y' . $row, '=MIN(1,MAX(0,1-(U' . $row . '/V' . $row . ')))');
+        $sheet->setCellValue('X' . $row, '=MIN(1,MAX(0,U' . $row . '/W' . $row . '))');
+        $sheet->setCellValue('Y' . $row, '=MIN(1,MAX(0,V' . $row . '/W' . $row . '))');
+        $sheet->setCellValue('Z' . $row, '=MIN(1,MAX(0,1-(V' . $row . '/W' . $row . ')))');
 
         $lastRow = $row; // Actualizar la última fila
         $row++;
