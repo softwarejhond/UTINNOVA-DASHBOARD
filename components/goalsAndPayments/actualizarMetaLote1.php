@@ -85,35 +85,89 @@ try {
         exit;
     }
 
+    // NUEVO: Acción para obtener instituciones
+    if (isset($_GET['action']) && $_GET['action'] === 'instituciones') {
+        $instituciones = [];
+        
+        // Agregar opción "Sin institución" al principio
+        $instituciones[] = ['institution' => 'Sin institución'];
+        
+        // Obtener instituciones existentes
+        $sqlInstituciones = "SELECT DISTINCT institution FROM user_register WHERE lote = 1 AND institution IS NOT NULL AND institution != '' ORDER BY institution";
+        $resInstituciones = $conn->query($sqlInstituciones);
+        while ($row = $resInstituciones->fetch_assoc()) {
+            $instituciones[] = $row;
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode($instituciones);
+        exit;
+    }
+
     // Parámetros de filtro
-    $pago = isset($_GET['pago']) ? intval($_GET['pago']) : 1;
+    $pagosParam = isset($_GET['pagos']) ? $_GET['pagos'] : '';
+    $institucionesParam = isset($_GET['instituciones']) ? $_GET['instituciones'] : '';
     $modalidad = isset($_GET['modalidad']) ? $_GET['modalidad'] : 'Presencial';
     $contrapartida = isset($_GET['contrapartida']) ? $_GET['contrapartida'] : '0';
 
-    // Obtener meta desde payments (sumar si es "Todas")
+    // Validar y procesar múltiples pagos
+    if (empty($pagosParam)) {
+        throw new Exception("Debe seleccionar al menos un número de pago");
+    }
+
+    $pagosArray = array_map('intval', explode(',', $pagosParam));
+    $pagosArray = array_filter($pagosArray, function($p) { return $p > 0; });
+    
+    if (empty($pagosArray)) {
+        throw new Exception("Números de pago inválidos");
+    }
+
+    // Procesar instituciones seleccionadas
+    $institucionesArray = [];
+    $incluirSinInstitucion = false;
+    if (!empty($institucionesParam)) {
+        $institucionesTempArray = array_map('trim', explode(',', $institucionesParam));
+        $institucionesTempArray = array_filter($institucionesTempArray, function($inst) { return !empty($inst); });
+        
+        foreach ($institucionesTempArray as $inst) {
+            if ($inst === 'Sin institución') {
+                $incluirSinInstitucion = true;
+            } else {
+                $institucionesArray[] = $inst;
+            }
+        }
+    }
+
+    // Crear placeholders para IN clause
+    $placeholders = str_repeat('?,', count($pagosArray) - 1) . '?';
+
+    // Obtener meta desde payments (sumar para múltiples pagos)
     $metaGoal = 0;
     if ($modalidad === 'Todas' && $contrapartida === 'Todas') {
-        // Sumar todas las metas
-        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number = ?";
+        // Sumar todas las metas de todos los pagos seleccionados
+        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number IN ($placeholders)";
         $stmtMeta = $conn->prepare($sqlMeta);
-        $stmtMeta->bind_param("i", $pago);
+        $stmtMeta->bind_param(str_repeat('i', count($pagosArray)), ...$pagosArray);
     } elseif ($modalidad === 'Todas') {
         // Sumar por contrapartida
         $contrapartidaInt = intval($contrapartida);
-        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number = ? AND is_counterpart = ?";
+        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number IN ($placeholders) AND is_counterpart = ?";
+        $params = array_merge($pagosArray, [$contrapartidaInt]);
         $stmtMeta = $conn->prepare($sqlMeta);
-        $stmtMeta->bind_param("ii", $pago, $contrapartidaInt);
+        $stmtMeta->bind_param(str_repeat('i', count($pagosArray)) . 'i', ...$params);
     } elseif ($contrapartida === 'Todas') {
         // Sumar por modalidad
-        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number = ? AND mode = ?";
+        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number IN ($placeholders) AND mode = ?";
+        $params = array_merge($pagosArray, [$modalidad]);
         $stmtMeta = $conn->prepare($sqlMeta);
-        $stmtMeta->bind_param("is", $pago, $modalidad);
+        $stmtMeta->bind_param(str_repeat('i', count($pagosArray)) . 's', ...$params);
     } else {
         // Meta específica
         $contrapartidaInt = intval($contrapartida);
-        $sqlMeta = "SELECT goal as total_goal FROM payments WHERE lote = 1 AND payment_number = ? AND mode = ? AND is_counterpart = ?";
+        $sqlMeta = "SELECT SUM(goal) as total_goal FROM payments WHERE lote = 1 AND payment_number IN ($placeholders) AND mode = ? AND is_counterpart = ?";
+        $params = array_merge($pagosArray, [$modalidad, $contrapartidaInt]);
         $stmtMeta = $conn->prepare($sqlMeta);
-        $stmtMeta->bind_param("isi", $pago, $modalidad, $contrapartidaInt);
+        $stmtMeta->bind_param(str_repeat('i', count($pagosArray)) . 'si', ...$params);
     }
     
     $stmtMeta->execute();
@@ -123,28 +177,49 @@ try {
     }
     $stmtMeta->close();
 
-    // Obtener bootcamps válidos
+    // Obtener bootcamps válidos para múltiples pagos
     $sqlPeriodos = "
         SELECT DISTINCT cp.bootcamp_code, cp.bootcamp_name 
         FROM course_periods cp
         INNER JOIN groups g ON cp.bootcamp_code = g.id_bootcamp
         INNER JOIN user_register ur ON g.number_id = ur.number_id
-        WHERE cp.payment_number = ? 
+        WHERE cp.payment_number IN ($placeholders)
         AND cp.status = 1
         AND ur.lote = 1
     ";
     
     // Agregar filtro de modalidad si no es "Todas"
+    $params = $pagosArray;
+    $paramTypes = str_repeat('i', count($pagosArray));
+    
     if ($modalidad !== 'Todas') {
         $sqlPeriodos .= " AND g.mode = ?";
+        $params[] = $modalidad;
+        $paramTypes .= 's';
+    }
+
+    // NUEVO: Agregar filtro de instituciones si hay seleccionadas
+    if (!empty($institucionesArray) || $incluirSinInstitucion) {
+        $condicionesInstitucion = [];
+        $parametrosInstitucion = [];
+        
+        if (!empty($institucionesArray)) {
+            $institutionPlaceholders = str_repeat('?,', count($institucionesArray) - 1) . '?';
+            $condicionesInstitucion[] = "ur.institution IN ($institutionPlaceholders)";
+            $parametrosInstitucion = array_merge($parametrosInstitucion, $institucionesArray);
+        }
+        
+        if ($incluirSinInstitucion) {
+            $condicionesInstitucion[] = "(ur.institution IS NULL OR ur.institution = '')";
+        }
+        
+        $sqlPeriodos .= " AND (" . implode(' OR ', $condicionesInstitucion) . ")";
+        $params = array_merge($params, $parametrosInstitucion);
+        $paramTypes .= str_repeat('s', count($parametrosInstitucion));
     }
 
     $stmtPeriodos = $conn->prepare($sqlPeriodos);
-    if ($modalidad !== 'Todas') {
-        $stmtPeriodos->bind_param("is", $pago, $modalidad);
-    } else {
-        $stmtPeriodos->bind_param("i", $pago);
-    }
+    $stmtPeriodos->bind_param($paramTypes, ...$params);
     $stmtPeriodos->execute();
     $resPeriodos = $stmtPeriodos->get_result();
 
@@ -161,10 +236,10 @@ try {
 
     // Procesar cada bootcamp
     foreach ($bootcamps as $code => $name) {
-        // Obtener fechas del curso
-        $sqlFechas = "SELECT start_date, end_date FROM course_periods WHERE bootcamp_code = ? AND payment_number = ?";
+        // Obtener fechas del curso (usar el primer pago para fechas)
+        $sqlFechas = "SELECT start_date, end_date FROM course_periods WHERE bootcamp_code = ? AND payment_number = ? LIMIT 1";
         $stmtFechas = $conn->prepare($sqlFechas);
-        $stmtFechas->bind_param("si", $code, $pago);
+        $stmtFechas->bind_param("si", $code, $pagosArray[0]);
         $stmtFechas->execute();
         $resFechas = $stmtFechas->get_result();
         $startDate = '';
@@ -184,14 +259,37 @@ try {
             AND g.id_bootcamp = ?
             AND ur.statusAdmin = 10
         ";
+        $params = [$code];
+        $paramTypes = "s";
+        
         if ($modalidad !== 'Todas') {
             $sqlFormados .= " AND g.mode = ?";
-            $stmtFormados = $conn->prepare($sqlFormados);
-            $stmtFormados->bind_param("ss", $code, $modalidad);
-        } else {
-            $stmtFormados = $conn->prepare($sqlFormados);
-            $stmtFormados->bind_param("s", $code);
+            $params[] = $modalidad;
+            $paramTypes .= "s";
         }
+
+        // NUEVO: Agregar filtro de instituciones en formados
+        if (!empty($institucionesArray) || $incluirSinInstitucion) {
+            $condicionesInstitucion = [];
+            $parametrosInstitucion = [];
+            
+            if (!empty($institucionesArray)) {
+                $institutionPlaceholders = str_repeat('?,', count($institucionesArray) - 1) . '?';
+                $condicionesInstitucion[] = "ur.institution IN ($institutionPlaceholders)";
+                $parametrosInstitucion = array_merge($parametrosInstitucion, $institucionesArray);
+            }
+            
+            if ($incluirSinInstitucion) {
+                $condicionesInstitucion[] = "(ur.institution IS NULL OR ur.institution = '')";
+            }
+            
+            $sqlFormados .= " AND (" . implode(' OR ', $condicionesInstitucion) . ")";
+            $params = array_merge($params, $parametrosInstitucion);
+            $paramTypes .= str_repeat('s', count($parametrosInstitucion));
+        }
+
+        $stmtFormados = $conn->prepare($sqlFormados);
+        $stmtFormados->bind_param($paramTypes, ...$params);
         $stmtFormados->execute();
         $resFormados = $stmtFormados->get_result();
         $totalFormados = 0;
@@ -209,7 +307,7 @@ try {
             'formados' => $totalFormados
         ];
 
-        // Construir consulta dinámica
+        // Construir consulta dinámica para inscritos
         $sqlInscritos = "
             SELECT ur.number_id
             FROM groups g
@@ -241,6 +339,26 @@ try {
             $paramTypes .= "s";
         }
 
+        // NUEVO: Agregar filtro de instituciones en inscritos
+        if (!empty($institucionesArray) || $incluirSinInstitucion) {
+            $condicionesInstitucion = [];
+            $parametrosInstitucion = [];
+            
+            if (!empty($institucionesArray)) {
+                $institutionPlaceholders = str_repeat('?,', count($institucionesArray) - 1) . '?';
+                $condicionesInstitucion[] = "ur.institution IN ($institutionPlaceholders)";
+                $parametrosInstitucion = array_merge($parametrosInstitucion, $institucionesArray);
+            }
+            
+            if ($incluirSinInstitucion) {
+                $condicionesInstitucion[] = "(ur.institution IS NULL OR ur.institution = '')";
+            }
+            
+            $sqlInscritos .= " AND (" . implode(' OR ', $condicionesInstitucion) . ")";
+            $params = array_merge($params, $parametrosInstitucion);
+            $paramTypes .= str_repeat('s', count($parametrosInstitucion));
+        }
+
         $stmtInscritos = $conn->prepare($sqlInscritos);
         $stmtInscritos->bind_param($paramTypes, ...$params);
         $stmtInscritos->execute();
@@ -251,8 +369,23 @@ try {
             $totalesPorCurso[$name]['inscritos']++;
             $totalInscritosGeneral++;
 
+            // Obtener las horas reales del curso actual
             $horas = calcularHorasActualesPorEstudiante($conn, $studentId);
-            $porcentaje = ($horas / 159) * 100;
+
+            // Consulta para obtener las horas totales del curso (real_hours)
+            $sqlHorasCurso = "SELECT real_hours FROM courses WHERE code = ?";
+            $stmtHorasCurso = $conn->prepare($sqlHorasCurso);
+            $stmtHorasCurso->bind_param("s", $code);
+            $stmtHorasCurso->execute();
+            $resHorasCurso = $stmtHorasCurso->get_result();
+            $realHours = 0;
+            if ($rowHorasCurso = $resHorasCurso->fetch_assoc()) {
+                $realHours = floatval($rowHorasCurso['real_hours']);
+            }
+            $stmtHorasCurso->close();
+
+            // Evita división por cero
+            $porcentaje = ($realHours > 0) ? ($horas / $realHours) * 100 : 0;
 
             if ($porcentaje >= 75) {
                 $totalesPorCurso[$name]['mayor75']++;
