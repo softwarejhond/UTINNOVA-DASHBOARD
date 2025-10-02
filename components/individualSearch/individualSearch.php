@@ -95,7 +95,8 @@
                                 'details' => $log['details'],
                                 'contact_established' => $log['contact_established'],
                                 'continues_interested' => $log['continues_interested'],
-                                'observation' => $log['observation']
+                                'observation' => $log['observation'],
+                                'contact_date' => $log['contact_date']
                             ];
                         }
 
@@ -2177,6 +2178,11 @@
                                                                         </strong>
                                                                         <br>
                                                                         <small class="text-muted">Asesor</small>
+                                                                        <br>
+                                                                        <small class="text-muted">
+                                                                            <i class="bi bi-calendar"></i>
+                                                                            <?= date('d/m/Y H:i', strtotime($log['contact_date'])) ?>
+                                                                        </small>
                                                                     </div>
                                                                 </div>
                                                             </div>
