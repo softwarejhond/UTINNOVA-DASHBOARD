@@ -83,6 +83,11 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         <a class="dropdown-item" href="#" onclick="descargarInforme('components/registrationsContact/export_to_excel.php?action=export', 'inscritos')">
                             Inscritos - general
                         </a>
+                        <?php if ($rol === 'Control maestro'): ?>
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/registrationsContact/export_to_excel_Inst.php?action=export', 'inscritos-extra')">
+                                Inscritos - general SenaTICS
+                            </a>
+                        <?php endif; ?>
                         <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
                             <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
                             <li><a class="dropdown-item" href="metasDePagos.php"><b>Metas y pagos</b></a></li>

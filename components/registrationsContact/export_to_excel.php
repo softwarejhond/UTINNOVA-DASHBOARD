@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('memory_limit', '1024M'); // Sube el límite a 1GB
 
 // Verificar si se solicita la exportación
 if (isset($_GET['action']) && $_GET['action'] === 'export') {
@@ -27,7 +28,8 @@ function exportDataToExcel($conn)
        COALESCE(departamentos.departamento, 'Sin departamento') as departamento
         FROM user_register
         LEFT JOIN municipios ON user_register.municipality = municipios.id_municipio
-        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento";
+        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento
+        WHERE user_register.institution <> 'SenaTICS'";
 
     $result = $conn->query($sql);
     $data = [];
@@ -211,13 +213,14 @@ function exportDataToExcel($conn)
     $sheet2 = $spreadsheet->createSheet();
     $sheet2->setTitle('Usuarios Registrados');
 
-    // Consulta para obtener todos los datos
+    // Consulta para obtener todos los datos (segunda hoja)
     $sql2 = "SELECT user_register.*, 
        COALESCE(municipios.municipio, 'Sin municipio') as municipio, 
        COALESCE(departamentos.departamento, 'Sin departamento') as departamento
         FROM user_register
         LEFT JOIN municipios ON user_register.municipality = municipios.id_municipio
-        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento";
+        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento
+        WHERE user_register.institution <> 'SenaTICS'";
 
     $result2 = $conn->query($sql2);
     $data2 = [];
@@ -414,12 +417,12 @@ function exportDataToExcel($conn)
     // Consultas para estadísticas
     
     // 1. Estadísticas por género
-    $sqlGenero = "SELECT gender, COUNT(*) as total FROM user_register GROUP BY gender";
+    $sqlGenero = "SELECT gender, COUNT(*) as total FROM user_register WHERE institution <> 'SenaTICS' GROUP BY gender";
     $resultGenero = $conn->query($sqlGenero);
     $totalUsuarios = array_sum(array_column($data, 0)) ?: count($data); // Total de usuarios
     
     // Obtener total real de usuarios
-    $sqlTotal = "SELECT COUNT(*) as total FROM user_register";
+    $sqlTotal = "SELECT COUNT(*) as total FROM user_register WHERE institution <> 'SenaTICS'";
     $resultTotal = $conn->query($sqlTotal);
     $totalUsuarios = $resultTotal->fetch_assoc()['total'];
 
@@ -445,7 +448,7 @@ function exportDataToExcel($conn)
     }
 
     // 2. Estadísticas por programa
-    $sqlPrograma = "SELECT program, COUNT(*) as total FROM user_register GROUP BY program";
+    $sqlPrograma = "SELECT program, COUNT(*) as total FROM user_register WHERE institution <> 'SenaTICS' GROUP BY program";
     $resultPrograma = $conn->query($sqlPrograma);
     
     $row += 2; // Espacio
@@ -468,7 +471,7 @@ function exportDataToExcel($conn)
     }
 
     // 3. Estadísticas por área de residencia (Rural/Urbana)
-    $sqlArea = "SELECT residence_area, COUNT(*) as total FROM user_register GROUP BY residence_area";
+    $sqlArea = "SELECT residence_area, COUNT(*) as total FROM user_register WHERE institution <> 'SenaTICS' GROUP BY residence_area";
     $resultArea = $conn->query($sqlArea);
     
     $row += 2; // Espacio

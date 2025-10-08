@@ -40,3 +40,4 @@
 [2025-07-21 23:19:21] Excepción capturada: SMTP Error: Could not authenticate.
 [2025-07-21 23:22:07] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com
 [2025-07-21 23:57:26] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com
+[2025-10-08 01:10:39] Intentando conectar a: smtp-relay.brevo.com:587 con cuenta: 928c52002@smtp-brevo.com
