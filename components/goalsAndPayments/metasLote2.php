@@ -249,6 +249,14 @@
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card card-meta h-100 bg-white text-dark">
+            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
+                <h4 class="card-title mb-3">Aproximandose al 75%</h4>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeAlMenosUnaLote2" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Listado de cursos y totales -->

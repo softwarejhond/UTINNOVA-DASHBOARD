@@ -13,7 +13,7 @@ try {
 
     $infoUsuario = $_SESSION;
     $rol = $infoUsuario['rol']; // Este es el número
-    $rolesPermitidos = [1, 6, 12]; // <-- Agrega esto
+    $rolesPermitidos = [1, 6, 7, 8, 10, 12, 13, 14]; // <-- Agrega esto
 
     // Obtener filtros
     $headquarters = isset($_POST['headquarters']) ? trim($_POST['headquarters']) : '';
@@ -26,9 +26,11 @@ try {
     }
 
     // Construir consulta simple sin CAST que puede causar problemas
-    $sql = "SELECT g.*, ur.first_phone 
+    $sql = "SELECT g.*, ur.*, c.classroom_name, cp.cohort AS course_cohort, cp.start_date, cp.end_date
             FROM groups g 
             LEFT JOIN user_register ur ON g.number_id = ur.number_id 
+            LEFT JOIN classrooms c ON g.id_bootcamp = c.bootcamp_id
+            LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code
             WHERE 1=1";
 
     $params = [];
@@ -76,10 +78,44 @@ try {
     $html = '';
     $count = 0;
 
+    // Función para obtener puntaje y nivel
+    function obtenerNivelesUsuarios($conn)
+    {
+        $sql = "SELECT cedula, nivel FROM usuarios";
+        $result = $conn->query($sql);
+
+        $niveles = array();
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $niveles[$row['cedula']] = $row['nivel'];
+            }
+        }
+        return $niveles;
+    }
+
+    $nivelesUsuarios = obtenerNivelesUsuarios($conn);
+
     // Construir HTML de resultados
     if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             $count++;
+
+            // Puntaje de prueba y nivel obtenido
+            $puntaje = 'No presentó';
+            $nivelObtenido = 'No presentó';
+            if (isset($nivelesUsuarios[$row['number_id']])) {
+                $puntaje = $nivelesUsuarios[$row['number_id']];
+                if ($puntaje >= 0 && $puntaje <= 5) {
+                    $nivelObtenido = 'Básico';
+                } elseif ($puntaje >= 6 && $puntaje <= 10) {
+                    $nivelObtenido = 'Intermedio';
+                } elseif ($puntaje >= 11 && $puntaje <= 15) {
+                    $nivelObtenido = 'Avanzado';
+                } else {
+                    $nivelObtenido = 'Sin clasificar';
+                }
+            }
+
             $html .= '<tr style="white-space:nowrap;">'
                 . '<td>' . htmlspecialchars($row['type_id'] ?? '-') . '</td>'
                 . '<td>' . htmlspecialchars($row['number_id'] ?? '-') . '</td>'
@@ -87,14 +123,23 @@ try {
                 . '<td>' . htmlspecialchars($row['first_phone'] ?? '-') . '</td>'
                 . '<td>' . htmlspecialchars($row['email'] ?? '-') . '</td>'
                 . '<td>' . htmlspecialchars($row['institutional_email'] ?? '-') . '</td>'
-                . '<td>' . ( ($row['department'] ?? '') === 'CUNDINAMARCA' ? '<button class="btn bg-lime-light w-100"><b>' . htmlspecialchars($row['department']) . '</b></button>' : ( ($row['department'] ?? '') === 'BOYACÁ' ? '<button class="btn bg-indigo-light w-100"><b>' . htmlspecialchars($row['department']) . '</b></button>' : '<span>' . htmlspecialchars($row['department'] ?? '-') . '</span>' ) ) . '</td>'
+                . '<td>' . htmlspecialchars($row['schedules'] ?? '-') . '</td>'
+                . '<td>' . ( ($row['department'] ?? '') === 'BOGOTÁ' || ($row['department'] ?? '') === '11' ? '<button class="btn bg-teal-light w-100"><b>BOGOTÁ</b></button>' : '<span>' . htmlspecialchars($row['department'] ?? '-') . '</span>' ) . '</td>'
                 . '<td><b>' . htmlspecialchars($row['headquarters'] ?? '-') . '</b></td>'
+                . '<td>' . (!empty($row['classroom_name']) ? htmlspecialchars($row['classroom_name']) : '-') . '</td>'
                 . '<td>' . htmlspecialchars($row['mode'] ?? '-') . '</td>'
                 . '<td>' . (!empty($row['id_bootcamp']) && !empty($row['bootcamp_name']) ? htmlspecialchars($row['id_bootcamp']) . ' - ' . htmlspecialchars($row['bootcamp_name']) : '-') . '</td>'
                 . '<td>' . (!empty($row['id_leveling_english']) && !empty($row['leveling_english_name']) ? htmlspecialchars($row['id_leveling_english']) . ' - ' . htmlspecialchars($row['leveling_english_name']) : '-') . '</td>'
                 . '<td>' . (!empty($row['id_english_code']) ? htmlspecialchars($row['id_english_code']) . (!empty($row['english_code_name']) ? ' - ' . htmlspecialchars($row['english_code_name']) : '') : '-') . '</td>'
                 . '<td>' . (!empty($row['id_skills']) && !empty($row['skills_name']) ? htmlspecialchars($row['id_skills']) . ' - ' . htmlspecialchars($row['skills_name']) : '-') . '</td>'
                 . '<td class="text-center">' . (!empty($row['creation_date']) ? date('d/m/Y', strtotime($row['creation_date'])) : '-') . '</td>'
+                . '<td>' . (!empty($row['course_cohort']) ? htmlspecialchars($row['course_cohort']) : '-') . '</td>'
+                . '<td>' . (!empty($row['level']) ? htmlspecialchars($row['level']) : '-') . '</td>'
+                // Puntaje de prueba desde usuarios
+                . '<td>' . htmlspecialchars($puntaje) . '</td>'
+                // Nivel obtenido desde usuarios
+                . '<td>' . htmlspecialchars($nivelObtenido) . '</td>'
+                // Botón de desmatricula
                 . '<td class="text-center">' . (in_array($rol, $rolesPermitidos)
                     ? '<button class="btn btn-danger btn-sm btn-delete" data-id="' . htmlspecialchars($row['number_id']) . '" data-name="' . htmlspecialchars($row['full_name']) . '"><i class="bi bi-trash"></i></button>'
                     : '<button class="btn btn-danger btn-sm" data-toggle="popover" data-placement="top" title="Acceso Denegado" data-content="No tienes permisos para realizar esta acción"><i class="bi bi-slash-circle"></i></button>'

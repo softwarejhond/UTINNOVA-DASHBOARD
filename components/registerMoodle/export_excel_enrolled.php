@@ -44,8 +44,8 @@ $sheet->setCellValue('G1', 'Modalidad');
 $sheet->setCellValue('H1', 'Lote');
 $sheet->setCellValue('I1', 'Sede');
 $sheet->setCellValue('J1', 'Contraseña');
-$sheet->setCellValue('K1', 'Fecha Inicio Bootcamp'); // NUEVO
-$sheet->setCellValue('L1', 'Fecha Fin Bootcamp');    // NUEVO
+$sheet->setCellValue('K1', 'Fecha Inicio Bootcamp');
+$sheet->setCellValue('L1', 'Fecha Fin Bootcamp');
 $sheet->setCellValue('M1', 'ID Bootcamp');
 $sheet->setCellValue('N1', 'Bootcamp');
 $sheet->setCellValue('O1', 'ID Inglés Nivelatorio');
@@ -55,9 +55,12 @@ $sheet->setCellValue('R1', 'English Code');
 $sheet->setCellValue('S1', 'ID Habilidades');
 $sheet->setCellValue('T1', 'Habilidades');
 $sheet->setCellValue('U1', 'Cohorte');
-$sheet->setCellValue('V1', 'Nivel Elegido');
-$sheet->setCellValue('W1', 'Puntaje de Prueba');
-$sheet->setCellValue('X1', 'Nivel Obtenido');
+$sheet->setCellValue('V1', 'Horario principal');         // NUEVO
+$sheet->setCellValue('W1', 'Horario alternativo');       // NUEVO
+$sheet->setCellValue('X1', 'Aula');                     // NUEVO
+$sheet->setCellValue('Y1', 'Nivel Elegido');
+$sheet->setCellValue('Z1', 'Puntaje de Prueba');
+$sheet->setCellValue('AA1', 'Nivel Obtenido');
 
 // Query to get data (agregando DISTINCT)
 $query = "SELECT DISTINCT
@@ -65,11 +68,15 @@ $query = "SELECT DISTINCT
             ur.first_phone, 
             ur.lote, 
             ur.level,
+            ur.schedules,
+            ur.schedules_alternative,
+            c.classroom_name,
             cp.cohort AS course_cohort,
             cp.start_date,
             cp.end_date
           FROM groups g 
           LEFT JOIN user_register ur ON g.number_id = ur.number_id
+          LEFT JOIN classrooms c ON g.id_bootcamp = c.bootcamp_id
           LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code";
 $stmt = $conn->query($query);
 $row = 2;
@@ -94,8 +101,8 @@ while ($data = mysqli_fetch_assoc($stmt)) {
     $sheet->setCellValue('H' . $row, $data['lote']);
     $sheet->setCellValue('I' . $row, $data['headquarters']);
     $sheet->setCellValue('J' . $row, $data['password']);
-    $sheet->setCellValue('K' . $row, $data['start_date']); // NUEVO
-    $sheet->setCellValue('L' . $row, $data['end_date']);   // NUEVO
+    $sheet->setCellValue('K' . $row, $data['start_date']);
+    $sheet->setCellValue('L' . $row, $data['end_date']);
     $sheet->setCellValue('M' . $row, $data['id_bootcamp']);
     $sheet->setCellValue('N' . $row, $data['bootcamp_name']);
     $sheet->setCellValue('O' . $row, $data['id_leveling_english']);
@@ -105,37 +112,40 @@ while ($data = mysqli_fetch_assoc($stmt)) {
     $sheet->setCellValue('S' . $row, $data['id_skills']);
     $sheet->setCellValue('T' . $row, $data['skills_name']);
     $sheet->setCellValue('U' . $row, $data['course_cohort']);
-    $sheet->setCellValue('V' . $row, $data['level'] ?? '');
+    $sheet->setCellValue('V' . $row, $data['schedules'] ?? '');
+    $sheet->setCellValue('W' . $row, $data['schedules_alternative'] ?? '');
+    $sheet->setCellValue('X' . $row, $data['classroom_name'] ?? '');
+    $sheet->setCellValue('Y' . $row, $data['level'] ?? '');
 
     // Puntaje de prueba y nivel obtenido
     if (isset($nivelesUsuarios[$data['number_id']])) {
         $puntaje = $nivelesUsuarios[$data['number_id']];
-        $sheet->setCellValue('W' . $row, $puntaje);
+        $sheet->setCellValue('Z' . $row, $puntaje);
         if ($puntaje >= 0 && $puntaje <= 5) {
-            $sheet->setCellValue('X' . $row, 'Básico');
+            $sheet->setCellValue('AA' . $row, 'Básico');
         } elseif ($puntaje >= 6 && $puntaje <= 10) {
-            $sheet->setCellValue('X' . $row, 'Intermedio');
+            $sheet->setCellValue('AA' . $row, 'Intermedio');
         } elseif ($puntaje >= 11 && $puntaje <= 15) {
-            $sheet->setCellValue('X' . $row, 'Avanzado');
+            $sheet->setCellValue('AA' . $row, 'Avanzado');
         } else {
-            $sheet->setCellValue('X' . $row, 'Sin clasificar');
+            $sheet->setCellValue('AA' . $row, 'Sin clasificar');
         }
     } else {
-        $sheet->setCellValue('W' . $row, 'No presentó');
-        $sheet->setCellValue('X' . $row, 'No presentó');
+        $sheet->setCellValue('Z' . $row, 'No presentó');
+        $sheet->setCellValue('AA' . $row, 'No presentó');
     }
     $row++;
 }
 
 // Auto size columns
-foreach(range('A','X') as $columnID) {
+foreach(range('A','AA') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
 }
 
 // Set background color for header
-$sheet->getStyle('A1:X1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF808080');
+$sheet->getStyle('A1:AA1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF808080');
 // Set border for all cells
-$sheet->getStyle('A1:X' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+$sheet->getStyle('A1:AA' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
 // Set header for download
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

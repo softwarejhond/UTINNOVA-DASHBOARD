@@ -36,7 +36,7 @@ sort($bootcamps);
         <div class="card filter-card card-headquarters" data-icon="🏫">
             <div class="card-body">
                 <select id="filterHeadquarters" class="form-select">
-                    <option value="">Todas las sedes</option>
+                    <option value="">Seleccionar la sede</option>
                     <?php foreach ($sedes as $sede): ?>
                         <option value="<?= htmlspecialchars($sede) ?>"><?= htmlspecialchars($sede) ?></option>
                     <?php endforeach; ?>
@@ -50,7 +50,7 @@ sort($bootcamps);
         <div class="card filter-card card-bootcamp" data-icon="🎓">
             <div class="card-body">
                 <select id="filterBootcamp" class="form-select">
-                    <option value="">Todos los bootcamps</option>
+                    <option value="">Selecciona bootcamp</option>
                     <?php foreach ($bootcamps as $bootcamp): ?>
                         <option value="<?= htmlspecialchars($bootcamp) ?>"><?= htmlspecialchars($bootcamp) ?></option>
                     <?php endforeach; ?>
@@ -99,14 +99,20 @@ sort($bootcamps);
                     <th style="white-space:nowrap;">Telefono</th>
                     <th style="white-space:nowrap;">Correo personal</th>
                     <th style="white-space:nowrap;">Correo institucional</th>
+                    <th style="white-space:nowrap;">Horario</th>
                     <th style="white-space:nowrap;">Departamento</th>
                     <th style="white-space:nowrap;">Sede</th>
+                    <th style="white-space:nowrap;">Aula</th>
                     <th style="white-space:nowrap;">Modalidad</th>
                     <th style="white-space:nowrap;">Bootcamp</th>
                     <th style="white-space:nowrap;">Ingles Nivelatorio</th>
                     <th style="white-space:nowrap;">English Code</th>
                     <th style="white-space:nowrap;">Habilidades</th>
                     <th style="white-space:nowrap;">Fecha de matricula</th>
+                    <th style="white-space:nowrap;">Cohorte</th>
+                    <th style="white-space:nowrap;">Nivel elegido</th>
+                    <th style="white-space:nowrap;">Puntaje de prueba</th>
+                    <th style="white-space:nowrap;">Nivel obtenido</th>
                     <th style="white-space:nowrap;">Desmatricular</th>
                 </tr>
             </thead>

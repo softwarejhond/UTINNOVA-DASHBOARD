@@ -102,14 +102,13 @@
 </style>
 
 <!-- Selectores de filtro en tarjetas -->
-
 <div class="row mb-4" style="z-index: 9999;">
     <div class="col-12">
         <div class="card card-filtros h-100 bg-white text-dark">
             <div class="card-header bg-teal-dark text-white text-center">
                 <h5 class="mb-0 w-100">
                     <i class="fas fa-list-alt"></i>
-                    Listado de cursos y totales
+                    Listado de cursos y totales (Convenio)
                 </h5>
             </div>
             <div class="card-body w-100">
@@ -122,21 +121,21 @@
                             <div class="card-body">
                                 <!-- Dropdown múltiple para pagos -->
                                 <div class="dropdown w-100">
-                                    <button class="btn w-100 dropdown-toggle" type="button" id="dropdownPagos" data-bs-toggle="dropdown" aria-expanded="false" style="background:#fff; border:1px solid #dee2e6;">
+                                    <button class="btn w-100 dropdown-toggle" type="button" id="dropdownPagosConvenio" data-bs-toggle="dropdown" aria-expanded="false" style="background:#fff; border:1px solid #dee2e6;">
                                         Seleccione número(s) de pago...
                                     </button>
-                                    <ul class="dropdown-menu w-100 ps-3" aria-labelledby="dropdownPagos" id="dropdownPagosMenu" style="z-index: 9999;">
+                                    <ul class="dropdown-menu w-100 ps-3" aria-labelledby="dropdownPagosConvenio" id="dropdownPagosMenuConvenio" style="z-index: 9999;">
                                         <li>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="selectAllPagos">
-                                                <label class="form-check-label fw-bold" for="selectAllPagos">Seleccionar todo</label>
+                                                <input class="form-check-input" type="checkbox" id="selectAllPagosConvenio">
+                                                <label class="form-check-label fw-bold" for="selectAllPagosConvenio">Seleccionar todo</label>
                                             </div>
                                         </li>
                                         <li>
                                             <hr class="dropdown-divider">
                                         </li>
                                         <!-- Opciones de pagos se llenan por JS -->
-                                        <div id="pagosOpciones"></div>
+                                        <div id="pagosOpcionesConvenio"></div>
                                     </ul>
                                 </div>
                             </div>
@@ -148,7 +147,7 @@
                                 <strong>Modalidad</strong>
                             </div>
                             <div class="card-body">
-                                <select id="selectorModalidad" class="form-control">
+                                <select id="selectorModalidadConvenio" class="form-control">
                                     <option value="Todas">Todas las modalidades</option>
                                     <option value="Presencial">Presencial</option>
                                     <option value="Virtual">Virtual</option>
@@ -162,7 +161,7 @@
                                 <strong>Contrapartida</strong>
                             </div>
                             <div class="card-body">
-                                <select id="selectorContrapartida" class="form-control">
+                                <select id="selectorContrapartidaConvenio" class="form-control">
                                     <option value="Todas">Ambas condiciones</option>
                                     <option value="0">Sin contrapartida</option>
                                     <option value="1">Con contrapartida</option>
@@ -173,26 +172,26 @@
                     <div class="col-md-3">
                         <div class="card h-100">
                             <div class="card-header bg-magenta-dark text-white text-center">
-                                <strong>Convenios</strong>
+                                <strong>Lotes</strong>
                             </div>
                             <div class="card-body">
-                                <!-- Dropdown múltiple para instituciones -->
+                                <!-- Dropdown múltiple para lotes -->
                                 <div class="dropdown w-100">
-                                    <button class="btn w-100 dropdown-toggle" type="button" id="dropdownInstituciones" data-bs-toggle="dropdown" aria-expanded="false" style="background:#fff; border:1px solid #dee2e6;">
-                                        Seleccione institución(es)...
+                                    <button class="btn w-100 dropdown-toggle" type="button" id="dropdownLotesConvenio" data-bs-toggle="dropdown" aria-expanded="false" style="background:#fff; border:1px solid #dee2e6;">
+                                        Seleccione lote(s)...
                                     </button>
-                                    <ul class="dropdown-menu w-100 ps-3" aria-labelledby="dropdownInstituciones" id="dropdownInstitucionesMenu" style="max-height: 300px; overflow-y: auto;">
+                                    <ul class="dropdown-menu w-100 ps-3" aria-labelledby="dropdownLotesConvenio" id="dropdownLotesMenuConvenio" style="max-height: 300px; overflow-y: auto;">
                                         <li>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="selectAllInstituciones">
-                                                <label class="form-check-label fw-bold" for="selectAllInstituciones">Seleccionar todas</label>
+                                                <input class="form-check-input" type="checkbox" id="selectAllLotesConvenio">
+                                                <label class="form-check-label fw-bold" for="selectAllLotesConvenio">Seleccionar todos</label>
                                             </div>
                                         </li>
                                         <li>
                                             <hr class="dropdown-divider">
                                         </li>
-                                        <!-- Opciones de instituciones se llenan por JS -->
-                                        <div id="institucionesOpciones"></div>
+                                        <!-- Opciones de lotes se llenan por JS -->
+                                        <div id="lotesOpcionesConvenio"></div>
                                     </ul>
                                 </div>
                             </div>
@@ -200,7 +199,7 @@
                     </div>
                     <div class="row mt-3 w-100">
                         <div class="col-12 d-flex justify-content-center">
-                            <button id="btnActualizar" class="btn bg-teal-dark w-25" style="font-size:1.2rem;">
+                            <button id="btnActualizarConvenio" class="btn bg-teal-dark w-25" style="font-size:1.2rem;">
                                 <i class="fas fa-sync-alt"></i> Actualizar
                             </button>
                         </div>
@@ -211,19 +210,18 @@
     </div>
 </div>
 
-
-<div id="mensajeSeleccionPago" class="alert alert-info text-center w-100" style="border:2px solid #30336b; background-color:#d4d7ff;">
+<div id="mensajeSeleccionPagoConvenio" class="alert alert-info text-center w-100" style="border:2px solid #30336b; background-color:#d4d7ff;">
     <i class="fas fa-info-circle"></i>
     Seleccione un número de pago para cargar los datos.
 </div>
 
-<!-- Tarjetas de prueba -->
+<!-- Tarjetas de totales -->
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card card-meta h-100 bg-white text-dark">
             <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
                 <h4 class="card-title mb-3">Total con ≥ 75% Asistencia</h4>
-                <span class="badge badge-total-metas mt-auto mb-2" id="badgeTotal75" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeTotal75Convenio" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
             </div>
         </div>
     </div>
@@ -231,7 +229,7 @@
         <div class="card card-meta h-100 bg-white text-dark">
             <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
                 <h4 class="card-title mb-3">Total Formados</h4>
-                <span class="badge badge-total-metas mt-auto mb-2" id="badgeFormados" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeFormadosConvenio" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
             </div>
         </div>
     </div>
@@ -239,7 +237,7 @@
         <div class="card card-meta h-100 bg-white text-dark">
             <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
                 <h4 class="card-title mb-3">Meta</h4>
-                <span class="badge badge-total-metas mt-auto mb-2" id="badgeMeta" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeMetaConvenio" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
             </div>
         </div>
     </div>
@@ -247,19 +245,10 @@
         <div class="card card-meta h-100 bg-white text-dark">
             <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
                 <h4 class="card-title mb-3">Faltante</h4>
-                <span class="badge badge-total-metas mt-auto mb-2" id="badgeFaltante" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeFaltanteConvenio" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card card-meta h-100 bg-white text-dark">
-            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
-                <h4 class="card-title mb-3">Aproximandose al 75%</h4>
-                <span class="badge badge-total-metas mt-auto mb-2" id="badgeAlMenosUna" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <!-- Listado de cursos y totales -->
@@ -269,12 +258,11 @@
             <div class="card-header bg-indigo-dark text-white text-center">
                 <h5 class="mb-0 w-100">
                     <i class="fas fa-list-alt"></i>
-                    Listado de cursos y totales
+                    Listado de cursos y totales (Convenio)
                 </h5>
             </div>
             <div class="card-body w-100">
-                <div id="listadoCursosTotales" class="w-100" style="min-height:120px;">
-                </div>
+                <div id="listadoCursosTotalesConvenio" class="w-100" style="min-height:120px;"></div>
             </div>
         </div>
     </div>
@@ -285,7 +273,7 @@
     <div class="col-12 w-100" style="max-width: 700px; margin: 0 auto;">
         <div class="card card-meta bg-white text-dark w-100">
             <div class="card-body text-center w-100">
-                <div id="resumenGeneralTotales" class="w-100">
+                <div id="resumenGeneralTotalesConvenio" class="w-100">
                     <!-- Aquí se mostrará el resumen general -->
                 </div>
             </div>
@@ -295,156 +283,133 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const selectorModalidad = document.getElementById('selectorModalidad');
-        const selectorContrapartida = document.getElementById('selectorContrapartida');
-        const listadoCursosTotales = document.getElementById('listadoCursosTotales');
-        const resumenGeneralTotales = document.getElementById('resumenGeneralTotales');
-        const mensajeSeleccionPago = document.getElementById('mensajeSeleccionPago');
+        const selectorModalidadConvenio = document.getElementById('selectorModalidadConvenio');
+        const selectorContrapartidaConvenio = document.getElementById('selectorContrapartidaConvenio');
+        const listadoCursosTotalesConvenio = document.getElementById('listadoCursosTotalesConvenio');
+        const resumenGeneralTotalesConvenio = document.getElementById('resumenGeneralTotalesConvenio');
+        const mensajeSeleccionPagoConvenio = document.getElementById('mensajeSeleccionPagoConvenio');
 
         // Referencias
-        const pagosOpciones = document.getElementById('pagosOpciones');
-        const selectAllPagos = document.getElementById('selectAllPagos');
-        const institucionesOpciones = document.getElementById('institucionesOpciones');
-        const selectAllInstituciones = document.getElementById('selectAllInstituciones');
-        let pagosSeleccionados = [];
-        let institucionesSeleccionadas = [];
+        const lotesOpcionesConvenio = document.getElementById('lotesOpcionesConvenio');
+        const selectAllLotesConvenio = document.getElementById('selectAllLotesConvenio');
+        const pagosOpcionesConvenio = document.getElementById('pagosOpcionesConvenio');
+        const selectAllPagosConvenio = document.getElementById('selectAllPagosConvenio');
+        let pagosSeleccionadosConvenio = [];
+        let lotesSeleccionadosConvenio = [];
 
         // Cargar opciones de pagos
-        async function cargarPagos() {
+        async function cargarPagosConvenio() {
             try {
-                const res = await fetch('components/goalsAndPayments/actualizarMetaLote1.php?action=pagos');
+                const res = await fetch('components/goalsAndPayments/actualizarMetaConvenio.php?action=pagos');
                 const pagos = await res.json();
-                pagosOpciones.innerHTML = pagos.map((p, i) => `
+                pagosOpcionesConvenio.innerHTML = pagos.map((p, i) => `
                     <li>
                         <div class="form-check">
-                            <input class="form-check-input filtro-pago" type="checkbox" value="${p.payment_number}" id="pago${i}">
-                            <label class="form-check-label" for="pago${i}">Pago ${p.payment_number}</label>
+                            <input class="form-check-input filtro-pago-convenio" type="checkbox" value="${p.payment_number}" id="pagoConvenio_${i}">
+                            <label class="form-check-label" for="pagoConvenio_${i}">Pago ${p.payment_number}</label>
                         </div>
                     </li>
                 `).join('');
 
                 // Agregar event listeners a los checkboxes después de crearlos
-                document.querySelectorAll('.filtro-pago').forEach(checkbox => {
-                    checkbox.addEventListener('change', actualizarSeleccionPagos);
+                document.querySelectorAll('.filtro-pago-convenio').forEach(checkbox => {
+                    checkbox.addEventListener('change', actualizarSeleccionPagosConvenio);
                 });
             } catch (error) {
                 console.error('Error cargando pagos:', error);
-                pagosOpciones.innerHTML = '<li><div class="alert alert-danger">Error cargando pagos</div></li>';
+                pagosOpcionesConvenio.innerHTML = '<li><div class="alert alert-danger">Error cargando pagos</div></li>';
             }
         }
 
-        // Cargar opciones de instituciones
-        async function cargarInstituciones() {
+        // Cargar opciones de lotes
+        async function cargarLotesConvenio() {
             try {
-                const res = await fetch('components/goalsAndPayments/actualizarMetaLote1.php?action=instituciones');
-                const instituciones = await res.json();
-                institucionesOpciones.innerHTML = instituciones.map((inst, i) => {
-                    const displayName = inst.institution === 'Sin institución' ?
-                        '<em>Sin institución</em>' : inst.institution;
-                    const className = inst.institution === 'Sin institución' ?
-                        'form-check-label text-muted fst-italic' : 'form-check-label';
-
-                    return `
-                        <li>
-                            <div class="form-check">
-                                <input class="form-check-input filtro-institucion" type="checkbox" value="${inst.institution}" id="institucion${i}">
-                                <label class="${className}" for="institucion${i}">${displayName}</label>
-                            </div>
-                        </li>
-                    `;
-                }).join('');
+                const res = await fetch('components/goalsAndPayments/actualizarMetaConvenio.php?action=lotes');
+                const lotes = await res.json();
+                lotesOpcionesConvenio.innerHTML = lotes.map((l, i) => `
+                    <li>
+                        <div class="form-check">
+                            <input class="form-check-input filtro-lote-convenio" type="checkbox" value="${l.lote}" id="loteConvenio_${i}">
+                            <label class="form-check-label" for="loteConvenio_${i}">Lote ${l.lote}</label>
+                        </div>
+                    </li>
+                `).join('');
 
                 // Agregar event listeners a los checkboxes después de crearlos
-                document.querySelectorAll('.filtro-institucion').forEach(checkbox => {
-                    checkbox.addEventListener('change', actualizarSeleccionInstituciones);
+                document.querySelectorAll('.filtro-lote-convenio').forEach(checkbox => {
+                    checkbox.addEventListener('change', actualizarSeleccionLotesConvenio);
                 });
             } catch (error) {
-                console.error('Error cargando instituciones:', error);
-                institucionesOpciones.innerHTML = '<li><div class="alert alert-danger">Error cargando instituciones</div></li>';
+                console.error('Error cargando lotes:', error);
+                lotesOpcionesConvenio.innerHTML = '<li><div class="alert alert-danger">Error cargando lotes</div></li>';
             }
         }
 
         // Función para actualizar selección y realizar búsqueda automática (pagos)
-        function actualizarSeleccionPagos() {
-            pagosSeleccionados = [];
-            document.querySelectorAll(".filtro-pago:checked").forEach(cb => pagosSeleccionados.push(cb.value));
+        function actualizarSeleccionPagosConvenio() {
+            pagosSeleccionadosConvenio = [];
+            document.querySelectorAll(".filtro-pago-convenio:checked").forEach(cb => pagosSeleccionadosConvenio.push(cb.value));
 
             // Actualizar texto del botón
-            document.getElementById('dropdownPagos').textContent = pagosSeleccionados.length ?
-                `Pago(s): ${pagosSeleccionados.join(', ')}` :
+            document.getElementById('dropdownPagosConvenio').textContent = pagosSeleccionadosConvenio.length ?
+                `Pago(s): ${pagosSeleccionadosConvenio.join(', ')}` :
                 'Seleccione número(s) de pago...';
 
             // Realizar búsqueda automática solo si hay pagos seleccionados
-            if (pagosSeleccionados.length) {
-                ocultarMensajeSeleccionPago();
-                cargarDatosAsistencia();
+            if (pagosSeleccionadosConvenio.length) {
+                ocultarMensajeSeleccionPagoConvenio();
+                cargarDatosAsistenciaConvenio();
             } else {
-                mostrarMensajeSeleccionPago();
+                mostrarMensajeSeleccionPagoConvenio();
                 // Limpiar tarjetas cuando no hay selección
-                document.getElementById('badgeTotal75').textContent = '0';
-                document.getElementById('badgeMeta').textContent = '0';
-                document.getElementById('badgeFaltante').textContent = '0';
-                document.getElementById('badgeFormados').textContent = '0';
-                document.getElementById('badgeAlMenosUna').textContent = '0';
-                resumenGeneralTotales.innerHTML = '';
+                document.getElementById('badgeTotal75Convenio').textContent = '0';
+                document.getElementById('badgeMetaConvenio').textContent = '0';
+                document.getElementById('badgeFaltanteConvenio').textContent = '0';
+                document.getElementById('badgeFormadosConvenio').textContent = '0';
+                resumenGeneralTotalesConvenio.innerHTML = '';
             }
         }
 
-        // Función para actualizar selección de instituciones
-        function actualizarSeleccionInstituciones() {
-            institucionesSeleccionadas = [];
-            document.querySelectorAll(".filtro-institucion:checked").forEach(cb => institucionesSeleccionadas.push(cb.value));
+        // Función para actualizar selección de lotes
+        function actualizarSeleccionLotesConvenio() {
+            lotesSeleccionadosConvenio = [];
+            document.querySelectorAll(".filtro-lote-convenio:checked").forEach(cb => lotesSeleccionadosConvenio.push(cb.value));
 
             // Crear texto más descriptivo para el botón
-            let textoBoton = 'Seleccione institución(es)...';
-            if (institucionesSeleccionadas.length > 0) {
-                const sinInstitucion = institucionesSeleccionadas.includes('Sin institución');
-                const otrasInstituciones = institucionesSeleccionadas.filter(inst => inst !== 'Sin institución');
-
-                let partes = [];
-                if (otrasInstituciones.length > 0) {
-                    if (otrasInstituciones.length <= 2) {
-                        partes.push(otrasInstituciones.join(', '));
-                    } else {
-                        partes.push(`${otrasInstituciones.slice(0, 2).join(', ')}... (+${otrasInstituciones.length - 2})`);
-                    }
-                }
-
-                if (sinInstitucion) {
-                    partes.push('Sin institución');
-                }
-
-                textoBoton = `Institución(es): ${partes.join(', ')}`;
-                if (textoBoton.length > 50) {
-                    textoBoton = `Institución(es): ${institucionesSeleccionadas.length} seleccionadas`;
+            let textoBoton = 'Seleccione lote(s)...';
+            if (lotesSeleccionadosConvenio.length > 0) {
+                if (lotesSeleccionadosConvenio.length <= 2) {
+                    textoBoton = `Lote(s): ${lotesSeleccionadosConvenio.join(', ')}`;
+                } else {
+                    textoBoton = `Lote(s): ${lotesSeleccionadosConvenio.length} seleccionados`;
                 }
             }
 
             // Actualizar texto del botón
-            document.getElementById('dropdownInstituciones').textContent = textoBoton;
+            document.getElementById('dropdownLotesConvenio').textContent = textoBoton;
 
             // Realizar búsqueda automática solo si hay pagos seleccionados
-            if (pagosSeleccionados.length) {
-                cargarDatosAsistencia();
+            if (pagosSeleccionadosConvenio.length) {
+                cargarDatosAsistenciaConvenio();
             }
         }
 
         // Seleccionar/Deseleccionar todos los pagos
-        selectAllPagos.addEventListener("change", function() {
-            document.querySelectorAll(".filtro-pago").forEach(cb => cb.checked = this.checked);
-            actualizarSeleccionPagos();
+        selectAllPagosConvenio.addEventListener("change", function() {
+            document.querySelectorAll(".filtro-pago-convenio").forEach(cb => cb.checked = this.checked);
+            actualizarSeleccionPagosConvenio();
         });
 
-        // Seleccionar/Deseleccionar todas las instituciones
-        selectAllInstituciones.addEventListener("change", function() {
-            document.querySelectorAll(".filtro-institucion").forEach(cb => cb.checked = this.checked);
-            actualizarSeleccionInstituciones();
+        // Seleccionar/Deseleccionar todos los lotes
+        selectAllLotesConvenio.addEventListener("change", function() {
+            document.querySelectorAll(".filtro-lote-convenio").forEach(cb => cb.checked = this.checked);
+            actualizarSeleccionLotesConvenio();
         });
 
         // Cargar datos según filtros
-        async function cargarDatosAsistencia() {
+        async function cargarDatosAsistenciaConvenio() {
             // Muestra el loader solo mientras carga
-            listadoCursosTotales.innerHTML = `
+            listadoCursosTotalesConvenio.innerHTML = `
                 <div class="text-center w-100">
                     <div class="spinner-border text-primary" role="status">
                         <span class="sr-only">Cargando...</span>
@@ -453,21 +418,23 @@
                 </div>
             `;
 
-            const modalidad = selectorModalidad.value;
-            const contrapartida = selectorContrapartida.value;
-            const pagosParam = pagosSeleccionados.join(',');
-            const institucionesParam = institucionesSeleccionadas.join(',');
+            const modalidad = selectorModalidadConvenio.value;
+            const contrapartida = selectorContrapartidaConvenio.value;
+            const pagosParam = pagosSeleccionadosConvenio.join(',');
+            const lotesParam = lotesSeleccionadosConvenio.join(',');
 
             const params = new URLSearchParams({
                 pagos: pagosParam,
-                instituciones: institucionesParam,
+                lotes: lotesParam,
                 modalidad,
                 contrapartida
             });
 
             try {
-                const respuesta = await fetch('components/goalsAndPayments/actualizarMetaLote1.php?' + params.toString());
+                const respuesta = await fetch('components/goalsAndPayments/actualizarMetaConvenio.php?' + params.toString());
                 const datos = await respuesta.json();
+
+                if (datos.error) throw new Error(datos.error);
 
                 // Calcular total de formados
                 let totalFormados = 0;
@@ -476,11 +443,10 @@
                 });
 
                 // Actualizar tarjetas superiores
-                document.getElementById('badgeTotal75').textContent = datos.total75General;
-                document.getElementById('badgeMeta').textContent = datos.metaGoal;
-                document.getElementById('badgeFaltante').textContent = Math.max(0, datos.metaGoal - datos.total75General);
-                document.getElementById('badgeFormados').textContent = totalFormados;
-                document.getElementById('badgeAlMenosUna').textContent = datos.totalAlMenosUnaPresente;
+                document.getElementById('badgeTotal75Convenio').textContent = datos.total75General;
+                document.getElementById('badgeMetaConvenio').textContent = datos.metaGoal;
+                document.getElementById('badgeFaltanteConvenio').textContent = Math.max(0, datos.metaGoal - datos.total75General);
+                document.getElementById('badgeFormadosConvenio').textContent = totalFormados;
 
                 // Listado de cursos en tabla
                 let htmlCursos = `
@@ -530,7 +496,7 @@
                                 <span class="badge bg-indigo-dark" style="font-size:1.1rem; padding:0.5em 1em;">${totales.inscritos}</span>
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-magenta-dark" style="font-size:1.1rem; padding:0.5em 1em;">${totales.formados}</span>
+                                <span class="badge bg-magenta-dark" style="font-size:1.1rem; padding:0.5em 1em;">${totales.formados || 0}</span>
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-teal-dark" style="font-size:1.1rem; padding:0.5em 1em;">${totales.mayor75}</span>
@@ -549,13 +515,13 @@
                 </div>
                 `;
 
-                listadoCursosTotales.innerHTML = htmlCursos;
+                listadoCursosTotalesConvenio.innerHTML = htmlCursos;
 
                 // Resumen general
                 const promedioMayor75 = datos.totalInscritosGeneral > 0 ? ((datos.total75General / datos.totalInscritosGeneral) * 100).toFixed(1) : 0;
                 const progresoMeta = datos.metaGoal > 0 ? ((datos.total75General / datos.metaGoal) * 100).toFixed(1) : 0;
 
-                resumenGeneralTotales.innerHTML = `
+                resumenGeneralTotalesConvenio.innerHTML = `
                     <div>
                         <strong>Total cursos:</strong> ${totalCursos} &nbsp; 
                         <strong>Total matriculados:</strong> ${datos.totalInscritosGeneral} &nbsp; 
@@ -568,65 +534,64 @@
                 `;
             } catch (error) {
                 console.error('Error:', error);
-                listadoCursosTotales.innerHTML = `
+                listadoCursosTotalesConvenio.innerHTML = `
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle"></i>
                         Error al cargar los datos: ${error.message}
                     </div>
                 `;
-                resumenGeneralTotales.innerHTML = '';
+                resumenGeneralTotalesConvenio.innerHTML = '';
 
                 // Resetear tarjetas en caso de error
-                document.getElementById('badgeTotal75').textContent = '0';
-                document.getElementById('badgeMeta').textContent = '0';
-                document.getElementById('badgeFaltante').textContent = '0';
-                document.getElementById('badgeFormados').textContent = '0';
-                document.getElementById('badgeAlMenosUna').textContent = '0';
+                document.getElementById('badgeTotal75Convenio').textContent = '0';
+                document.getElementById('badgeMetaConvenio').textContent = '0';
+                document.getElementById('badgeFaltanteConvenio').textContent = '0';
+                document.getElementById('badgeFormadosConvenio').textContent = '0';
             }
         }
 
-        function mostrarMensajeSeleccionPago() {
-            mensajeSeleccionPago.style.display = 'block';
-            listadoCursosTotales.innerHTML = '';
-            listadoCursosTotales.style.display = 'none';
+        function mostrarMensajeSeleccionPagoConvenio() {
+            mensajeSeleccionPagoConvenio.style.display = 'block';
+            listadoCursosTotalesConvenio.innerHTML = '';
+            listadoCursosTotalesConvenio.style.display = 'none';
         }
 
-        function ocultarMensajeSeleccionPago() {
-            mensajeSeleccionPago.style.display = 'none';
-            listadoCursosTotales.style.display = 'block';
+        function ocultarMensajeSeleccionPagoConvenio() {
+            mensajeSeleccionPagoConvenio.style.display = 'none';
+            listadoCursosTotalesConvenio.style.display = 'block';
         }
 
         // Mejorar el comportamiento de los dropdowns
-        document.getElementById('dropdownPagos').addEventListener('show.bs.dropdown', function() {
+        document.getElementById('dropdownPagosConvenio').addEventListener('show.bs.dropdown', function() {
             this.closest('.dropdown').style.zIndex = '10000';
         });
 
-        document.getElementById('dropdownPagos').addEventListener('hide.bs.dropdown', function() {
+        document.getElementById('dropdownPagosConvenio').addEventListener('hide.bs.dropdown', function() {
             this.closest('.dropdown').style.zIndex = '1000';
         });
 
-        document.getElementById('dropdownInstituciones').addEventListener('show.bs.dropdown', function() {
+        document.getElementById('dropdownLotesConvenio').addEventListener('show.bs.dropdown', function() {
             this.closest('.dropdown').style.zIndex = '10000';
         });
 
-        document.getElementById('dropdownInstituciones').addEventListener('hide.bs.dropdown', function() {
+        document.getElementById('dropdownLotesConvenio').addEventListener('hide.bs.dropdown', function() {
             this.closest('.dropdown').style.zIndex = '1000';
         });
 
         // Cargar datos iniciales
-        await cargarPagos();
-        await cargarInstituciones();
+        await cargarPagosConvenio();
+        await cargarLotesConvenio();
 
         // Filtros adicionales
-        selectorModalidad.addEventListener('change', () => {
-            if (pagosSeleccionados.length) cargarDatosAsistencia();
+        selectorModalidadConvenio.addEventListener('change', () => {
+            if (pagosSeleccionadosConvenio.length) cargarDatosAsistenciaConvenio();
         });
-        selectorContrapartida.addEventListener('change', () => {
-            if (pagosSeleccionados.length) cargarDatosAsistencia();
+        selectorContrapartidaConvenio.addEventListener('change', () => {
+            if (pagosSeleccionadosConvenio.length) cargarDatosAsistenciaConvenio();
         });
 
-        document.getElementById('btnActualizar').addEventListener('click', () => {
-            if (pagosSeleccionados.length) cargarDatosAsistencia();
+        document.getElementById('btnActualizarConvenio').addEventListener('click', () => {
+            if (pagosSeleccionadosConvenio.length) cargarDatosAsistenciaConvenio();
         });
     });
 </script>

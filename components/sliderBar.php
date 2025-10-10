@@ -50,6 +50,27 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Control maestro' || $rol === 'Visualizador'): ?>
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Encuestas de empleabilidad (Ingreso y cierre)">
+                                <a href="metasPagosConvenio.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-clipboard2-data-fill icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">SENATICS</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($rol === 'Control maestro'): ?>
                         <div class="col-4">
                             <div class="checkbox"
@@ -319,24 +340,26 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </div>
                     <?php endif; ?>
 
-                    <div class="col-4">
-                        <div class="checkbox"
-                            data-bs-toggle="popover"
-                            data-bs-trigger="hover focus"
-                            data-bs-placement="bottom"
-                            data-bs-content="Tutoriales de uso de la plataforma">
-                            <a href="tutoriales.php">
-                                <label class="checkbox-wrapper">
-                                    <span class="checkbox-tile">
-                                        <span class="checkbox-icon">
-                                            <i class="bi bi-youtube icono"></i>
+                    <?php if ($rol !== 'Visualizador'): ?>
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Tutoriales de uso de la plataforma">
+                                <a href="tutoriales.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-youtube icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Tutoriales</span>
                                         </span>
-                                        <span class="checkbox-label">Tutoriales</span>
-                                    </span>
-                                </label>
-                            </a>
+                                    </label>
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    <?php endif; ?>
 
                     <?php if ($rol === 'Control maestro'): ?>
                         <div class="col-4">
@@ -350,6 +373,26 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                                         <span class="checkbox-tile">
                                             <span class="checkbox-icon checkbox-icon-lg" style="width: 75px; height: 100px;">
                                                 <img src="img/logo_cedulink.png" alt="CeduLink" style="width: 75px; height: 100px; object-fit: contain;">
+                                            </span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($rol === 'Control maestro'): ?>
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Enviar mensaje SMS masivo">
+                                <a href="multipleSMS.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon checkbox-icon-lg" style="width: 75px; height: 100px;">
+                                                <img src="img/texte_logo.png" alt="CeduLink" style="width: 75px; height: 100px; object-fit: contain;">
                                             </span>
                                         </span>
                                     </label>

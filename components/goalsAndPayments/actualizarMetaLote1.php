@@ -24,12 +24,13 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
     $result = $stmt->get_result();
 
     $totalHoras = 0;
+    $tienePresente = false;
     while ($curso = $result->fetch_assoc()) {
         $cursoId = $curso['code'];
         $horasMaximas = intval($curso['real_hours']);
 
         // Consulta las asistencias y suma las horas actuales
-        $sqlHoras = "SELECT ar.class_date, 
+        $sqlHoras = "SELECT ar.class_date, ar.attendance_status,
                             CASE 
                                 WHEN ar.attendance_status = 'presente' THEN 
                                     CASE DAYOFWEEK(ar.class_date)
@@ -60,6 +61,9 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
             if (!in_array($fecha, $fechasContadas)) {
                 $horasCurso += $asistencia['horas'];
                 $fechasContadas[] = $fecha;
+                if ($asistencia['attendance_status'] === 'presente') {
+                    $tienePresente = true;
+                }
             }
         }
         $stmtHoras->close();
@@ -68,7 +72,7 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
         $totalHoras += min($horasCurso, $horasMaximas);
     }
     $stmt->close();
-    return $totalHoras;
+    return ['horas' => $totalHoras, 'tienePresente' => $tienePresente];
 }
 
 try {
@@ -233,6 +237,7 @@ try {
     $totalInscritosGeneral = 0;
     $total75General = 0;
     $totalMenos75General = 0;
+    $totalAlMenosUnaPresente = 0;
 
     // Procesar cada bootcamp
     foreach ($bootcamps as $code => $name) {
@@ -369,8 +374,14 @@ try {
             $totalesPorCurso[$name]['inscritos']++;
             $totalInscritosGeneral++;
 
-            // Obtener las horas reales del curso actual
-            $horas = calcularHorasActualesPorEstudiante($conn, $studentId);
+            // Obtener las horas reales del curso actual y verificar si tiene presente
+            $resultado = calcularHorasActualesPorEstudiante($conn, $studentId);
+            $horas = $resultado['horas'];
+            $tienePresente = $resultado['tienePresente'];
+
+            if ($tienePresente) {
+                $totalAlMenosUnaPresente++;
+            }
 
             // Consulta para obtener las horas totales del curso (real_hours)
             $sqlHorasCurso = "SELECT real_hours FROM courses WHERE code = ?";
@@ -404,7 +415,8 @@ try {
         'totalInscritosGeneral' => $totalInscritosGeneral,
         'total75General' => $total75General,
         'totalMenos75General' => $totalMenos75General,
-        'metaGoal' => $metaGoal
+        'metaGoal' => $metaGoal,
+        'totalAlMenosUnaPresente' => $totalAlMenosUnaPresente
     ]);
 
 } catch (Exception $e) {
