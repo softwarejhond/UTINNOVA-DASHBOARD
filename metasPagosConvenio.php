@@ -52,11 +52,11 @@ $rol = $infoUsuario['rol'];
 
         <div id="dashboard">
             <div class="position-relative bg-transparent">
-                <h2 class="position-absolute top-4 start-0"> <i class="bi bi-bar-chart-steps"></i> Contador de metas y pagos</h2>
+                <h2 class="position-absolute top-4 start-0"> <i class="bi bi-bar-chart-steps"></i> Contador inscritos SenaTICS</h2>
             </div>
             <br><br>
             <hr>
-            <?php include("components/goalsAndPayments/metasConvenio.php"); ?>
+            <?php include("components/goalsAndPayments/listSenaTICS.php"); ?>
             <div class="row">
                 <div class="col-sm-12 col-md-12 col-lg-12">
                     <?php //include("components/aceptUsers/updateStatus.php"); 
@@ -87,7 +87,7 @@ $rol = $infoUsuario['rol'];
     //     $('#link-dashboard').addClass('pagina-activa');
 
     //     // Inicialización de DataTable
-    //     $('#listaInscritos').DataTable({
+    //     $('#listaSenaTICS').DataTable({
     //         responsive: true,
     //         language: {
     //             url: "controller/datatable_esp.json"

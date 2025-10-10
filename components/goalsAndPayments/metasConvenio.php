@@ -249,6 +249,15 @@
             </div>
         </div>
     </div>
+    <!-- Nueva tarjeta para total de usuarios SenaTICS -->
+    <div class="col-md-3 mt-3">
+        <div class="card card-meta h-100 bg-white text-dark">
+            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
+                <h4 class="card-title mb-3">Total Usuarios SenaTICS</h4>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeTotalUsuariosConvenio" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Listado de cursos y totales -->
@@ -366,6 +375,7 @@
                 document.getElementById('badgeMetaConvenio').textContent = '0';
                 document.getElementById('badgeFaltanteConvenio').textContent = '0';
                 document.getElementById('badgeFormadosConvenio').textContent = '0';
+                document.getElementById('badgeTotalUsuariosConvenio').textContent = '0';  // Nuevo: resetear la nueva tarjeta
                 resumenGeneralTotalesConvenio.innerHTML = '';
             }
         }
@@ -447,6 +457,7 @@
                 document.getElementById('badgeMetaConvenio').textContent = datos.metaGoal;
                 document.getElementById('badgeFaltanteConvenio').textContent = Math.max(0, datos.metaGoal - datos.total75General);
                 document.getElementById('badgeFormadosConvenio').textContent = totalFormados;
+                document.getElementById('badgeTotalUsuariosConvenio').textContent = datos.totalUsuarios;  // Nuevo: actualizar la nueva tarjeta
 
                 // Listado de cursos en tabla
                 let htmlCursos = `
@@ -547,6 +558,7 @@
                 document.getElementById('badgeMetaConvenio').textContent = '0';
                 document.getElementById('badgeFaltanteConvenio').textContent = '0';
                 document.getElementById('badgeFormadosConvenio').textContent = '0';
+                document.getElementById('badgeTotalUsuariosConvenio').textContent = '0';  // Nuevo: resetear en error
             }
         }
 

@@ -22,13 +22,15 @@ function exportDataToExcel($conn)
     // Obtener niveles de usuarios
     $nivelesUsuarios = obtenerNivelesUsuarios($conn);
 
-    // Consulta principal
+    // Consulta principal modificada para evitar duplicados
     $sql = "SELECT user_register.*, 
        COALESCE(municipios.municipio, 'Sin municipio') as municipio, 
        COALESCE(departamentos.departamento, 'Sin departamento') as departamento
         FROM user_register
         LEFT JOIN municipios ON user_register.municipality = municipios.id_municipio
-        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento";
+        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento
+        GROUP BY user_register.number_id
+        ORDER BY user_register.number_id ASC";
 
     $result = $conn->query($sql);
     $data = [];
@@ -212,13 +214,15 @@ function exportDataToExcel($conn)
     $sheet2 = $spreadsheet->createSheet();
     $sheet2->setTitle('Usuarios Registrados');
 
-    // Consulta para obtener todos los datos
+    // Consulta para obtener todos los datos (segunda hoja) - también sin duplicados
     $sql2 = "SELECT user_register.*, 
        COALESCE(municipios.municipio, 'Sin municipio') as municipio, 
        COALESCE(departamentos.departamento, 'Sin departamento') as departamento
         FROM user_register
         LEFT JOIN municipios ON user_register.municipality = municipios.id_municipio
-        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento";
+        LEFT JOIN departamentos ON user_register.department = departamentos.id_departamento
+        GROUP BY user_register.number_id
+        ORDER BY user_register.number_id ASC";
 
     $result2 = $conn->query($sql2);
     $data2 = [];
@@ -415,12 +419,14 @@ function exportDataToExcel($conn)
     // Consultas para estadísticas
     
     // 1. Estadísticas por género
-    $sqlGenero = "SELECT gender, COUNT(*) as total FROM user_register GROUP BY gender";
+    $sqlGenero = "SELECT gender, COUNT(DISTINCT number_id) as total 
+                  FROM user_register 
+                  GROUP BY gender";
     $resultGenero = $conn->query($sqlGenero);
-    $totalUsuarios = array_sum(array_column($data, 0)) ?: count($data); // Total de usuarios
     
-    // Obtener total real de usuarios
-    $sqlTotal = "SELECT COUNT(*) as total FROM user_register";
+    // Obtener total real de usuarios únicos
+    $sqlTotal = "SELECT COUNT(DISTINCT number_id) as total 
+                 FROM user_register";
     $resultTotal = $conn->query($sqlTotal);
     $totalUsuarios = $resultTotal->fetch_assoc()['total'];
 
@@ -446,7 +452,9 @@ function exportDataToExcel($conn)
     }
 
     // 2. Estadísticas por programa
-    $sqlPrograma = "SELECT program, COUNT(*) as total FROM user_register GROUP BY program";
+    $sqlPrograma = "SELECT program, COUNT(DISTINCT number_id) as total 
+                    FROM user_register 
+                    GROUP BY program";
     $resultPrograma = $conn->query($sqlPrograma);
     
     $row += 2; // Espacio
@@ -469,7 +477,9 @@ function exportDataToExcel($conn)
     }
 
     // 3. Estadísticas por área de residencia (Rural/Urbana)
-    $sqlArea = "SELECT residence_area, COUNT(*) as total FROM user_register GROUP BY residence_area";
+    $sqlArea = "SELECT residence_area, COUNT(DISTINCT number_id) as total 
+                FROM user_register 
+                GROUP BY residence_area";
     $resultArea = $conn->query($sqlArea);
     
     $row += 2; // Espacio

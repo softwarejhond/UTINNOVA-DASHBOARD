@@ -344,13 +344,23 @@ try {
         $stmtInscritos->close();
     }
 
+    // Calcular total de registros en user_register con institution = 'SenaTICS'
+    $sqlTotalUsuarios = "SELECT COUNT(*) as total_usuarios FROM user_register WHERE institution = 'SenaTICS'";
+    $resTotalUsuarios = $conn->query($sqlTotalUsuarios);
+    $totalUsuarios = 0;
+    if ($rowTotal = $resTotalUsuarios->fetch_assoc()) {
+        $totalUsuarios = intval($rowTotal['total_usuarios']);
+    }
+    $resTotalUsuarios->close();
+
     header('Content-Type: application/json');
     echo json_encode([
         'totalesPorCurso' => $totalesPorCurso,
         'totalInscritosGeneral' => $totalInscritosGeneral,
         'total75General' => $total75General,
         'totalMenos75General' => $totalMenos75General,
-        'metaGoal' => $metaGoal
+        'metaGoal' => $metaGoal,
+        'totalUsuarios' => $totalUsuarios  // Nuevo campo agregado
     ]);
 
 } catch (Exception $e) {
