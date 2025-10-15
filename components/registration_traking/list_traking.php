@@ -376,7 +376,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                                                 <h6>Frente del documento</h6>
                                                 <div class="position-relative overflow-visible">
                                                     <img id="idImageFront_<?php echo $row['number_id']; ?>"
-                                                        src="https://dashboard.uttalento.co/files/idFilesFront/<?php echo htmlspecialchars($row['file_front_id']); ?>"
+                                                        src="https://dashboard.utinnova.co/files/idFilesFront/<?php echo htmlspecialchars($row['file_front_id']); ?>"
                                                         class="img-fluid w-100 zoomable"
                                                         style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
                                                         alt="Frente ID"
@@ -393,7 +393,7 @@ function obtenerHorarios($conn, $mode, $headquarters, $program)
                                                 <h6>Reverso del documento</h6>
                                                 <div class="position-relative overflow-visible">
                                                     <img id="idImageBack_<?php echo $row['number_id']; ?>"
-                                                        src="https://dashboard.uttalento.co/files/idFilesBack/<?php echo htmlspecialchars($row['file_back_id']); ?>"
+                                                        src="https://dashboard.utinnova.co/files/idFilesBack/<?php echo htmlspecialchars($row['file_back_id']); ?>"
                                                         class="img-fluid w-100 zoomable"
                                                         style="max-height: 400px; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1055;"
                                                         alt="Reverso ID"

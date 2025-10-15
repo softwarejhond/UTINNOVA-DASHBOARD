@@ -103,14 +103,19 @@ $cedula = $_POST['cedula'] ?? 'N/A';
 $nombre_bootcamp_original = $_POST['nombre_bootcamp'] ?? 'N/A';
 $nombre_bootcamp = limpiarNombreBootcamp($nombre_bootcamp_original); // Aplicar limpieza
 
-// Verificar que la limpieza funcionó correctamente (para depuración)
-error_log("Nombre original: " . $nombre_bootcamp_original);
-error_log("Nombre limpio: " . $nombre_bootcamp);
+// Obtener modalidad real desde la base de datos (tabla groups)
+$modalidad_asistencia = 'N/A';
+$stmt = $conn->prepare("SELECT mode FROM groups WHERE number_id = ? LIMIT 1");
+$stmt->bind_param("s", $cedula);
+$stmt->execute();
+$stmt->bind_result($mode_db);
+if ($stmt->fetch()) {
+    $modalidad_asistencia = strtolower($mode_db); // Convertir a minúsculas
+}
+$stmt->close();
 
 $fecha_inicio = $_POST['fecha_inicio'] ?? '';
 $fecha_fin = $_POST['fecha_fin'] ?? '';
-$modalidad_asistencia = $_POST['modalidad'] ?? 'N/A';
-$schedules = $_POST['schedules'] ?? 'N/A';
 $email = $_POST['email'] ?? '';
 
 // Validar email
@@ -255,7 +260,7 @@ if ($constancia_existente) {
 $dia_actual = date("d");
 $mes_actual = nombreMes(date("m"));
 $anio_actual = date("Y");
-$modalidad_asistencia = 'presencial';
+$modalidad_asistencia = $_POST['modalidad'] ?? 'N/A';
 
 // Procesar fecha de inicio y fin
 $dia_inicio = date('d', strtotime($fecha_inicio));

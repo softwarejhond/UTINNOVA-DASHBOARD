@@ -1,5 +1,9 @@
 <?php
+session_start(); // Iniciar sesión para acceder al username
 header('Content-Type: application/json');
+
+// Incluir conexión a la BD
+include_once '../../controller/conexion.php'; // Ajusta la ruta si es necesario
 
 // Verificar si se recibió POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -112,6 +116,13 @@ try {
     if ($json_parsed && isset($json_parsed->status)) {
         $status = $json_parsed->status;
         if ($status == '000') {
+            // --- Registro en la base de datos ---
+            $sender = isset($_SESSION['username']) ? $_SESSION['username'] : 'Desconocido';
+            $stmt = $conn->prepare("INSERT INTO sms_logs (phone, message, sender) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $phone, $message, $sender);
+            $stmt->execute();
+            $stmt->close();
+            // --- Fin registro ---
             echo json_encode(['success' => true, 'message' => 'SMS enviado exitosamente']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Error en el envío: ' . $response]);

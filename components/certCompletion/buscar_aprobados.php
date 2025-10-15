@@ -278,13 +278,13 @@ try {
         $nombrePrograma = obtenerNombrePrograma($conn, $bootcamp);
         
         $tableContent .= '<tr data-student-id="' . htmlspecialchars($row['number_id']) . '"
-                          data-student-cedula="' . htmlspecialchars($row['number_id']) . '"
-                          data-student-name="' . htmlspecialchars($row['full_name']) . '"
-                          data-student-email="' . htmlspecialchars($row['institutional_email']) . '"
-                          data-student-modalidad="presencial"
-                          data-student-start-date="' . date('Y-m-d') . '"
-                          data-student-end-date="' . date('Y-m-d') . '"
-                          data-has-certificate="' . ($constanciaExiste ? 'true' : 'false') . '">';
+                  data-student-cedula="' . htmlspecialchars($row['number_id']) . '"
+                  data-student-name="' . htmlspecialchars($row['full_name']) . '"
+                  data-student-email="' . htmlspecialchars($row['institutional_email']) . '"
+                  data-student-modalidad="' . strtolower(htmlspecialchars($row['mode'])) . '"
+                  data-student-start-date="' . date('Y-m-d') . '"
+                  data-student-end-date="' . date('Y-m-d') . '"
+                  data-has-certificate="' . ($constanciaExiste ? 'true' : 'false') . '">';
         
         // Checkbox con estado según si ya tiene constancia
         $tableContent .= '<td class="text-center">';

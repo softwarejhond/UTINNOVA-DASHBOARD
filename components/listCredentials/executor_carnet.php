@@ -85,8 +85,8 @@ function generateExecutorCarnet($username, $generatedBy = null) {
             $carnetDir = $_SERVER['DOCUMENT_ROOT'] . '/dashboard/carnets/';
             $rootPath = $_SERVER['DOCUMENT_ROOT'] . '/dashboard/';
         } else {
-            $carnetDir = $_SERVER['DOCUMENT_ROOT'] . '/DASBOARD-ADMIN-MINTICS/carnets/';
-            $rootPath = $_SERVER['DOCUMENT_ROOT'] . '/DASBOARD-ADMIN-MINTICS/';
+            $carnetDir = $_SERVER['DOCUMENT_ROOT'] . '/UTINNOVA-DASHBOARD/carnets/';
+            $rootPath = $_SERVER['DOCUMENT_ROOT'] . '/UTINNOVA-DASHBOARD/';
         }
         
         if (!is_dir($carnetDir)) {
@@ -115,7 +115,7 @@ function generateExecutorCarnet($username, $generatedBy = null) {
         $footerCarnet = imgToBase64($rootPath . 'img/footer_carnet.png');
         
         // Generar URL del código QR para ejecutor
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data=https://dashboard.uttalento.co/executorInfo.php?id=' . urlencode($data['username']) . '&size=400x400';
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?data=https://dashboard.utinnova.co/executorInfo.php?id=' . urlencode($data['username']) . '&size=400x400';
         
         $options = new Options();
         $options->set('isRemoteEnabled', true);

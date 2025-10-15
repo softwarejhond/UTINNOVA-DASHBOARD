@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Generar título y URL automáticamente
     $title = "Masterclass {$course_name}, {$fecha_titulo}";
-    $url = "https://dashboard.uttalento.co/asistenciaMasterClass.php?fecha={$fecha_url}&curso={$course_id}";
+    $url = "https://dashboard.utinnova.co/asistenciaMasterClass.php?fecha={$fecha_url}&curso={$course_id}";
 
     // Generar nombre de archivo con título y fecha/hora
     $fecha_archivo = date('Y-m-d_H-i-s');
