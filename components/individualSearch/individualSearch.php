@@ -40,7 +40,7 @@
                         LEFT JOIN municipios m ON ur.municipality = m.id_municipio 
                         LEFT JOIN departamentos d ON ur.department = d.id_departamento
                         LEFT JOIN participantes p ON ur.number_id = p.numero_documento
-                        WHERE ur.number_id LIKE ? LIMIT 1";
+                        WHERE ur.number_id = ? LIMIT 1";
                 // Función para obtener los niveles de los usuarios
                 function obtenerNivelesUsuarios($conn)
                 {
@@ -60,7 +60,7 @@
                 $nivelesUsuarios = obtenerNivelesUsuarios($conn);
 
                 $stmt = $conn->prepare($query);
-                $searchParam = "%$filtervalues%";
+                $searchParam = $filtervalues;  // Eliminar los comodines % para búsqueda exacta
                 $stmt->bind_param("s", $searchParam);
                 $stmt->execute();
                 $result = $stmt->get_result();

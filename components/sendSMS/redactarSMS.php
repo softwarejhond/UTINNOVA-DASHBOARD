@@ -50,6 +50,18 @@
             <h5 class="text-center mb-0"><i class="bi bi-chat-dots"></i> Redactar SMS</h5>
         </div>
         <div class="p-3 border border-top-0 rounded-bottom">
+            <!-- Input para agregar teléfonos manuales (fuera del form) -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Agregar Destinatarios Manuales:</label>
+                <div class="input-group">
+                    <input type="text" class="form-control manual-phone-input" 
+                        placeholder="Ingrese número de teléfono colombiano (10 dígitos, empezando por 3, puede incluir +57) y presione Enter, o pegue múltiples separados por saltos de línea">
+                    <button class="btn btn-outline-secondary add-manual-phone" type="button">
+                        <i class="bi bi-plus-circle"></i> Agregar
+                    </button>
+                </div>
+            </div>
+
             <form id="smsForm">
                 <!-- Destinatarios (Números de teléfono) -->
                 <div class="mb-3">
@@ -135,7 +147,7 @@
     $(document).ready(function() {
         Swal.fire({
             title: 'Información Importante',
-            html: '<p>Este sistema tiene una capacidad límite de <strong>500 SMS diarios</strong>.</p>' +
+            html: '<p>Este sistema tiene una capacidad límite de <strong>1000 SMS diarios</strong>.</p>' +
                 '<p>Se recomienda usar esta función con moderación para evitar problemas con el proveedor de SMS.</p>',
             icon: 'info',
             confirmButtonText: 'Entendido',
@@ -172,13 +184,10 @@
             }
         }
 
-        // Renderizar las etiquetas de destinatarios
+        // Renderizar las etiquetas de destinatarios (sin agregar input, ya que está fijo)
         function renderRecipientTags() {
             const container = $('#recipientsContainer');
-            const inputGroup = container.find('.input-group'); // Guarda el input manual
-
-            container.empty(); // Limpia el contenedor
-            container.append(inputGroup); // Vuelve a agregar el input
+            container.empty(); // Limpia solo las etiquetas
 
             selectedRecipients.forEach((recipient) => {
                 const tag = $(`
@@ -189,59 +198,39 @@
                         </span>
                     </div>
                 `);
-                container.append(tag); // Añadir como HIJO del contenedor, no después del input
+                container.append(tag);
             });
         }
 
-        // Agrega el input solo una vez al cargar la página
-        function addPhoneInputField(containerId) {
-            const container = $(`#${containerId}`);
-            if (container.find('.input-group').length === 0) {
-                const inputGroup = $(`
-                    <div class="input-group input-group-sm mt-2 mb-2">
-                        <input type="text" class="form-control form-control-sm manual-phone-input" 
-                            placeholder="Ingrese número de teléfono colombiano (10 dígitos, empezando por 3, puede incluir +57 ) y presione Enter, o pegue múltiples separados por saltos de línea">
-                        <button class="btn btn-outline-secondary add-manual-phone" type="button">
-                            <i class="bi bi-plus-circle"></i>
-                        </button>
-                    </div>
-                `);
-                container.prepend(inputGroup);
-
-                // Eventos del input y botón
-                inputGroup.find('.manual-phone-input').on('keypress', function(e) {
-                    if (e.which === 13) {
-                        e.preventDefault();
-                        const phone = $(this).val().trim();
-                        if (phone) {
-                            addPhone(phone);
-                            $(this).val('');
-                        }
-                    }
-                });
-
-                inputGroup.find('.add-manual-phone').on('click', function() {
-                    const phone = inputGroup.find('.manual-phone-input').val().trim();
-                    if (phone) {
-                        addPhone(phone);
-                        inputGroup.find('.manual-phone-input').val('');
-                    }
-                });
-
-                inputGroup.find('.manual-phone-input').on('paste', function(e) {
-                    const clipboardData = e.originalEvent.clipboardData || window.clipboardData;
-                    const pastedData = clipboardData.getData('Text');
-                    if (pastedData) {
-                        e.preventDefault();
-                        processMultiplePhones(pastedData);
-                        $(this).val('');
-                    }
-                });
+        // Eventos para el input manual (fijo en HTML)
+        $('.manual-phone-input').on('keypress', function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                const phone = $(this).val().trim();
+                if (phone) {
+                    addPhone(phone);
+                    $(this).val('');
+                }
             }
-        }
+        });
 
-        // Inicializar el input solo una vez
-        addPhoneInputField('recipientsContainer');
+        $('.add-manual-phone').on('click', function() {
+            const phone = $('.manual-phone-input').val().trim();
+            if (phone) {
+                addPhone(phone);
+                $('.manual-phone-input').val('');
+            }
+        });
+
+        $('.manual-phone-input').on('paste', function(e) {
+            const clipboardData = e.originalEvent.clipboardData || window.clipboardData;
+            const pastedData = clipboardData.getData('Text');
+            if (pastedData) {
+                e.preventDefault();
+                processMultiplePhones(pastedData);
+                $(this).val('');
+            }
+        });
 
         // Limpiar todos los destinatarios
         $('#clearRecipients').on('click', function() {

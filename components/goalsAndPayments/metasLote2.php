@@ -381,6 +381,7 @@
                 document.getElementById('badgeMetaLote2').textContent = '0';
                 document.getElementById('badgeFaltanteLote2').textContent = '0';
                 document.getElementById('badgeFormadosLote2').textContent = '0';
+                document.getElementById('badgeAlMenosUnaLote2').textContent = '0';  // Agregar esta línea para resetear la tarjeta faltante
                 resumenGeneralTotalesLote2.innerHTML = '';
             }
         }
@@ -477,6 +478,7 @@
                 document.getElementById('badgeMetaLote2').textContent = datos.metaGoal;
                 document.getElementById('badgeFaltanteLote2').textContent = Math.max(0, datos.metaGoal - datos.total75General);
                 document.getElementById('badgeFormadosLote2').textContent = totalFormados;
+                document.getElementById('badgeAlMenosUnaLote2').textContent = datos.totalAlMenosUnaPresente;  // Agregar esta línea para asignar el valor calculado
 
                 // Listado de cursos en tabla
                 let htmlCursos = `

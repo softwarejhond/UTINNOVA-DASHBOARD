@@ -93,7 +93,7 @@ function AltiriaSMS($sDestination, $sMessage, $sSenderId, $debug){
 }
 
 try{
-    echo "The function AltiriaSMS returns: ".AltiriaSMS('573015606006','Mensaje de prueba desde PHP verificar si ha llegado y confirmar.', '', true);    
+    echo "The function AltiriaSMS returns: ".AltiriaSMS('14752661178','Mensaje de prueba desde PHP verificar si ha llegado y confirmar.', '', true);    
 }catch(Exception $e){
    echo 'Error: '.$e->getMessage();
 }
