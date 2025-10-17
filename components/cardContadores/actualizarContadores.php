@@ -438,10 +438,11 @@ try {
 
     // Contador de inscritos por bootcamp para Lote 1 (cursos con L1 en el nombre)
     $queryBootcampsLote1 = "
-        SELECT bootcamp_name, COUNT(*) as cantidad
-        FROM groups
-        WHERE bootcamp_name LIKE '%L1%' AND bootcamp_name IS NOT NULL AND bootcamp_name != ''
-        GROUP BY bootcamp_name
+        SELECT g.bootcamp_name, COUNT(DISTINCT g.number_id) as cantidad
+        FROM groups g
+        INNER JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE ur.lote = 1 AND g.bootcamp_name IS NOT NULL AND g.bootcamp_name != ''
+        GROUP BY g.bootcamp_name
         ORDER BY cantidad DESC
     ";
     $resultadoBootcampsLote1 = $conn->query($queryBootcampsLote1);
@@ -455,12 +456,13 @@ try {
 
     // Contador de inscritos por bootcamp para Lote 2 (cursos con L2 en el nombre)
     $queryBootcampsLote2 = "
-        SELECT bootcamp_name, COUNT(*) as cantidad
-        FROM groups
-        WHERE bootcamp_name LIKE '%L2%' AND bootcamp_name IS NOT NULL AND bootcamp_name != ''
-        GROUP BY bootcamp_name
-        ORDER BY cantidad DESC
-    ";
+    SELECT g.bootcamp_name, COUNT(DISTINCT g.number_id) as cantidad
+    FROM groups g
+    INNER JOIN user_register ur ON g.number_id = ur.number_id
+    WHERE ur.lote = 2 AND g.bootcamp_name IS NOT NULL AND g.bootcamp_name != ''
+    GROUP BY g.bootcamp_name
+    ORDER BY cantidad DESC
+";
     $resultadoBootcampsLote2 = $conn->query($queryBootcampsLote2);
     $bootcampsLote2 = [];
     while ($row = $resultadoBootcampsLote2->fetch_assoc()) {

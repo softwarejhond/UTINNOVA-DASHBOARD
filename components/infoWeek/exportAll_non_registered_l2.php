@@ -97,6 +97,7 @@ function exportDataToExcel($conn)
     WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
     AND user_register.lote = '2'
+    AND user_register.statusAdmin NOT IN ('2', '7', '11')
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
      AND (
@@ -470,7 +471,7 @@ function exportDataToExcel($conn)
     ob_clean(); // Limpia cualquier salida previa
     // Configurar headers para descarga
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="informe_semanal_' . date('Y-m-d') . '.xlsx"');
+    header('Content-Disposition: attachment;filename="contrapartida_L2_' . date('Y-m-d') . '.xlsx"');
     header('Cache-Control: max-age=0');
 
     $writer = new Xlsx($spreadsheet);

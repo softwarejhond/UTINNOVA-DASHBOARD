@@ -7,6 +7,7 @@ require '../../controller/conexion.php';
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 try {
+    $sede = isset($_GET['sede']) ? $_GET['sede'] : '';
     $programa = isset($_GET['programa']) ? $_GET['programa'] : '';
     $busqueda = isset($_GET['busqueda']) ? $_GET['busqueda'] : '';
 
@@ -17,6 +18,7 @@ try {
             COALESCE(ur.birthdate, 'N/A') AS birth_date,
             COALESCE(ur.email, 'N/A') AS email,
             COALESCE(ur.first_phone, 'N/A') AS phone,
+            COALESCE(ur.headquarters, 'N/A') AS sede,
             COALESCE(ur.program, 'N/A') AS program,
             COALESCE(g.mode, 'N/A') AS modalidad,
             CASE ur.statusAdmin
@@ -56,9 +58,15 @@ try {
     $params = [];
     $types = '';
 
+    if (!empty($sede)) {
+        $sql .= " AND ur.headquarters LIKE ?";  // Cambiado a LIKE para mayor flexibilidad
+        $params[] = '%' . $sede . '%';
+        $types .= 's';
+    }
+
     if (!empty($programa)) {
-        $sql .= " AND ur.program = ?";
-        $params[] = $programa;
+        $sql .= " AND ur.program LIKE ?";  // Cambiado a LIKE para mayor flexibilidad
+        $params[] = '%' . $programa . '%';
         $types .= 's';
     }
 
@@ -67,6 +75,8 @@ try {
         $params[] = $busqueda;
         $types .= 's';
     }
+
+    error_log("SQL: $sql, Params: " . implode(', ', $params));  // Agregado para depuración en logs
 
     $stmt = $conn->prepare($sql);
     if (!empty($params)) {

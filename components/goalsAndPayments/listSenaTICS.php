@@ -172,6 +172,20 @@
         <div class="card-body w-100">
             <form class="d-flex flex-wrap gap-3 align-items-end w-100" id="formFiltroListado" autocomplete="off">
                 <div class="flex-fill">
+                    <label for="selectSede" class="form-label">Sede</label>
+                    <select class="form-select" id="selectSede" name="sede">
+                        <option value="">Seleccione una sede</option>
+                        <?php
+                        // Assuming $conn is your database connection
+                        $query = "SELECT DISTINCT headquarters FROM user_register WHERE institution = 'SenaTICS' AND headquarters != ''";
+                        $result = mysqli_query($conn, $query);
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            echo '<option value="' . htmlspecialchars($row['headquarters']) . '">' . htmlspecialchars($row['headquarters']) . '</option>';
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="flex-fill">
                     <label for="selectPrograma" class="form-label">Programa</label>
                     <select class="form-select" id="selectPrograma" name="programa">
                         <option value="">Seleccione un programa</option>
@@ -222,6 +236,7 @@
                             <th>Fecha Nacimiento</th>
                             <th>Correo</th>
                             <th>Teléfono</th>
+                            <th>Sede</th>  <!-- Nueva columna para Sede -->
                             <th>Programa</th>
                             <th>Modalidad</th>
                             <th>Estado Adm.</th>
@@ -236,7 +251,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="text-center" colspan="15">
+                            <td class="text-center" colspan="16">  <!-- Corregido: de 15 a 16 columnas -->
                                 <i class="bi bi-info-circle"></i> Selecciona un filtro para cargar los datos
                             </td>
                         </tr>
@@ -271,8 +286,10 @@
 <script>
     let table = null;
 
-    function loadTable(programa = '', busqueda = '') {
-        if (!programa && !busqueda) {
+    function loadTable(sede = '', programa = '', busqueda = '') {
+        console.log('Cargando con sede:', sede, 'programa:', programa, 'busqueda:', busqueda);  // Agregado para depuración
+
+        if (!sede && !programa && !busqueda) {
             if (!table) {
                 table = $('#listaSenaTICS').DataTable({
                     responsive: true,
@@ -283,7 +300,7 @@
                 });
             }
             table.clear();
-            table.row.add(['<i class="bi bi-info-circle"></i> Selecciona un filtro para cargar los datos', '', '', '', '', '', '', '', '', '', '', '', '', '', '']).draw();
+            table.row.add(['<i class="bi bi-info-circle"></i> Selecciona un filtro para cargar los datos', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']).draw();
             return;
         }
 
@@ -297,10 +314,12 @@
             }
         });
 
-        const url = `components/goalsAndPayments/getSenaTICSList.php?programa=${encodeURIComponent(programa)}&busqueda=${encodeURIComponent(busqueda)}`;
+        const url = `components/goalsAndPayments/getSenaTICSList.php?sede=${encodeURIComponent(sede)}&programa=${encodeURIComponent(programa)}&busqueda=${encodeURIComponent(busqueda)}`;
         fetch(url)
             .then(response => response.json())
             .then(data => {
+                console.log('Datos recibidos:', data);  // Agregado para depuración
+
                 if (!table) {
                     table = $('#listaSenaTICS').DataTable({
                         responsive: true,
@@ -318,6 +337,7 @@
                         row.birth_date,
                         row.email,
                         row.phone,
+                        row.sede,
                         row.program,
                         row.modalidad,
                         row.statusAdmin,
@@ -330,7 +350,7 @@
                         row.fecha_prueba
                     ])).draw();
                 } else {
-                    table.row.add(['No se encontraron resultados', '', '', '', '', '', '', '', '', '', '', '', '', '', '']).draw();
+                    table.row.add(['No se encontraron resultados', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']).draw();
                 }
 
                 // Cerrar loader después de procesar
@@ -352,25 +372,36 @@
     });
 
     // Eventos para cargar datos bajo demanda
+    $('#selectSede').change(function() {
+        $('#inputBusqueda').val(''); // Limpiar el input de búsqueda
+        const sede = $(this).val();
+        const programa = $('#selectPrograma').val();
+        const busqueda = '';
+        loadTable(sede, programa, busqueda);
+    });
+
     $('#selectPrograma').change(function() {
         $('#inputBusqueda').val(''); // Limpiar el input de búsqueda
+        const sede = $('#selectSede').val();
         const programa = $(this).val();
         const busqueda = '';
-        loadTable(programa, busqueda);
+        loadTable(sede, programa, busqueda);
     });
 
     $('#btnSearch').click(function() {
+        const sede = $('#selectSede').val();
         const programa = $('#selectPrograma').val();
         const busqueda = $('#inputBusqueda').val();
-        loadTable(programa, busqueda);
+        loadTable(sede, programa, busqueda);
     });
 
     $('#inputBusqueda').keypress(function(e) {
         if (e.which == 13) {
             e.preventDefault(); // Prevenir submit
+            const sede = $('#selectSede').val();
             const programa = $('#selectPrograma').val();
             const busqueda = $(this).val();
-            loadTable(programa, busqueda);
+            loadTable(sede, programa, busqueda);
         }
     });
 

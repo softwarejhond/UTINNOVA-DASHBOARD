@@ -105,7 +105,7 @@ function exportDataToExcel($conn)
         FROM participantes p
         INNER JOIN user_register ur ON p.numero_documento = ur.number_id
     )
-    AND user_register.directed_base != '1'
+    AND user_register.directed_base != '1' 
     ORDER BY user_register.first_name ASC";
 
     $result = $conn->query($sql);
@@ -470,7 +470,7 @@ function exportDataToExcel($conn)
     ob_clean(); // Limpia cualquier salida previa
     // Configurar headers para descarga
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="informe_semanal_' . date('Y-m-d') . '.xlsx"');
+    header('Content-Disposition: attachment;filename="informe_semanal_L2_' . date('Y-m-d') . '.xlsx"');
     header('Cache-Control: max-age=0');
 
     $writer = new Xlsx($spreadsheet);
