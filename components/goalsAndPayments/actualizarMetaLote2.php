@@ -332,9 +332,9 @@ try {
         } else {
             $contrapartidaInt = intval($contrapartida);
             if ($contrapartidaInt) {
-                $sqlInscritos .= " AND p.numero_documento IS NOT NULL";
+                $sqlInscritos .= " AND (p.numero_documento IS NOT NULL OR ur.directed_base = 1)";
             } else {
-                $sqlInscritos .= " AND p.numero_documento IS NULL";
+                $sqlInscritos .= " AND (p.numero_documento IS NULL AND ur.directed_base != 1)";
             }
         }
 

@@ -194,11 +194,12 @@ function getStudentData($student_id, $conn)
                             <select name="sede" id="sede" class="form-select" disabled>
                                 <option value="">...</option>
                                 <?php
-                                $headquarters_query = "SELECT name FROM headquarters_attendance ORDER BY name";
+                                $headquarters_query = "SELECT DISTINCT headquarters FROM groups ORDER BY headquarters";
                                 $headquarters_result = $conn->query($headquarters_query);
                                 if ($headquarters_result && $headquarters_result->num_rows > 0) {
                                     while ($headquarters = $headquarters_result->fetch_assoc()) {
-                                        echo '<option value="' . htmlspecialchars($headquarters['name']) . '">' . htmlspecialchars($headquarters['name']) . '</option>';
+                                        $value = htmlspecialchars($headquarters['headquarters']);
+                                        echo '<option value="' . $value . '">' . $value . '</option>';
                                     }
                                 }
                                 ?>

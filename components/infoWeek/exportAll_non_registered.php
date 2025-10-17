@@ -99,10 +99,12 @@ function exportDataToExcel($conn)
     AND user_register.lote = '1'
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
-    AND user_register.number_id IN (
-        SELECT p.numero_documento 
-        FROM participantes p
-        INNER JOIN user_register ur ON p.numero_documento = ur.number_id
+     AND (
+        user_register.number_id IN (
+            SELECT p.numero_documento 
+            FROM participantes p
+        )
+        OR user_register.directed_base = '1'
     )
     ORDER BY user_register.first_name ASC";
 

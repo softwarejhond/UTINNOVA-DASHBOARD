@@ -220,13 +220,14 @@ $courses_data = getCourses();
                             <select name="sede" id="sede" class="form-select">
                                 <option value="">Seleccione una sede</option>
                                 <?php
-                                // Consulta para obtener las sedes desde la tabla headquarters
-                                $query = "SELECT name FROM headquarters_attendance ORDER BY name";
+                                // Consulta para obtener las sedes desde la tabla groups
+                                $query = "SELECT DISTINCT headquarters FROM groups ORDER BY headquarters";
                                 $result = $conn->query($query);
 
                                 if ($result && $result->num_rows > 0) {
                                     while ($row = $result->fetch_assoc()) {
-                                        echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                        $sede = $row['headquarters'];
+                                        echo '<option value="' . htmlspecialchars($sede) . '">' . htmlspecialchars($sede) . '</option>';
                                     }
                                 } else {
                                     echo '<option value="">No hay sedes disponibles</option>';

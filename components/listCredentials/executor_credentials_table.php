@@ -196,12 +196,12 @@ sort($sedes);
                             <option value="">Seleccione una sede</option>
                             <?php
                             // Consulta para obtener las sedes
-                            $query = "SELECT name FROM headquarters_attendance ORDER BY name";
+                            $query = "SELECT DISTINCT headquarter FROM groups ORDER BY headquarter";
                             $result_hq = $conn->query($query);
 
                             if ($result_hq && $result_hq->num_rows > 0) {
                                 while ($row_hq = $result_hq->fetch_assoc()) {
-                                    $sede = htmlspecialchars($row_hq['name']);
+                                    $sede = htmlspecialchars($row_hq['headquarter']);
                                     echo "<option value=\"$sede\">$sede</option>";
                                 }
                             } else {

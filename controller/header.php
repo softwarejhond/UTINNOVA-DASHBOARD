@@ -100,8 +100,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li>
+                                <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li> -->
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>

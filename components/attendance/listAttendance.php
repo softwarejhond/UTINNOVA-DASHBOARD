@@ -143,12 +143,12 @@ $courses_data = getCoursesFromDB($conn);
                                 <option value="">Seleccione una sede</option>
                                 <?php
                                 // Consulta para obtener las sedes
-                                $query = "SELECT name FROM headquarters_attendance ORDER BY name";
+                                $query = "SELECT DISTINCT headquarters FROM groups ORDER BY headquarters";
                                 $result = $conn->query($query);
 
                                 if ($result && $result->num_rows > 0) {
                                     while ($row = $result->fetch_assoc()) {
-                                        $sede = htmlspecialchars($row['name']);
+                                        $sede = htmlspecialchars($row['headquarters']);
                                         echo "<option value=\"$sede\">$sede</option>";
                                     }
                                 } else {
