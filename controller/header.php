@@ -20,6 +20,7 @@ $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
 
 require_once __DIR__ . '/../components/modals/cohortes.php';
 ?>
+
 <?php include("components/sliderBarRight.php"); ?> <!-- Barra lateral derecha de opciones -->
 <?php include 'components/multipleEmail/float_email.php'; ?> <!-- Botón flotante de correo -->
 
@@ -143,19 +144,19 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
 
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
-                <?php // include 'components/studentsReports/reportsButton.php'; ?>
+                <?php include 'components/studentsReports/reportsButton.php'; ?>
             <?php endif; ?>
 
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
-                <?php // include 'components/pqr/pqrButton.php'; ?>
+                <?php include 'components/pqr/pqrButton.php'; ?>
             <?php endif; ?>
 
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Permanencia' || $rol === 'Académico'): ?>
-                <?php //include 'components/bootcampPeriods/periods_button.php'; ?>
+                <?php include 'components/bootcampPeriods/periods_button.php'; ?>
             <?php endif; ?>
 
             <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Académico'): ?>
-                <?php // include 'components/classrooms/classroom_button.php'; ?>
+                <?php include 'components/classrooms/classroom_button.php'; ?>
             <?php endif; ?>
             <!-- <button class="btn btn-warning position-relative me-4" type="button" id="previousStudentsButton" data-bs-title="Estudiantes certificados">
                     <i class="fa-solid fa-user-graduate fa-shake"></i>
