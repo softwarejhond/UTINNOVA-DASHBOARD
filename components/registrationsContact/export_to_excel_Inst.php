@@ -22,6 +22,16 @@ function exportDataToExcel($conn)
     // Obtener niveles de usuarios
     $nivelesUsuarios = obtenerNivelesUsuarios($conn);
 
+    // Consulta para obtener participantes
+    $sqlParticipantes = "SELECT numero_documento FROM participantes";
+    $resultParticipantes = $conn->query($sqlParticipantes);
+    $participantes = [];
+    if ($resultParticipantes && $resultParticipantes->num_rows > 0) {
+        while ($part = $resultParticipantes->fetch_assoc()) {
+            $participantes[] = $part['numero_documento'];
+        }
+    }
+
     // Consulta principal modificada para evitar duplicados
     $sql = "SELECT user_register.*, 
        COALESCE(municipios.municipio, 'Sin municipio') as municipio, 
@@ -136,6 +146,8 @@ function exportDataToExcel($conn)
                 $estadoAdmision = 'PENDIENTE MINTIC';
             }
 
+            // Determinar si es contrapartida
+            $isContrapartida = ($row['directed_base'] == 1) || in_array($row['number_id'], $participantes);
 
             // Construir fila de datos
             $data[] = [
@@ -171,8 +183,8 @@ function exportDataToExcel($conn)
                 'Detalle Llamada' => $lastLog['details'],
                 'Contacto Establecido' => $lastLog['contact_established'] ? 'Sí' : 'No',
                 'Continúa Interesado' => $lastLog['continues_interested'] ? 'Sí' : 'No',
-                'Observación' => $lastLog['observation']
-
+                'Observación' => $lastLog['observation'],
+                'Contrapartida' => $isContrapartida ? 'Sí' : 'No'
             ];
         }
     }
@@ -292,7 +304,8 @@ function exportDataToExcel($conn)
             'Medio de Contacto',
             'Institución',
             'Fecha Creación',
-            'Fecha Actualización'
+            'Fecha Actualización',
+            'Contrapartida'
         ];
 
         $sheet2->fromArray($headers2, NULL, 'A1');
@@ -327,6 +340,9 @@ function exportDataToExcel($conn)
             } elseif ($row['statusAdmin'] === '12') {
                 $estadoAdmision = 'PENDIENTE MINTIC';
             }
+
+            // Determinar si es contrapartida
+            $isContrapartida = ($row['directed_base'] == 1) || in_array($row['number_id'], $participantes);
 
             $sheet2->fromArray([
                 $row['typeID'],
@@ -391,7 +407,8 @@ function exportDataToExcel($conn)
                 $row['contactMedium'],
                 $row['institution'],
                 $row['creationDate'],
-                $row['dayUpdate']
+                $row['dayUpdate'],
+                $isContrapartida ? 'Sí' : 'No'
             ], NULL, "A{$rowIndex2}");
             $rowIndex2++;
         }

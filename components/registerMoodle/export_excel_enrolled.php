@@ -61,8 +61,9 @@ $sheet->setCellValue('X1', 'Aula');                     // NUEVO
 $sheet->setCellValue('Y1', 'Nivel Elegido');
 $sheet->setCellValue('Z1', 'Puntaje de Prueba');
 $sheet->setCellValue('AA1', 'Nivel Obtenido');
+$sheet->setCellValue('AB1', 'Es Contrapartida'); // NUEVA COLUMNA
 
-// Query to get data (agregando DISTINCT)
+// Query to get data (agregando DISTINCT y nuevos campos)
 $query = "SELECT DISTINCT
             g.*, 
             ur.first_phone, 
@@ -70,12 +71,15 @@ $query = "SELECT DISTINCT
             ur.level,
             ur.schedules,
             ur.schedules_alternative,
+            ur.directed_base,
+            p.numero_documento AS es_participante,
             c.classroom_name,
             cp.cohort AS course_cohort,
             cp.start_date,
             cp.end_date
           FROM groups g 
           LEFT JOIN user_register ur ON g.number_id = ur.number_id
+          LEFT JOIN participantes p ON ur.number_id = p.numero_documento
           LEFT JOIN classrooms c ON g.id_bootcamp = c.bootcamp_id
           LEFT JOIN course_periods cp ON g.id_bootcamp = cp.bootcamp_code";
 $stmt = $conn->query($query);
@@ -134,18 +138,23 @@ while ($data = mysqli_fetch_assoc($stmt)) {
         $sheet->setCellValue('Z' . $row, 'No presentó');
         $sheet->setCellValue('AA' . $row, 'No presentó');
     }
+
+    // Determinar si es contrapartida
+    $esContrapartida = (!empty($data['es_participante']) || $data['directed_base'] == '1') ? 'Sí' : 'No';
+    $sheet->setCellValue('AB' . $row, $esContrapartida);
+
     $row++;
 }
 
 // Auto size columns
-foreach(range('A','AA') as $columnID) {
+foreach(range('A','AB') as $columnID) {
     $sheet->getColumnDimension($columnID)->setAutoSize(true);
 }
 
 // Set background color for header
-$sheet->getStyle('A1:AA1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF808080');
+$sheet->getStyle('A1:AB1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF808080');
 // Set border for all cells
-$sheet->getStyle('A1:AA' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+$sheet->getStyle('A1:AB' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
 // Set header for download
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

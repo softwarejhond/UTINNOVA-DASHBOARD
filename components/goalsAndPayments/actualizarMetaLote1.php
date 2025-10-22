@@ -260,6 +260,7 @@ try {
             SELECT COUNT(*) as total_formados
             FROM groups g
             INNER JOIN user_register ur ON g.number_id = ur.number_id
+            LEFT JOIN participantes p ON ur.number_id = p.numero_documento 
             WHERE ur.lote = 1
             AND g.id_bootcamp = ?
             AND ur.statusAdmin = 10
@@ -271,6 +272,16 @@ try {
             $sqlFormados .= " AND g.mode = ?";
             $params[] = $modalidad;
             $paramTypes .= "s";
+        }
+
+        // NUEVO: Agregar filtro de contrapartida (aplicar aquí, después de modalidad)
+        if ($contrapartida !== 'Todas') {
+            $contrapartidaInt = intval($contrapartida);
+            if ($contrapartidaInt) {
+                $sqlFormados .= " AND (p.numero_documento IS NOT NULL OR ur.directed_base = 1)";
+            } else {
+                $sqlFormados .= " AND (p.numero_documento IS NULL AND ur.directed_base != 1)";
+            }
         }
 
         // NUEVO: Agregar filtro de instituciones en formados
