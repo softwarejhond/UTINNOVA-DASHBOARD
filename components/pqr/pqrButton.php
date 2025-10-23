@@ -113,10 +113,16 @@ function listarPQRsNuevas()
         const pqrBtn = document.getElementById("pqrNotificationBtn");
         const pqrDropdown = document.getElementById("pqrDropdown");
         const notificationSound = document.getElementById("notificationSound");
-        let lastCount = 0; // Inicializa en 0
+        let lastCount = null; // Cambia a null
 
         // Cargar el contador al iniciar
-        updatePQRCounter();
+        fetch("components/pqr/pqrButton.php?action=count")
+            .then(response => response.json())
+            .then(data => {
+                const pqrCounter = document.getElementById("pqrCounter");
+                pqrCounter.textContent = data.count;
+                lastCount = data.count; // Inicializa lastCount con el valor actual
+            });
 
         // Toggle dropdown
         pqrBtn.addEventListener("click", function(e) {
@@ -173,15 +179,15 @@ function listarPQRsNuevas()
                 .then(data => {
                     const pqrCounter = document.getElementById("pqrCounter");
                     pqrCounter.textContent = data.count;
-                    
-                    // Reproducir sonido si hay nuevas PQRs
-                    if (data.count > lastCount) {
+
+                    // Solo reproduce sonido si lastCount ya fue inicializado
+                    if (lastCount !== null && data.count > lastCount) {
                         const tempAudio = new Audio("components/pqr/sounds/notification.mp3");
                         tempAudio.play().catch(err => {
                             console.log("Error reproduciendo sonido:", err.message);
                         });
                     }
-                    
+
                     lastCount = data.count;
                 })
                 .catch(error => {

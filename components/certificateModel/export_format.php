@@ -170,7 +170,7 @@ if ($certificado_existente) {
 
 // Formatear fechas
 $fecha_actual = date("d") . ' de ' . nombreMes(date("m")) . ' de ' . date("Y");
-$modalidad_asistencia = 'presencial';
+$modalidad_asistencia = $_POST['modalidad'] ?? 'N/A';
 
 // Procesar fecha de inicio y fin
 $dia_inicio = date('d', strtotime($fecha_inicio));
@@ -281,7 +281,7 @@ $html = '<html>
         Cordial saludo,
     </div><br><br>
     <div class="justificado" style="margin-bottom:20px;">
-        En mi calidad de Directora de Proyecto para la ejecución del contrato 1107 de 2025 suscrito entre el Fondo Único de Tecnologías de la Información y las Comunicaciones y la Unión Temporal Innova Digital, me dirijo a usted con el fin de informar que el (la) señor(a) <b>' . strtoupper($nombre_estudiante) . '</b> identificado (a) con cédula de ciudadanía No <b>' . $cedula . '</b>, se encuentra matriculada en el <b>Programa Talento Tech - Bogotá</b> en el bootcamp de <b>' . $nombre_bootcamp . '</b> de manera <b>' . $modalidad_asistencia . '</b> en los horarios <b>' . $schedules . '</b>, el cual se desarrollará del <b>' . $dia_inicio . ' de ' . $mes_inicio . '</b> al <b>' . $dia_fin . ' de ' . $mes_fin . '</b> de ' . $anio_fin . '.
+        En mi calidad de Director de Proyecto para la ejecución del contrato 1107 de 2025 suscrito entre el Fondo Único de Tecnologías de la Información y las Comunicaciones y la Unión Temporal Innova Digital, me dirijo a usted con el fin de informar que el (la) señor(a) <b>' . strtoupper($nombre_estudiante) . '</b> identificado (a) con cédula de ciudadanía No <b>' . $cedula . '</b>, se encuentra matriculada en el <b>Programa Talento Tech - Bogotá</b> en el bootcamp de <b>' . $nombre_bootcamp . '</b> de manera <b>' . $modalidad_asistencia . '</b> en los horarios <b>' . $schedules . '</b>, el cual se desarrollará del <b>' . $dia_inicio . ' de ' . $mes_inicio . '</b> al <b>' . $dia_fin . ' de ' . $mes_fin . '</b> de ' . $anio_fin . '.
     </div><br><br>
     <div style="margin-bottom:20px;">
         Cordialmente,

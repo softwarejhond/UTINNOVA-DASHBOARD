@@ -7,7 +7,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 // Cargar el archivo Excel
 $inputFileName = __DIR__ . '/uploads/convenio_Cesar.xlsx';
 $spreadsheet = IOFactory::load($inputFileName);
-$sheet = $spreadsheet->getSheetByName('Validos'); // Usar la hoja "Validos"
+$sheet = $spreadsheet->getSheetByName('Sheet1'); // Usar la hoja "Validos"
 
 if (!$sheet) {
     die('No se encontró la hoja "Validos".');
@@ -23,12 +23,11 @@ foreach ($sheet->getRowIterator(2) as $row) {
         $data[] = $cell->getValue();
     }
 
-    // Asignar valores según columnas
-    $nombres = isset($data[0]) && $data[0] != 0 ? explode(' ', $data[0]) : ['','','',''];
-    $number_id = isset($data[1]) && $data[1] != 0 ? intval($data[1]) : 0;
-    $email = isset($data[2]) && $data[2] != 0 ? $data[2] : '';
-    $first_phone = isset($data[3]) && $data[3] != 0 ? $data[3] : '';
-    $program = isset($data[4]) && $data[4] != 0 ? $data[4] : '';
+    // Tomar datos de columnas específicas
+    $nombres = isset($data[0]) ? explode(' ', $data[0]) : ['','','','']; // Columna A
+    $number_id = isset($data[1]) ? intval($data[1]) : 0;                // Columna B
+    $email = isset($data[2]) ? $data[2] : '';                           // Columna C
+    $first_phone = isset($data[3]) ? $data[3] : '';                     // Columna D
 
     // Separar nombres (máximo 4 partes)
     $first_name = isset($nombres[0]) ? $nombres[0] : '';
@@ -36,7 +35,14 @@ foreach ($sheet->getRowIterator(2) as $row) {
     $first_last = isset($nombres[2]) ? $nombres[2] : '';
     $second_last = isset($nombres[3]) ? $nombres[3] : '';
 
-    // Evitamos usar bind_param con muchos parámetros y usamos una inserción más directa
+    // Verificar si el number_id ya existe
+    $checkSql = "SELECT number_id FROM user_register WHERE number_id = $number_id";
+    $checkResult = $conn->query($checkSql);
+    if ($checkResult && $checkResult->num_rows > 0) {
+        echo "Duplicado: $first_name $first_last ($number_id)<br>";
+        continue;
+    }
+
     $sql = "INSERT INTO user_register SET 
         typeID = '',
         number_id = $number_id,
@@ -77,7 +83,7 @@ foreach ($sheet->getRowIterator(2) as $row) {
         availability = '',
         mode = '',
         headquarters = '',
-        program = '" . $conn->real_escape_string($program) . "',
+        program = '',
         schedules = '',
         schedules_alternative = '',
         prior_knowledge = '',
