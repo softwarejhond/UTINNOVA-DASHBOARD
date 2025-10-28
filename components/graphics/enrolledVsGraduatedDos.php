@@ -164,7 +164,9 @@
             document.getElementById('certificadosStatDos').textContent = `Certificados: ${certificados}`;
         }
 
+        // CARGA INICIAL ÚNICAMENTE (SIN POLLING)
         actualizarGraficoMatriculadosVsFormadosDos();
-        setInterval(actualizarGraficoMatriculadosVsFormadosDos, 10000);
+
+        window.actualizarGraficoMatriculadosVsFormadosDos = actualizarGraficoMatriculadosVsFormadosDos;
     });
 </script>

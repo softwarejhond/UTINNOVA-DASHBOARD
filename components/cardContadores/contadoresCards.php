@@ -674,19 +674,7 @@
         </nav>
     </div>
 </div>
-<script>
-    function actualizarBarraProgreso() {
-        var progreso = 0;
-        var intervalo = setInterval(function() {
-            progreso += 20; // Incremento para completar 100% en 5 segundos
-            $('#progress-bar-global').css('width', progreso + '%').attr('aria-valuenow', progreso);
-            if (progreso >= 100) {
-                clearInterval(intervalo);
-                $('#progress-bar-global').css('width', '0%').attr('aria-valuenow', 0); // Reiniciar la barra de progreso
-            }
-        }, 1000); // Actualizar cada 1 segundo
-    }
-</script>
+
 <!-- Asegúrate de incluir jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
@@ -697,7 +685,7 @@
                 url: 'components/cardContadores/actualizarContadores.php',
                 method: 'GET',
                 success: function(data) {
-                    console.log('Datos recibidos:', data); // Agregar esta línea para depuración
+                    console.log('Datos recibidos:', data);
                     $('#usuers_registrados').text(data.total_registrados);
                     $('#total_usuarios').text(data.total_usuarios);
                     // Actualizar el porcentaje de usuarios aceptados
@@ -909,23 +897,48 @@
                     $('#progress-bar-no-validos-lote2')
                         .css('width', (data.porc_no_validos_lote2 || 0) + '%')
                         .attr('aria-valuenow', data.porc_no_validos_lote2 || 0);
+
+                    // NUEVOS: Actualizar contadores de sedes
+                    if (data.sedesLote1 && data.sedesLote1.length > 0) {
+                        const totalSedesLote1 = data.sedesLote1.reduce((sum, sede) => sum + parseInt(sede.cantidad), 0);
+                        $('#cantidadSedeLoteUno').text(totalSedesLote1);
+                    }
+
+                    if (data.sedesMatriculadosLote1 && data.sedesMatriculadosLote1.length > 0) {
+                        const totalMatriculadosLote1 = data.sedesMatriculadosLote1.reduce((sum, sede) => sum + parseInt(sede.cantidad), 0);
+                        $('#cantidadSedeMatriculadosLoteUno').text(totalMatriculadosLote1);
+                    }
+
+                    if (data.sedesLote2 && data.sedesLote2.length > 0) {
+                        const totalSedesLote2 = data.sedesLote2.reduce((sum, sede) => sum + parseInt(sede.cantidad), 0);
+                        $('#cantidadSedeLoteDos').text(totalSedesLote2);
+                    }
+
+                    if (data.sedesMatriculadosLote2 && data.sedesMatriculadosLote2.length > 0) {
+                        const totalMatriculadosLote2 = data.sedesMatriculadosLote2.reduce((sum, sede) => sum + parseInt(sede.cantidad), 0);
+                        $('#cantidadSedeMatriculadosLoteDos').text(totalMatriculadosLote2);
+                    }
+
+                    // LLAMAR A FUNCIONES DE ACTUALIZACIÓN DE BOOTCAMPS
+                    if (typeof window.actualizarBootcampsLoteUno === 'function') {
+                        window.actualizarBootcampsLoteUno();
+                    }
+                    if (typeof window.actualizarBootcampsLoteDos === 'function') {
+                        window.actualizarBootcampsLoteDos();
+                    }
+
+                    if (typeof window.actualizarGraficoMatriculadosVsFormados === 'function') {
+                        window.actualizarGraficoMatriculadosVsFormados();
+                    }
+
+                    if (typeof window.actualizarGraficoMatriculadosVsFormadosDos === 'function') {
+                        window.actualizarGraficoMatriculadosVsFormadosDos();
+                    }
                 },
                 error: function(error) {
                     console.error('Error al obtener los datos:', error);
                 }
             });
-        }
-
-        function actualizarBarraProgreso() {
-            var progreso = 0;
-            var intervalo = setInterval(function() {
-                progreso += 20; // Incremento para completar 100% en 5 segundos
-                $('#progress-bar-global').css('width', progreso + '%').attr('aria-valuenow', progreso);
-                if (progreso >= 100) {
-                    clearInterval(intervalo);
-                    $('#progress-bar-global').css('width', '0%').attr('aria-valuenow', 0); // Reiniciar la barra de progreso
-                }
-            }, 1000); // Actualizar cada 1 segundo
         }
 
         function actualizarHoraActual() {
@@ -935,20 +948,25 @@
             var segundos = now.getSeconds().toString().padStart(2, '0');
             var ampm = horas >= 12 ? 'PM' : 'AM';
             horas = horas % 12;
-            horas = horas ? horas : 12; // La hora '0' debe ser '12'
-            var horaActual = '<i class="bi bi-hourglass-split"></i> Actualiza en tiempo real: ' + horas + ':' + minutos + ':' + segundos + ' ' + ampm;
+            horas = horas ? horas : 12;
+            var horaActual = '<i class="bi bi-hourglass-split"></i> Última actualización: ' + horas + ':' + minutos + ':' + segundos + ' ' + ampm;
             $('#current-time').html(horaActual);
         }
 
-        // Ejecutar la función cada 5 segundos para actualizar en tiempo real
-        function iniciarActualizacion() {
+        // FUNCIÓN PRINCIPAL PARA ACTUALIZACIÓN MANUAL
+        function iniciarActualizacionManual() {
             actualizarContadores();
-            actualizarBarraProgreso();
+            actualizarHoraActual();
         }
 
-        iniciarActualizacion();
-        setInterval(iniciarActualizacion, 10000);
-        setInterval(actualizarHoraActual, 1000); // Actualizar la hora cada segundo
+        // MANTENER SOLO LA ACTUALIZACIÓN DE HORA
+        setInterval(actualizarHoraActual, 1000);
+
+        // CARGA INICIAL DE DATOS
+        iniciarActualizacionManual();
+
+        // EXPONER LA FUNCIÓN GLOBALMENTE PARA EL BOTÓN
+        window.actualizarContadoresManual = iniciarActualizacionManual;
 
         // Agregar el evento change para el select
         $('#institucionSelect').change(function() {

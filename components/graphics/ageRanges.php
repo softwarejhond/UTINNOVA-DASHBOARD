@@ -1,4 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 <style>
     #ageRangesChart { width: 350px; height: 200px; }
 </style>
@@ -91,4 +91,4 @@
 
     // Cargar la gráfica
     cargarDatosEdades();
-</script>
+</script> -->

@@ -81,14 +81,9 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
         <div id="dashboard">
             <div class="d-flex align-items-center justify-content-between">
                 <h2 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h2>
-                <div class="loader">
-                    <!-- Animación de carga -->
-                    <div class="slider" style="--i:0"></div>
-                    <div class="slider" style="--i:1"></div>
-                    <div class="slider" style="--i:2"></div>
-                    <div class="slider" style="--i:3"></div>
-                    <div class="slider" style="--i:4"></div>
-                </div>
+                <button id="actualizarContadoresMain" class="btn btn-lg text-white bg-magenta-dark">
+                    <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+                </button>
             </div>
             <hr>
             <?php include("components/cardContadores/contadoresCards.php"); ?> <!-- Tarjetas de contadores principales -->
@@ -121,9 +116,8 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
 <script src="js/dataTables.js?v=0.2"></script>
 <script>
     $(document).ready(function() {
-        $('#link-dashboard').addClass('pagina-activa'); // Marca el dashboard como activo en el menú
+        $('#link-dashboard').addClass('pagina-activa');
 
-        // Inicialización de DataTable para la lista de inscritos
         $('#listaInscritos').DataTable({
             responsive: true,
             language: {
@@ -132,7 +126,6 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
             pagingType: "simple"
         });
 
-        // Mostrar alerta si hay campos incompletos en el perfil del usuario
         <?php if ($mostrar_alerta): ?>
             Swal.fire({
                 title: 'Perfil incompleto',
@@ -144,11 +137,55 @@ if (isset($_SESSION['campos_incompletos']) && $_SESSION['campos_incompletos'] ==
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Redirigir a la página de perfil para completar los datos
-                    window.location.href = 'profile.php'; // Cambia esta ruta por la correcta
+                    window.location.href = 'profile.php';
                 }
             });
         <?php endif; ?>
+
+        // NUEVO EVENTO PARA ACTUALIZACIÓN MANUAL
+        $('#actualizarContadoresMain').on('click', function() {
+            const $btn = $(this);
+            
+            // Cambiar estado del botón
+            $btn.prop('disabled', true);
+            $btn.html('<i class="fa-solid fa-arrows-rotate fa-spin"></i> Actualizando...');
+            
+            // Llamar a la función de actualización
+            if (typeof window.actualizarContadoresManual === 'function') {
+                window.actualizarContadoresManual();
+                
+                // Restaurar botón después de la actualización
+                setTimeout(() => {
+                    $btn.prop('disabled', false);
+                    $btn.html('<i class="fa-solid fa-arrows-rotate"></i> Actualizar');
+                    
+                    // Mostrar notificación de éxito
+                    Swal.fire({
+                        title: '¡Actualizado!',
+                        text: 'Los contadores han sido actualizados correctamente',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }, 1000); // Reducido de 1500 a 1000ms
+            } else {
+                // Si la función no está disponible, restaurar botón
+                $btn.prop('disabled', false);
+                $btn.html('<i class="fa-solid fa-arrows-rotate"></i> Actualizar');
+                
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo actualizar los contadores',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        });
     });
 </script>
 <script>

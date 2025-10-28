@@ -196,6 +196,6 @@ function listarPQRsNuevas()
         }
 
         // Actualizar cada segundo
-        setInterval(updatePQRCounter, 1000);
+        setInterval(updatePQRCounter, 30000);
     });
 </script>

@@ -177,10 +177,13 @@
             document.getElementById('certificadosStat').textContent = `Certificados: ${certificados}`;
         }
 
-        // Actualizar el gráfico inicialmente
+        // CARGA INICIAL ÚNICAMENTE (SIN POLLING)
         actualizarGraficoMatriculadosVsFormados();
 
-        // Actualizar cada 10 segundos
-        setInterval(actualizarGraficoMatriculadosVsFormados, 10000);
+        // ELIMINAR ESTA LÍNEA:
+        // setInterval(actualizarGraficoMatriculadosVsFormados, 10000);
+
+        // EXPONER LA FUNCIÓN GLOBALMENTE PARA EL BOTÓN
+        window.actualizarGraficoMatriculadosVsFormados = actualizarGraficoMatriculadosVsFormados;
     });
 </script>

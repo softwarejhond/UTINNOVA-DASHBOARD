@@ -1,10 +1,10 @@
 <div class="row page align-items-stretch" id="page-2">
     <div class="text-center">
-        <small id="countdown-timer" class="text-muted">Actualización en tiempo real</small>
+        <small id="countdown-timer" class="text-muted">Actualización manual</small>
     </div>
 
     <!-- Primeras tarjetas normales -->
-    <div class="col-md-6 col-lg-3 col-sm-12 pb-4">
+    <div class="col-md-6 col-lg-4 col-sm-12 pb-4">
         <!-- Tarjeta Registrados Lote 2 -->
         <div class="card h-100">
             <div class="card-body"><span class="corner corner-success"></span>
@@ -92,7 +92,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-3 col-sm-12 ">
+    <div class="col-md-6 col-lg-4 col-sm-12 ">
         <div class="card  relative ">
             <div class="card-body z-10">
                 <div class="d-flex align-items-center">
@@ -112,7 +112,7 @@
 
 
     <!-- Nueva tarjeta: Matriculados vs Formados vs Certificados -->
-    <div class="col-md-6 col-lg-3 col-sm-12">
+    <div class="col-md-6 col-lg-4 col-sm-12">
         <div class="card relative">
             <div class="card-body z-10">
                 <div class="d-flex justify-content-between align-items-center">
@@ -129,25 +129,7 @@
         </div>
     </div>
 
-    <!-- Nueva tarjeta: Rangos de Edad -->
-    <div class="col-md-6 col-lg-3 col-sm-12">
-        <div class="card relative">
-            <div class="card-body z-10">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title text-black"><b><i class="bi bi-people-fill"></i> Rangos de Edad Lote 2</b>
-                        <h><br>
-                            <?php include("components/graphics/ageRangesDos.php"); ?>
-                        </h>
-                    </h5>
-                </div>
-            </div>
-            <svg class="absolute bottom-0 right-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-                <path fill="#0099ff" fill-opacity="1" d="M0,192L48,208C96,224,192,256,288,272C384,288,480,288,576,250.7C672,213,768,139,864,138.7C960,139,1056,213,1152,208C1248,203,1344,117,1392,74.7L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" style="fill: #FF6B6B;"></path>
-            </svg>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-3 col-sm-12 pb-4">
+    <div class="col-md-6 col-lg-4 col-sm-12 pb-4">
         <div class="card h-100">
             <div class="card-body"><span class="corner corner-warning"></span>
                 <div class="d-flex mb-0">
@@ -167,7 +149,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6 col-lg-3 col-sm-12 pb-4">
+    <div class="col-md-6 col-lg-4 col-sm-12 pb-4">
         <div class="card h-100">
             <div class="card-body"><span class="corner corner-danger"></span>
                 <div class="d-flex mb-0">
@@ -189,34 +171,7 @@
     </div>
 
 
-    <div class="col-md-6 col-lg-3 col-sm-12 pb-4">
-        <div class="card h-100"><span class="corner corner-danger"></span>
-            <div class="d-flex mb-0">
-                <div class="">
-                    <h3 class="card-title text-black">
-                        <b>
-                            <i class="fa-solid fa-transgender "></i> Registros por géneros
-                            <button id="openModalLoteDos" type="button" class="btn btn-link p-0 ml-2 text-danger" style="font-size: 1.2rem; cursor: pointer;" title="Ver detalle por género">
-                                <i class="fa-solid fa-transgender fa-beat"></i>
-                            </button>
-                        </b>
-                    </h3>
-                    <h4 class="mb-1 font-weight-bold text-black"><b id="cantidadGeneroLoteDos">0</b></h4>
-                    <p class="mb-2 text-xs text-muted"><i class="fa fa-arrow-circle-up text-danger"></i><span class="opacity-75">
-                            Información obtenida a través de formularios oficiales</span></p>
-                    <div class="progress progress-sm h-5 mt-2 mb-3">
-                        <div class="progress-bar bg-danger" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <h6 class="p-0">
-                        <span id="current-time"></span>
-                        <small class="text-muted text-xs ml-1">Hora actual</small>
-                    </h6>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-3 col-sm-12 pb-4">
+    <div class="col-md-6 col-lg-4 col-sm-12 pb-4">
         <div class="card h-100 bg-warning text-white">
             <div class="card-body">
                 <div class="d-flex mb-0">
@@ -247,7 +202,7 @@
                     <div class="mb-3">
                         <h4 class="card-title text-black mb-0">
                             <b>
-                                <i class="fa-solid fa-laptop-code"></i> Inscritos en Bootcamps Lote 2
+                                <i class="fa-solid fa-laptop-code"></i> Matriculados en Bootcamps Lote 2
                                 <button id="openModalBootcampsLoteDos" type="button" class="btn btn-link p-0 ml-2 text-primary" style="font-size: 1.2rem; cursor: pointer;" title="Ver detalle por bootcamp">
                                     <i class="fa-solid fa-laptop-code fa-beat"></i>
                                 </button>
@@ -276,8 +231,8 @@
         <!-- Tarjetas agrupadas a la derecha (2 filas x 3 tarjetas) -->
         <div class="col-md-8">
             <div class="row">
-                <!-- Primera fila de tres tarjetas -->
-                <div class="col-md-4 mb-3">
+                <!-- Primera fila: dos tarjetas -->
+                <div class="col-md-6 mb-3">
                     <div class="card h-100">
                         <div class="card-body"><span class="corner corner-warning"></span>
                             <div class="d-flex mb-0">
@@ -297,49 +252,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body"><span class="corner corner-danger"></span>
-                            <div class="d-flex mb-0">
-                                <h3 class="card-title text-black "><b><i class="bi bi-broadcast"></i> Impacto por radio Lote 2</b>
-                                    <h><br><br>
-                                        <h4 class="mb-1 font-weight-bold text-black"><b id="total_radio_lote2">0</b> | <b>100%</b></h4>
-                                        <p class="mb-2 text-xs text-muted"><i class="bi bi-broadcast"></i> <span class="opacity-75">
-                                                Usuarios del Lote 2 registrados por pauta radial</span></p>
-                                        <div class="progress progress-sm h-5 mt-2 mb-3">
-                                            <div id="progress-bar-radio-lote2" class="progress-bar bg-danger" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <h6 class="p-0">
-                                            <span id="current-time"></span>
-                                            <small class="text-muted text-xs ml-1">Hora actual</small>
-                                        </h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body"><span class="corner corner-info"></span>
-                            <div class="d-flex mb-0">
-                                <h3 class="card-title text-black "><b><i class="bi bi-wechat"></i> Impacto en redes Lote 2</b>
-                                    <h><br><br>
-                                        <h4 class="mb-1 font-weight-bold text-black"><b id="total_redes_sociales_lote2">0</b> | <b>100%</b></h4>
-                                        <p class="mb-2 text-xs text-muted"><i class="bi bi-wechat"></i><span class="opacity-75">
-                                                Usuarios del Lote 2 registrados por pauta en redes sociales</span></p>
-                                        <div class="progress progress-sm h-5 mt-2 mb-3">
-                                            <div id="progress-bar-redes-lote2" class="progress-bar bg-info" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <h6 class="p-0">
-                                            <span id="current-time"></span>
-                                            <small class="text-muted text-xs ml-1">Hora actual</small>
-                                        </h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Segunda fila de tres tarjetas -->
-                <div class="col-md-4">
+                <div class="col-md-6 mb-3">
                     <div class="card bg-danger text-white h-100">
                         <div class="card-body">
                             <div class="d-flex mb-0">
@@ -364,7 +277,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <!-- Segunda fila: dos tarjetas -->
+                <div class="col-md-6">
                     <div class="card h-100">
                         <span class="corner corner-danger"></span>
                         <div class="d-flex mb-0 mt-3">
@@ -393,7 +307,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="card h-100">
                         <span class="corner corner-danger"></span>
                         <div class="d-flex mb-0 mt-3">
@@ -680,12 +594,12 @@
                 const total = bootcamps.reduce((sum, bootcamp) => sum + parseInt(bootcamp.cantidad), 0);
                 totalBootcamps.textContent = total;
 
-                // Mostrar lista completa en la tarjeta (scrolleable)
+                // Mostrar TODOS los bootcamps (scrolleable)
                 let listHtml = '';
                 bootcamps.forEach((bootcamp, index) => {
                     listHtml += `
                     <div class="d-flex justify-content-between align-items-center py-2 ${index < bootcamps.length - 1 ? 'border-bottom' : ''}" style="border-color: #f0f0f0;">
-                        <span class="text-dark" style="font-size: 0.85rem; font-weight: 500;">
+                        <span class="text-dark" style="font-size: 0.85rem; font-weight: 500;" title="${bootcamp.bootcamp}">
                             ${bootcamp.bootcamp}
                         </span>
                         <span class="badge badge-primary">${bootcamp.cantidad}</span>
@@ -748,6 +662,7 @@
                     html: `
                     <div class="mb-3">
                         <h5>Total de inscritos: <span class="badge badge-primary">${total}</span></h5>
+                        <p class="text-muted">Mostrando ${bootcamps.length} bootcamps</p>
                     </div>
                     ${listHtml}
                 `,
@@ -769,13 +684,14 @@
             }
         });
 
-        // Cargar bootcamps al inicializar
+        // CARGA INICIAL ÚNICAMENTE (SIN POLLING)
         cargarBootcamps();
 
-        // Recargar cada 10 segundos
-        setInterval(cargarBootcamps, 10000);
+        // EXPONER LA FUNCIÓN GLOBALMENTE PARA EL BOTÓN
+        window.actualizarBootcampsLoteDos = cargarBootcamps;
     });
 </script>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
@@ -790,7 +706,7 @@
             try {
                 const respuesta = await fetch('components/cardContadores/actualizarContadores.php');
                 const datos = await respuesta.json();
-                const bootcamps = datos.bootcampsLote2; // Corregido: era bootcampsLote1
+                const bootcamps = datos.bootcampsLote2;
 
                 if (!bootcamps || bootcamps.length === 0) {
                     bootcampList.innerHTML = '<p class="text-muted text-center">No se encontraron bootcamps.</p>';
@@ -802,7 +718,7 @@
                 const total = bootcamps.reduce((sum, bootcamp) => sum + parseInt(bootcamp.cantidad), 0);
                 totalBootcamps.textContent = total;
 
-                // Mostrar TODOS los bootcamps (scrolleable) - sin límite de 12
+                // Mostrar TODOS los bootcamps (scrolleable)
                 let listHtml = '';
                 bootcamps.forEach((bootcamp, index) => {
                     listHtml += `
@@ -814,8 +730,6 @@
                     </div>
                 `;
                 });
-
-                // NO mostrar indicador de "más bootcamps" - eliminado completamente
 
                 bootcampList.innerHTML = listHtml;
 
@@ -847,7 +761,7 @@
             try {
                 const respuesta = await fetch('components/cardContadores/actualizarContadores.php');
                 const datos = await respuesta.json();
-                const bootcamps = datos.bootcampsLote2; // Corregido: era bootcampsLote1
+                const bootcamps = datos.bootcampsLote2;
 
                 if (!bootcamps || bootcamps.length === 0) {
                     throw new Error('No se encontraron bootcamps.');
@@ -868,7 +782,7 @@
 
                 // Cerrar loader y mostrar datos
                 await Swal.fire({
-                    title: 'Inscritos en Bootcamps (Lote 2)', // Corregido: era Lote 1
+                    title: 'Inscritos en Bootcamps (Lote 2)',
                     html: `
                     <div class="mb-3">
                         <h5>Total de inscritos: <span class="badge badge-primary">${total}</span></h5>
@@ -894,10 +808,10 @@
             }
         });
 
-        // Cargar bootcamps al inicializar
+        // CARGA INICIAL ÚNICAMENTE (SIN POLLING)
         cargarBootcamps();
 
-        // Recargar cada 10 segundos
-        setInterval(cargarBootcamps, 10000);
+        // EXPONER LA FUNCIÓN GLOBALMENTE PARA EL BOTÓN
+        window.actualizarBootcampsLoteDos = cargarBootcamps;
     });
 </script>
