@@ -116,11 +116,13 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
         $sql = "SELECT g.id_bootcamp, g.id_english_code, g.id_skills,
                        b.real_hours as bootcamp_hours,
                        e.real_hours as english_hours,
-                       s.real_hours as skills_hours
+                       s.real_hours as skills_hours,
+                       CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
                 FROM groups g
                 LEFT JOIN courses b ON g.id_bootcamp = b.code
                 LEFT JOIN courses e ON g.id_english_code = e.code
                 LEFT JOIN courses s ON g.id_skills = s.code
+                LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
                 WHERE g.number_id = ?";
         
         $stmt = $conn->prepare($sql);
@@ -154,7 +156,11 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
         // Calcular horas de Técnico con límite individual
         if (!empty($row['id_bootcamp'])) {
             $horasActualesTecnico = calcularHorasAsistencia($conn, $studentId, $row['id_bootcamp']);
-            $totalHoras += min($horasActualesTecnico, $horasTecnico);
+            if ($row['is_certified']) {
+                $totalHoras += min($horasTecnico, $horasActualesTecnico + 40);
+            } else {
+                $totalHoras += min($horasActualesTecnico, $horasTecnico);
+            }
         }
         
         // Calcular horas de English Code con límite individual
@@ -165,8 +171,12 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
         
         // Calcular horas de Habilidades con límite individual
         if (!empty($row['id_skills'])) {
-            $horasActualesHabilidades = calcularHorasAsistencia($conn, $studentId, $row['id_skills']);
-            $totalHoras += min($horasActualesHabilidades, $horasHabilidades);
+            if ($row['is_certified']) {
+                $totalHoras += 15;
+            } else {
+                $horasActualesHabilidades = calcularHorasAsistencia($conn, $studentId, $row['id_skills']);
+                $totalHoras += min($horasActualesHabilidades, $horasHabilidades);
+            }
         }
         
         return $totalHoras;

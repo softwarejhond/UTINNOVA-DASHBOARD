@@ -171,7 +171,7 @@ try {
         $progressPercent = 100;
     }
 
-    // MODIFICACIÓN: Mejorar la consulta SQL para obtener con seguridad los estados de asistencia
+    // MODIFICACIÓN: Mejorar la consulta SQL para obtener con seguridad los estados de asistencia y homologación
     $sql = "SELECT g.*, 
         (SELECT attendance_status FROM attendance_records 
          WHERE student_id = g.number_id AND class_date = ? AND course_id = ? LIMIT 1) as attendance_status,
@@ -179,8 +179,10 @@ try {
          FROM attendance_records 
          WHERE student_id = g.number_id 
          AND course_id = ?
-         AND (attendance_status = 'presente' OR attendance_status = 'tarde')) as total_attendance
+         AND (attendance_status = 'presente' OR attendance_status = 'tarde')) as total_attendance,
+        CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
         FROM groups g 
+        LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
         WHERE g.$courseIdColumn = ? 
         AND g.mode = ? 
         AND g.headquarters = ?
@@ -260,6 +262,22 @@ try {
             case 'skills':
                 $horasAsistidas = (float)$row['s_intensity'] ?? 0;
                 break;
+        }
+
+        // Aplicar ajustes por homologación
+        if ($row['is_certified']) {
+            switch ($courseType) {
+                case 'bootcamp':
+                    $horasAsistidas += 40;
+                    break;
+                case 'leveling_english':
+                    $horasAsistidas = 20;
+                    break;
+                case 'skills':
+                    $horasAsistidas = 15;
+                    break;
+                // Para english_code, no hay cambio
+            }
         }
 
         // Obtener el total de horas para el tipo de curso

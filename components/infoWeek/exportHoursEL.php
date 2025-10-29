@@ -211,19 +211,21 @@ function aplicarEstilos($sheet, $lastRow)
 // Función para llenar datos de una hoja con un lote específico
 function llenarDatosLote($conn, $sheet, $lote)
 {
-    // Consulta SQL actualizada para incluir filtro por lote
+    // Consulta SQL actualizada para incluir filtro por lote y certificados
     $sql = "SELECT g.*, 
            b.real_hours AS bootcamp_hours, b.code AS bootcamp_code,
            e.real_hours AS english_hours, e.code AS english_code,
            l.real_hours AS leveling_hours, l.code AS leveling_code,
            s.real_hours AS skills_hours, s.code AS skills_code,
-           u.email AS personal_email, u.first_phone, u.second_phone
+           u.email AS personal_email, u.first_phone, u.second_phone,
+           CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
     FROM groups g
     LEFT JOIN courses b ON g.id_bootcamp = b.code 
     LEFT JOIN courses e ON g.id_english_code = e.code
     LEFT JOIN courses l ON g.id_leveling_english = l.code 
     LEFT JOIN courses s ON g.id_skills = s.code
     LEFT JOIN user_register u ON g.number_id = u.number_id
+    LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
     WHERE u.lote = ?";
 
     $stmt = $conn->prepare($sql);
@@ -263,6 +265,13 @@ function llenarDatosLote($conn, $sheet, $lote)
 
         $horasActualesHabilidades = isset($data['skills_code']) && !empty($data['skills_code']) ?
             calcularHorasAsistencia($conn, $data['number_id'], $data['skills_code']) : 0;
+
+        // Verificar si el estudiante está en certificados_senatics
+        if ($data['is_certified']) {
+            $horasActualesTecnico += 40;
+            $horasActualesHabilidades = 15;
+            $horasActualesNivelador = 20;
+        }
 
         // Técnico (desplazado una columna)
         $sheet->setCellValue('I' . $row, $horasActualesTecnico);
@@ -575,6 +584,58 @@ $sheet5->getStyle('G4')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_P
 foreach (range('A', 'G') as $col) {
     $sheet5->getColumnDimension($col)->setAutoSize(true);
 }
+
+// HOJA 6: Homologados
+$spreadsheet->createSheet();
+$sheet6 = $spreadsheet->getSheet(5);
+$sheet6->setTitle('Homologados');
+
+// Establecer títulos
+$sheet6->mergeCells('A1:B1');
+$sheet6->setCellValue('A1', 'Estas personas se les homologa 40 a las horas técnicas, la totalidad de las horas de habilidades y la totalidad de las horas de inglés nivelatorio');
+$sheet6->setCellValue('A2', 'Número de Identificación');
+$sheet6->setCellValue('B2', 'Nombre del Estudiante');
+
+// Consulta SQL para obtener homologados
+$sqlHomologados = "SELECT cs.number_id, g.full_name
+                   FROM certificados_senatics cs
+                   LEFT JOIN groups g ON cs.number_id = g.number_id
+                   ORDER BY g.full_name";
+
+$resultHomologados = $conn->query($sqlHomologados);
+
+$row = 3; // Comenzar datos en fila 3
+$lastRow6 = $row; // Para estilos
+
+while($data = $resultHomologados->fetch_assoc()) {
+    $sheet6->setCellValue('A' . $row, $data['number_id']);
+    $sheet6->setCellValue('B' . $row, $data['full_name']);
+    $lastRow6 = $row;
+    $row++;
+}
+
+// Definir headerStyle para la sexta hoja
+$headerStyle = [
+    'font' => ['bold' => true],
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']]
+];
+
+// Definir basicDataStyle para las hojas
+$basicDataStyle = [
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+];
+
+// Aplicar estilos
+$sheet6->getStyle('A1:B1')->applyFromArray($headerStyle);
+$sheet6->getStyle('A2:B2')->applyFromArray($headerStyle);
+if ($lastRow6 >= 3) {
+    $sheet6->getStyle('A3:B' . $lastRow6)->applyFromArray($basicDataStyle);
+}
+$sheet6->getColumnDimension('A')->setAutoSize(true);
+$sheet6->getColumnDimension('B')->setAutoSize(true);
 
 // Limpiar cualquier salida anterior
 ob_end_clean();

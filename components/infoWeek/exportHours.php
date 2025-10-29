@@ -198,12 +198,14 @@ function llenarDatosLote($conn, $sheet, $lote) {
            b.real_hours AS bootcamp_hours, b.code AS bootcamp_code,
            e.real_hours AS english_hours, e.code AS english_code, 
            s.real_hours AS skills_hours, s.code AS skills_code,
-           u.email AS personal_email, u.first_phone, u.second_phone
+           u.email AS personal_email, u.first_phone, u.second_phone,
+           CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
     FROM groups g
     LEFT JOIN courses b ON g.id_bootcamp = b.code 
     LEFT JOIN courses e ON g.id_english_code = e.code 
     LEFT JOIN courses s ON g.id_skills = s.code
     LEFT JOIN user_register u ON g.number_id = u.number_id
+    LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
     WHERE u.lote = ?";
 
     $stmt = $conn->prepare($sql);
@@ -240,6 +242,12 @@ function llenarDatosLote($conn, $sheet, $lote) {
         
         $horasActualesHabilidades = isset($data['skills_code']) && !empty($data['skills_code']) ? 
             calcularHorasAsistencia($conn, $data['number_id'], $data['skills_code']) : 0;
+        
+        // Verificar si el estudiante está en certificados_senatics
+        if ($data['is_certified']) {
+            $horasActualesTecnico += 40;
+            $horasActualesHabilidades = 15;
+        }
         
         // Técnico
         $sheet->setCellValue('I' . $row, $horasActualesTecnico);
@@ -350,11 +358,55 @@ $headerStyle = [
     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']]
 ];
 
+// Definir basicDataStyle para las hojas
+$basicDataStyle = [
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+];
+
 // Aplicar estilos
 $sheet3->getStyle('A1:B1')->applyFromArray($headerStyle);
 $sheet3->getStyle('A' . $row . ':B' . $row)->applyFromArray($totalStyle);
 $sheet3->getColumnDimension('A')->setAutoSize(true);
 $sheet3->getColumnDimension('B')->setAutoSize(true);
+
+// HOJA 4: Homologados
+$spreadsheet->createSheet();
+$sheet4 = $spreadsheet->getSheet(3);
+$sheet4->setTitle('Homologados');
+
+// Establecer títulos
+$sheet4->mergeCells('A1:B1');
+$sheet4->setCellValue('A1', 'Estas personas se les homologa 40 a las horas técnicas, y la totalidad de las horas de habilidades de poder');
+$sheet4->setCellValue('A2', 'Número de Identificación');
+$sheet4->setCellValue('B2', 'Nombre del Estudiante');
+
+// Consulta SQL para obtener homologados
+$sqlHomologados = "SELECT cs.number_id, g.full_name
+                   FROM certificados_senatics cs
+                   LEFT JOIN groups g ON cs.number_id = g.number_id
+                   ORDER BY g.full_name";
+
+$resultHomologados = $conn->query($sqlHomologados);
+
+$row = 3; // Comenzar datos en fila 3
+$lastRow4 = $row; // Para estilos
+
+while($data = $resultHomologados->fetch_assoc()) {
+    $sheet4->setCellValue('A' . $row, $data['number_id']);
+    $sheet4->setCellValue('B' . $row, $data['full_name']);
+    $lastRow4 = $row;
+    $row++;
+}
+
+// Aplicar estilos
+$sheet4->getStyle('A1:B1')->applyFromArray($headerStyle);
+$sheet4->getStyle('A2:B2')->applyFromArray($headerStyle);
+if ($lastRow4 >= 3) {
+    $sheet4->getStyle('A3:B' . $lastRow4)->applyFromArray($basicDataStyle);
+}
+$sheet4->getColumnDimension('A')->setAutoSize(true);
+$sheet4->getColumnDimension('B')->setAutoSize(true);
 
 // Limpiar cualquier salida anterior
 ob_end_clean();

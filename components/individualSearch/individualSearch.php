@@ -35,7 +35,8 @@
                             SELECT 1 
                             FROM course_assignments ca 
                             WHERE ca.student_id = ur.number_id
-                        ) AS tiene_preasignacion
+                        ) AS tiene_preasignacion,
+                        ur.institution  -- Agregar este campo
                         FROM user_register ur
                         LEFT JOIN municipios m ON ur.municipality = m.id_municipio 
                         LEFT JOIN departamentos d ON ur.department = d.id_departamento
@@ -83,6 +84,23 @@
                     $stmtContactLog->execute();
                     $resultContactLog = $stmtContactLog->get_result();
                     $contactLogs = $resultContactLog->fetch_all(MYSQLI_ASSOC);
+
+                    $esSenaTICS = ($row['institution'] === 'SenaTICS');
+
+                    $tieneCertificadoST = false;
+                    $nombreArchivoCertificado = '';
+                    if ($esSenaTICS) {
+                        $stmtCert = $conn->prepare("SELECT archivo_certificado FROM certificados_senatics WHERE number_id = ?");
+                        $stmtCert->bind_param("s", $number_id);
+                        $stmtCert->execute();
+                        $resultCert = $stmtCert->get_result();
+                        if ($resultCert->num_rows > 0) {
+                            $tieneCertificadoST = true;
+                            $certData = $resultCert->fetch_assoc();
+                            $nombreArchivoCertificado = $certData['archivo_certificado'];
+                        }
+                        $stmtCert->close();
+                    }
 
                     // Si hay registros de contact_log, asignar valores
                     if (!empty($contactLogs)) {
@@ -419,7 +437,7 @@
                                 <div class="card-header d-flex align-items-center justify-content-between pb-3">
                                     <h5 class="card-title mb-0 d-flex align-items-center">
                                         <i class="bi-geo-alt card-icon me-2" style="color: #dc3545;"></i>
-                                        Registro y Ubicación
+                                        Registro, ubicación y origen
                                     </h5>
                                     <div class="dropdown">
                                         <button class="btn btn-sm dropdown-toggle"
@@ -429,7 +447,12 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item" href="#" onclick="mostrarModalActualizarUbicacion(<?php echo $row['number_id']; ?>)">Actualizar Ubicación</a></li>
-
+                                            <!-- NUEVO: Opción para subir certificado SenaTICS -->
+                                            <?php if ($esSenaTICS): ?>
+                                                <li><a class="dropdown-item" href="#" onclick="mostrarModalSubirCertificadoSenaTICS('<?= htmlspecialchars($number_id) ?>', '<?= addslashes($nombre) ?>')">
+                                                        <i class="bi bi-upload me-2"></i>Subir Certificado SenaTICS
+                                                    </a></li>
+                                            <?php endif; ?>
                                         </ul>
                                     </div>
                                 </div>
@@ -451,6 +474,41 @@
                                             <span class="text-muted">Dirección:</span>
                                             <span class="text-end"><?= htmlspecialchars($row['address']) ?></span>
                                         </div>
+                                        <?php if ($esSenaTICS): ?>
+                                            <div class="d-flex justify-content-between align-items-center w-100 mt-1 border-top pt-2">
+                                                <span class="text-muted">Institución de origen:</span>
+                                                <span class="text-end">
+                                                    <span class="badge bg-indigo-dark text-white"
+                                                        onclick="mostrarAlertaSenaTICS('<?= addslashes($nombre) ?>', '<?= htmlspecialchars($number_id) ?>')"
+                                                        style="cursor: pointer;"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top"
+                                                        title="Clic para ver información de homologación">
+                                                        <i class="bi bi-mortarboard-fill me-1"></i>SenaTICS
+                                                    </span>
+                                                    <?php if ($tieneCertificadoST): ?>
+                                                        <span class="badge bg-success ms-1"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Certificado subido - Clic para ver"
+                                                            onclick="verCertificadoSenaTICS('<?= htmlspecialchars($number_id) ?>', '<?= addslashes($nombre) ?>')"
+                                                            style="cursor: pointer;">
+                                                            <i class="bi bi-check-circle-fill"></i> Ver
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-warning text-dark ms-1"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Certificado pendiente">
+                                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </span>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="d-flex justify-content-between align-items-center w-100 mt-1">
+                                                <span class="text-muted">Institución:</span>
+                                                <span class="text-end"><?= htmlspecialchars($row['institution']) ?></span>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -1452,11 +1510,15 @@
                                             return $totalHoras;
                                         }
 
-                                        // Calcular horas por tipo de curso
-                                        $horasTecnico = isset($asistenciaData['bootcamp_hours']) ? intval($asistenciaData['bootcamp_hours']) : 0;
-                                        $horasNivelador = isset($asistenciaData['leveling_hours']) ? intval($asistenciaData['leveling_hours']) : 0;
-                                        $horasIngles = isset($asistenciaData['english_hours']) ? intval($asistenciaData['english_hours']) : 0;
-                                        $horasHabilidades = isset($asistenciaData['skills_hours']) ? intval($asistenciaData['skills_hours']) : 0;
+                                        // Verificar si el estudiante está en certificados_senatics
+                                        $sqlCertified = "SELECT COUNT(*) as is_certified FROM certificados_senatics WHERE number_id = ?";
+                                        $stmtCertified = $conn->prepare($sqlCertified);
+                                        $stmtCertified->bind_param("s", $number_id);
+                                        $stmtCertified->execute();
+                                        $resultCertified = $stmtCertified->get_result();
+                                        $certifiedData = $resultCertified->fetch_assoc();
+                                        $isCertified = $certifiedData['is_certified'] > 0;
+                                        $stmtCertified->close();
 
                                         // Calcular horas actuales con límite
                                         $horasActualesTecnico = isset($asistenciaData['bootcamp_code']) && !empty($asistenciaData['bootcamp_code']) ?
@@ -1471,7 +1533,14 @@
                                         $horasActualesHabilidades = isset($asistenciaData['skills_code']) && !empty($asistenciaData['skills_code']) ?
                                             calcularHorasAsistencia($conn, $number_id, $asistenciaData['skills_code'], $horasHabilidades) : 0;
 
-                                        // Aplicar límites adicionales
+                                        // Aplicar ajustes por homologación (igual que en exportHoursEL.php)
+                                        if ($isCertified) {
+                                            $horasActualesTecnico += 40;
+                                            $horasActualesHabilidades = 15;
+                                            $horasActualesNivelador = 20;
+                                        }
+
+                                        // Aplicar límites adicionales para asegurar que no excedan las horas reales
                                         $horasActualesTecnico = min($horasActualesTecnico, $horasTecnico);
                                         $horasActualesNivelador = min($horasActualesNivelador, $horasNivelador);
                                         $horasActualesIngles = min($horasActualesIngles, $horasIngles);
@@ -1483,9 +1552,9 @@
                                         $porcentajeIngles = $totalIngles > 0 ? min(100, round(($horasActualesIngles / $totalIngles) * 100)) : 0;
                                         $porcentajeHabilidades = $totalHabilidades > 0 ? min(100, round(($horasActualesHabilidades / $totalHabilidades) * 100)) : 0;
 
-                                        // MODIFICADO: Calcular total general SIN incluir inglés nivelatorio
-                                        $horasTotalActual = $horasActualesTecnico + $horasActualesIngles + $horasActualesHabilidades;
-                                        $horasTotalRequerido = $totalTecnico + $totalIngles + $totalHabilidades;
+                                        // MODIFICADO: Calcular total general INCLUYENDO inglés nivelatorio (igual que exportHoursEL.php)
+                                        $horasTotalActual = $horasActualesTecnico + $horasActualesNivelador + $horasActualesIngles + $horasActualesHabilidades;
+                                        $horasTotalRequerido = $totalTecnico + $totalNivelador + $totalIngles + $totalHabilidades; // 179 horas
                                         $porcentajeTotal = $horasTotalRequerido > 0 ? min(100, round(($horasTotalActual / $horasTotalRequerido) * 100)) : 0;
                                     ?>
                                         <div class="w-100">
@@ -2660,6 +2729,66 @@
     .carousel-inner>.carousel-item>div {
         width: 100%;
         height: 100%;
+    }
+
+    .swal2-popup .alert {
+        margin-bottom: 1rem;
+    }
+
+    .badge.bg-indigo-dark:hover {
+        background-color: #30336b !important;
+        transform: scale(1.05);
+        transition: all 0.2s ease;
+    }
+
+    /* Animación para el badge de SenaTICS */
+    @keyframes pulse-info {
+        0% {
+            box-shadow: 0 0 0 0 rgba(13, 202, 240, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(13, 202, 240, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(13, 202, 240, 0);
+        }
+    }
+
+    .badge.bg-info {
+        animation: pulse-info 2s infinite;
+    }
+
+    .swal-wide {
+        max-width: 95% !important;
+        width: 900px !important;
+    }
+
+    .swal-iframe-container {
+        padding: 0 !important;
+    }
+
+    .pdf-viewer-container {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: #f8f9fa;
+    }
+
+    .pdf-viewer-container iframe {
+        min-height: 600px;
+        background: white;
+    }
+
+    /* Responsivo para dispositivos móviles */
+    @media (max-width: 768px) {
+        .swal-wide {
+            width: 95% !important;
+            max-width: 95% !important;
+        }
+
+        .pdf-viewer-container iframe {
+            min-height: 400px;
+        }
     }
 </style>
 
@@ -5185,6 +5314,283 @@
         };
 
         xhr.send(formData);
+    }
+
+    // NUEVO: Función para mostrar alerta de SenaTICS
+    function mostrarAlertaSenaTICS(nombreEstudiante, numeroId) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Estudiante egresado de SenaTICS',
+            html: `
+            <div class="alert bg-indigo-light border-indigo-dark text-start text-black">
+                <h6><i class="bi bi-mortarboard-fill me-2"></i><strong>Información importante:</strong></h6>
+                <hr>
+                <p><strong>Estudiante:</strong> ${nombreEstudiante}</p>
+                <p><strong>CC:</strong> ${numeroId}</p>
+                <p><strong>Institución de origen:</strong> SenaTICS</p>
+                <hr>
+                <div class="bg-warning p-3 rounded mb-3">
+                    <h6 class="text-dark mb-2">
+                        <i class="bi bi-clock-history me-2"></i>
+                        <strong>Homologación de 40 horas</strong>
+                    </h6>
+                    <p class="text-dark mb-2">
+                        Para que sea válida la homologación de las <strong>40 horas en su formación</strong>, 
+                        el estudiante debe:
+                    </p>
+                    <ul class="text-dark mb-0">
+                        <li>Presentar su diploma de SenaTICS</li>
+                        <li>Subir una copia digital del certificado</li>
+                    </ul>
+                </div>
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Una vez validado el diploma, se aplicará automáticamente la homologación correspondiente a las horas de formación.
+                </div>
+            </div>
+        `,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#2B5BAC',
+            width: '600px',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            },
+            footer: `
+            <div class="text-muted small">
+                <i class="bi bi-info-circle me-1"></i>
+                Una vez que el diploma sea subido y validado, el agregado de las 40 horas se realizará automáticamente en el sistema.
+            </div>
+        `
+        });
+    }
+
+    // NUEVO: Verificar al cargar la página si el estudiante es de SenaTICS y NO tiene certificado
+    document.addEventListener('DOMContentLoaded', function() {
+        <?php if (isset($esSenaTICS) && $esSenaTICS && !$tieneCertificadoST): ?>
+            // Mostrar la alerta después de un pequeño retraso para asegurar que la página esté completamente cargada
+            setTimeout(function() {
+                mostrarAlertaSenaTICS(
+                    '<?= addslashes($nombre) ?>',
+                    '<?= htmlspecialchars($number_id) ?>'
+                );
+            }, 1000);
+        <?php endif; ?>
+    });
+
+    function mostrarModalSubirCertificadoSenaTICS(numeroId, nombreEstudiante) {
+        Swal.fire({
+            title: 'Subir Certificado SenaTICS',
+            html: `
+            <div class="text-start">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-mortarboard-fill me-2"></i><strong>Estudiante:</strong> ${nombreEstudiante}</h6>
+                    <p><strong>CC:</strong> ${numeroId}</p>
+                    <p><strong>Institución:</strong> SenaTICS</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="certificadoFile" class="form-label fw-bold">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Seleccionar certificado (PDF)
+                    </label>
+                    <input type="file" 
+                           class="form-control" 
+                           id="certificadoFile" 
+                           accept=".pdf"
+                           required>
+                    <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Solo archivos PDF. Tamaño máximo: 10MB
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Importante:</strong> Este certificado validará la homologación de 40 horas en la formación del estudiante.
+                </div>
+            </div>
+        `,
+            width: '600px',
+            showCancelButton: true,
+            confirmButtonColor: '#2B5BAC',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="bi bi-upload me-2"></i>Subir Certificado',
+            cancelButtonText: '<i class="bi bi-x-circle me-2"></i>Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                const fileInput = document.getElementById('certificadoFile');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    Swal.showValidationMessage('Por favor seleccione un archivo');
+                    return false;
+                }
+
+                // Validar que sea PDF
+                if (file.type !== 'application/pdf') {
+                    Swal.showValidationMessage('Solo se permiten archivos PDF');
+                    return false;
+                }
+
+                // Validar tamaño (10MB máximo)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    Swal.showValidationMessage('El archivo no debe exceder los 10MB');
+                    return false;
+                }
+
+                return subirCertificadoSenaTICS(numeroId, file);
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Certificado subido correctamente!',
+                    html: `
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        El certificado de SenaTICS ha sido guardado exitosamente.
+                    </div>
+                    <div class="text-muted">
+                        <small>Archivo: cert_ST_${numeroId}.pdf</small>
+                    </div>
+                `,
+                    confirmButtonColor: '#198754',
+                    timer: 3000,
+                    timerProgressBar: true
+                }).then(() => {
+                    // Opcional: recargar la página para mostrar cambios
+                    location.reload();
+                });
+            }
+        });
+    }
+
+    // NUEVO: Función para subir el certificado
+    async function subirCertificadoSenaTICS(numeroId, file) {
+        const formData = new FormData();
+        formData.append('number_id', numeroId);
+        formData.append('certificado', file);
+
+        try {
+            const response = await fetch('components/individualSearch/upLoadSenaTICS.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Error al subir el archivo');
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error al subir certificado:', error);
+            Swal.showValidationMessage(`Error: ${error.message}`);
+            return false;
+        }
+    }
+
+    function verCertificadoSenaTICS(numeroId, nombreEstudiante) {
+        <?php if ($tieneCertificadoST && !empty($nombreArchivoCertificado)): ?>
+            const rutaCertificado = 'certificadosST/<?= htmlspecialchars($nombreArchivoCertificado) ?>';
+
+            Swal.fire({
+                title: `Certificado SenaTICS - ${nombreEstudiante}`,
+                html: `
+                <div class="iframe-container mb-3">
+                    <div class="alert alert-info text-start m-3 ">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-1">
+                                    <i class="bi bi-mortarboard-fill me-2"></i>
+                                    <strong>Estudiante:</strong> ${nombreEstudiante}
+                                </h6>
+                                <p class="mb-1"><strong>CC:</strong> ${numeroId}</p>
+                                <p class="mb-0"><strong>Institución:</strong> SenaTICS</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-shield-check me-1"></i>
+                                    Certificado Válido
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pdf-viewer-container" style="border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden;">
+                        <iframe 
+                            src="${rutaCertificado}" 
+                            width="100%" 
+                            height="600" 
+                            frameborder="0" 
+                            style="display: block;"
+                            title="Certificado SenaTICS">
+                            <p>Su navegador no soporta iframes. 
+                               <a href="${rutaCertificado}" target="_blank">Haga clic aquí para ver el certificado</a>
+                            </p>
+                        </iframe>
+                    </div>
+                    
+                </div>
+            `,
+                width: '900px',
+                showCloseButton: true,
+                showConfirmButton: true,
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-upload me-2"></i>Actualizar Certificado',
+                cancelButtonText: '<i class="bi bi-x-circle me-2"></i>Cerrar',
+                confirmButtonColor: '#2B5BAC',
+                cancelButtonColor: '#6c757d',
+                customClass: {
+                    popup: 'swal-wide',
+                    htmlContainer: 'swal-iframe-container'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Si hace clic en "Actualizar Certificado", mostrar el modal de subida
+                    mostrarModalSubirCertificadoSenaTICS(numeroId, nombreEstudiante);
+                }
+            });
+        <?php else: ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Certificado no encontrado',
+                text: 'No se encontró el certificado para este estudiante.',
+                confirmButtonColor: '#d33'
+            });
+        <?php endif; ?>
+    }
+
+    // Función simplificada para descargar el certificado
+    function descargarCertificado(rutaCertificado, nombreEstudiante) {
+        // Crear un enlace temporal para descargar
+        const link = document.createElement('a');
+        link.href = rutaCertificado;
+        link.download = `Certificado_SenaTICS_${nombreEstudiante.replace(/\s+/g, '_')}.pdf`;
+        link.target = '_blank';
+
+        // Simular clic en el enlace
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Mostrar mensaje de confirmación
+        Swal.fire({
+            icon: 'success',
+            title: 'Descarga iniciada',
+            text: 'El certificado se está descargando...',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
     }
 </script>
 

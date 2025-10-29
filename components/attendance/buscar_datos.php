@@ -150,15 +150,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'skills' => 15
     ];
 
-    // Modificar la consulta SQL para obtener las horas actuales
+    // Modificar la consulta SQL para obtener las horas actuales y homologación
     $sql = "SELECT g.*, 
             CASE 
                 WHEN '$courseType' = 'bootcamp' THEN g.b_intensity
                 WHEN '$courseType' = 'english_code' THEN g.ec_intensity
                 WHEN '$courseType' = 'leveling_english' THEN g.le_intensity
                 WHEN '$courseType' = 'skills' THEN g.s_intensity
-            END as current_hours
+            END as current_hours,
+            CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
             FROM groups g 
+            LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
             WHERE $courseIdColumn = ? 
             AND mode = ? 
             AND headquarters = ? 
@@ -189,6 +191,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cumplimiento = $session_hours; // Usar session_hours en lugar de la intensidad seleccionada
         $current_hours = intval($row['current_hours']);
         $max_allowed = $max_hours[$courseType];
+        
+        // Aplicar ajustes por homologación
+        if ($row['is_certified']) {
+            switch ($courseType) {
+                case 'bootcamp':
+                    $current_hours = min($max_allowed, $current_hours + 40);
+                    break;
+                case 'leveling_english':
+                    $current_hours = 20;
+                    break;
+                case 'skills':
+                    $current_hours = 15;
+                    break;
+                // Para english_code, no hay cambio
+            }
+        }
         
         // Verificar si el estudiante ya alcanzó el máximo de horas
         $is_disabled_cumplimiento = ($current_hours >= $max_allowed) ? 'disabled' : '';

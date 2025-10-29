@@ -75,11 +75,13 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     $sql = "SELECT g.id_bootcamp, g.id_english_code, g.id_skills,
                    b.real_hours as bootcamp_hours,
                    e.real_hours as english_hours,
-                   s.real_hours as skills_hours
+                   s.real_hours as skills_hours,
+                   CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
             FROM groups g
             LEFT JOIN courses b ON g.id_bootcamp = b.code
             LEFT JOIN courses e ON g.id_english_code = e.code
             LEFT JOIN courses s ON g.id_skills = s.code
+            LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
             WHERE g.number_id = ?";
     
     $stmt = $conn->prepare($sql);
@@ -109,7 +111,12 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     
     // Calcular horas de Técnico (Bootcamp) - con límite
     if (!empty($row['id_bootcamp'])) {
-        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_bootcamp'], $horasTecnico);
+        $horasCalculadasTecnico = calcularHorasAsistencia($conn, $studentId, $row['id_bootcamp'], $horasTecnico);
+        if ($row['is_certified']) {
+            $totalHoras += min($horasTecnico, $horasCalculadasTecnico + 40);
+        } else {
+            $totalHoras += $horasCalculadasTecnico;
+        }
     }
     
     // Calcular horas de English Code - con límite
@@ -119,7 +126,11 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
     
     // Calcular horas de Habilidades - con límite
     if (!empty($row['id_skills'])) {
-        $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_skills'], $horasHabilidades);
+        if ($row['is_certified']) {
+            $totalHoras += 15;
+        } else {
+            $totalHoras += calcularHorasAsistencia($conn, $studentId, $row['id_skills'], $horasHabilidades);
+        }
     }
     
     // NO incluir leveling_english en el cálculo

@@ -565,6 +565,16 @@ function normalizeString($string)
 
 function calcularHorasActualesPorEstudiante($conn, $studentId)
 {
+    // Verificar si el estudiante está en certificados_senatics
+    $sqlCertified = "SELECT COUNT(*) as is_certified FROM certificados_senatics WHERE number_id = ?";
+    $stmtCertified = $conn->prepare($sqlCertified);
+    $stmtCertified->bind_param("s", $studentId);
+    $stmtCertified->execute();
+    $resultCertified = $stmtCertified->get_result();
+    $certifiedData = $resultCertified->fetch_assoc();
+    $isCertified = $certifiedData['is_certified'] > 0;
+    $stmtCertified->close();
+
     // Selecciona todos los cursos del estudiante excepto inglés nivelatorio
     $sql = "SELECT c.code, c.real_hours
             FROM groups g
@@ -621,8 +631,40 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
         }
         $stmtHoras->close();
 
-        // Aplica el límite de horas máximas del curso
-        $totalHoras += min($horasCurso, $horasMaximas);
+        // Aplicar ajustes por homologación
+        if ($isCertified) {
+            // Verificar el tipo de curso
+            $sqlTipo = "SELECT 
+                CASE 
+                    WHEN c.code = g.id_bootcamp THEN 'bootcamp'
+                    WHEN c.code = g.id_skills THEN 'skills'
+                    ELSE 'other'
+                END as tipo_curso
+                FROM groups g
+                JOIN courses c ON c.code IN (g.id_bootcamp, g.id_english_code, g.id_skills)
+                WHERE g.number_id = ? AND c.code = ?";
+            $stmtTipo = $conn->prepare($sqlTipo);
+            $stmtTipo->bind_param("si", $studentId, $cursoId);
+            $stmtTipo->execute();
+            $resultTipo = $stmtTipo->get_result();
+            $tipoData = $resultTipo->fetch_assoc();
+            $tipoCurso = $tipoData['tipo_curso'];
+            $stmtTipo->close();
+
+            if ($tipoCurso === 'bootcamp') {
+                // Sumar 40 adicionales a las horas técnicas, pero no superar horasMaximas
+                $totalHoras += min($horasMaximas, min($horasCurso, $horasMaximas) + 40);
+            } elseif ($tipoCurso === 'skills') {
+                // Setear habilidades a 15
+                $totalHoras += 15;
+            } else {
+                // Para otros cursos (inglés), aplicar límite normal
+                $totalHoras += min($horasCurso, $horasMaximas);
+            }
+        } else {
+            // Aplica el límite de horas máximas del curso
+            $totalHoras += min($horasCurso, $horasMaximas);
+        }
     }
     $stmt->close();
     return $totalHoras;
