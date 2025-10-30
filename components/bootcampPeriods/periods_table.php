@@ -58,6 +58,9 @@ if ($result->num_rows > 0) {
             <i class="bi bi-plus-circle"></i> Nuevo Período
         </button>
     <?php } ?>
+    <button class="btn bg-teal-dark text-white mb-4" id="descargarPeriodos">
+        <i class="bi bi-file-earmark-spreadsheet"></i> Descargar reporte
+    </button>
 
     <div class="table-responsive">
         <table id="periodsTable" class="table table-hover table-bordered">
@@ -694,16 +697,16 @@ if ($result->num_rows > 0) {
 
         window.updatePeriod = function(periodId) {
             var form = $('#editPeriodForm' + periodId)[0];
-        
+
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
-        
+
             // Validar fechas antes de enviar
             var startDate = $('#start_date_edit_' + periodId).val();
             var endDate = $('#end_date_edit_' + periodId).val();
-        
+
             if (new Date(endDate) <= new Date(startDate)) {
                 Swal.fire({
                     icon: 'error',
@@ -713,7 +716,7 @@ if ($result->num_rows > 0) {
                 });
                 return;
             }
-        
+
             Swal.fire({
                 title: '¿Confirmar actualización?',
                 text: 'Se actualizarán las fechas, cohorte y estado del período',
@@ -732,7 +735,7 @@ if ($result->num_rows > 0) {
                     formData.append('start_date', startDate);
                     formData.append('end_date', endDate);
                     formData.append('status', $('#status_edit_' + periodId).val());
-        
+
                     $.ajax({
                         url: 'components/bootcampPeriods/update_period.php',
                         type: 'POST',
@@ -1048,6 +1051,76 @@ if ($result->num_rows > 0) {
 
         // Hacer el campo de nombre del período de solo lectura
         $('#period_name_create').prop('readonly', true).css('background-color', '#f8f9fa');
+
+        // Evento para descargar reporte
+        $('#descargarPeriodos').on('click', function() {
+            var button = $(this);
+            var originalHtml = button.html();
+            
+            // Deshabilitar botón inmediatamente
+            button.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Generando...');
+            
+            // Mostrar loader de SweetAlert
+            Swal.fire({
+                title: 'Generando reporte',
+                text: 'Por favor espere mientras se genera el archivo Excel...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Crear formulario oculto para descarga
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': 'components/bootcampPeriods/exportPeriods.php',
+                'style': 'display: none;'
+            });
+            
+            // Agregar al DOM
+            $('body').append(form);
+            
+            // Crear iframe oculto para manejar la descarga
+            var iframe = $('<iframe>', {
+                'name': 'downloadFrame',
+                'style': 'display: none;'
+            });
+            
+            $('body').append(iframe);
+            
+            // Configurar el form para usar el iframe
+            form.attr('target', 'downloadFrame');
+            
+            // En lugar de usar el evento load del iframe, usar un timeout fijo
+            // ya que la descarga de archivos no dispara el evento load correctamente
+            setTimeout(function() {
+                // Cerrar loader de SweetAlert
+                Swal.close();
+                
+                // Mostrar notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Reporte generado exitosamente!',
+                    text: 'El archivo Excel se ha descargado correctamente',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                
+                // Restaurar botón
+                button.html(originalHtml).prop('disabled', false);
+                
+                // Limpiar elementos temporales
+                form.remove();
+                iframe.remove();
+            }, 3000); // Tiempo estimado para la generación y descarga
+            
+            // Enviar formulario
+            form.submit();
+        });
     });
 
     document.addEventListener('DOMContentLoaded', function() {

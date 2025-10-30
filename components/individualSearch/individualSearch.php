@@ -1522,16 +1522,16 @@
 
                                         // Calcular horas actuales con límite
                                         $horasActualesTecnico = isset($asistenciaData['bootcamp_code']) && !empty($asistenciaData['bootcamp_code']) ?
-                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['bootcamp_code'], $horasTecnico) : 0;
+                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['bootcamp_code'], $totalTecnico) : 0;
 
                                         $horasActualesNivelador = isset($asistenciaData['leveling_code']) && !empty($asistenciaData['leveling_code']) ?
-                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['leveling_code'], $horasNivelador) : 0;
+                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['leveling_code'], $totalNivelador) : 0;
 
                                         $horasActualesIngles = isset($asistenciaData['english_code']) && !empty($asistenciaData['english_code']) ?
-                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['english_code'], $horasIngles) : 0;
+                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['english_code'], $totalIngles) : 0;
 
                                         $horasActualesHabilidades = isset($asistenciaData['skills_code']) && !empty($asistenciaData['skills_code']) ?
-                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['skills_code'], $horasHabilidades) : 0;
+                                            calcularHorasAsistencia($conn, $number_id, $asistenciaData['skills_code'], $totalHabilidades) : 0;
 
                                         // Aplicar ajustes por homologación (igual que en exportHoursEL.php)
                                         if ($isCertified) {
@@ -1541,11 +1541,10 @@
                                         }
 
                                         // Aplicar límites adicionales para asegurar que no excedan las horas reales
-                                        $horasActualesTecnico = min($horasActualesTecnico, $horasTecnico);
-                                        $horasActualesNivelador = min($horasActualesNivelador, $horasNivelador);
-                                        $horasActualesIngles = min($horasActualesIngles, $horasIngles);
-                                        $horasActualesHabilidades = min($horasActualesHabilidades, $horasHabilidades);
-
+                                        $horasActualesTecnico = min($horasActualesTecnico, $totalTecnico);
+                                        $horasActualesNivelador = min($horasActualesNivelador, $totalNivelador);
+                                        $horasActualesIngles = min($horasActualesIngles, $totalIngles);
+                                        $horasActualesHabilidades = min($horasActualesHabilidades, $totalHabilidades);
                                         // Calcular porcentajes
                                         $porcentajeTecnico = $totalTecnico > 0 ? min(100, round(($horasActualesTecnico / $totalTecnico) * 100)) : 0;
                                         $porcentajeNivelador = $totalNivelador > 0 ? min(100, round(($horasActualesNivelador / $totalNivelador) * 100)) : 0;
