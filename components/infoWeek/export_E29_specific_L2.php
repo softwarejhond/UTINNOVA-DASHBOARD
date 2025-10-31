@@ -468,45 +468,53 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
         }
         $stmtHoras->close();
 
-        // Aplicar ajustes por homologación
-        if ($isCertified) {
-            // Verificar el tipo de curso
-            $sqlTipo = "SELECT 
-                CASE 
-                    WHEN c.code = g.id_bootcamp THEN 'bootcamp'
-                    WHEN c.code = g.id_skills THEN 'skills'
-                    ELSE 'other'
-                END as tipo_curso
-                FROM groups g
-                JOIN courses c ON c.code IN (g.id_bootcamp, g.id_english_code, g.id_skills)
-                WHERE g.number_id = ? AND c.code = ?";
-            $stmtTipo = $conn->prepare($sqlTipo);
-            $stmtTipo->bind_param("si", $studentId, $cursoId);
-            $stmtTipo->execute();
-            $resultTipo = $stmtTipo->get_result();
-            $tipoData = $resultTipo->fetch_assoc();
-            $tipoCurso = $tipoData['tipo_curso'];
-            $stmtTipo->close();
+        // Verificar el tipo de curso
+        $sqlTipo = "SELECT 
+            CASE 
+                WHEN c.code = g.id_bootcamp THEN 'bootcamp'
+                WHEN c.code = g.id_skills THEN 'skills'
+                WHEN c.code = g.id_english_code THEN 'english'
+                ELSE 'other'
+            END as tipo_curso
+            FROM groups g
+            JOIN courses c ON c.code IN (g.id_bootcamp, g.id_english_code, g.id_skills)
+            WHERE g.number_id = ? AND c.code = ?";
+        $stmtTipo = $conn->prepare($sqlTipo);
+        $stmtTipo->bind_param("si", $studentId, $cursoId);
+        $stmtTipo->execute();
+        $resultTipo = $stmtTipo->get_result();
+        $tipoData = $resultTipo->fetch_assoc();
+        $tipoCurso = $tipoData['tipo_curso'];
+        $stmtTipo->close();
 
-            if ($tipoCurso === 'bootcamp') {
-                // Sumar 40 adicionales a las horas técnicas, pero no superar horasMaximas
-                $totalHoras += min($horasMaximas, min($horasCurso, $horasMaximas) + 40);
-            } elseif ($tipoCurso === 'skills') {
-                // Setear habilidades a 15
-                $totalHoras += 15;
+        // Aplicar límites específicos por tipo de curso
+        if ($tipoCurso === 'bootcamp') {
+            // LÍMITE TÉCNICO: 120 horas máximo
+            if ($isCertified) {
+                $horasCurso = min($horasCurso + 40, 120); // Con homologación pero limitado
             } else {
-                // Para otros cursos (inglés), aplicar límite normal
-                $totalHoras += min($horasCurso, $horasMaximas);
+                $horasCurso = min($horasCurso, 120); // Sin homologación pero limitado
             }
+        } elseif ($tipoCurso === 'skills') {
+            // LÍMITE HABILIDADES: 15 horas máximo
+            if ($isCertified) {
+                $horasCurso = 15; // Homologación completa
+            } else {
+                $horasCurso = min($horasCurso, 15); // Sin homologación pero limitado
+            }
+        } elseif ($tipoCurso === 'english') {
+            // LÍMITE INGLÉS: 24 horas máximo
+            $horasCurso = min($horasCurso, 24);
         } else {
-            // Aplica el límite de horas máximas del curso
-            $totalHoras += min($horasCurso, $horasMaximas);
+            // Para otros cursos, aplicar límite del curso
+            $horasCurso = min($horasCurso, $horasMaximas);
         }
+
+        $totalHoras += $horasCurso;
     }
     $stmt->close();
     return $totalHoras;
 }
-
 function fechaAExcel($fecha)
 {
     if (!$fecha) return '';

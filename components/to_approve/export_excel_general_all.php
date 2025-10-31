@@ -384,17 +384,19 @@ try {
         'A1' => 'ID',
         'B1' => 'Número de Identificación',
         'C1' => 'Nombre Completo',
-        'D1' => 'Correo Institucional',
-        'E1' => 'Modalidad',
-        'F1' => 'Sede',
-        'G1' => 'Horas Totales',
-        'H1' => '% Asistencia',
-        'I1' => 'Programa Técnico',
-        'J1' => 'Nota 1',
-        'K1' => 'Nota 2',
-        'L1' => 'Nota Final',
-        'M1' => 'Estado',
-        'N1' => 'Fecha Exportación'
+        'D1' => 'Correo Personal',
+        'E1' => 'Correo Institucional',
+        'F1' => 'Modalidad',
+        'G1' => 'Sede',
+        'H1' => 'Institución',
+        'I1' => 'Horas Totales',
+        'J1' => '% Asistencia',
+        'K1' => 'Programa Técnico',
+        'L1' => 'Nota 1',
+        'M1' => 'Nota 2',
+        'N1' => 'Nota Final',
+        'O1' => 'Estado',
+        'P1' => 'Fecha Exportación'
     ];
 
     foreach ($headers as $cell => $value) {
@@ -422,12 +424,14 @@ try {
         ]
     ];
 
-    $sheet->getStyle('A1:N1')->applyFromArray($headerStyle);
+    $sheet->getStyle('A1:P1')->applyFromArray($headerStyle);
 
-    // Consultar estudiantes con paginación para evitar memoria excesiva
+    // Consultar estudiantes con paginación para evitar memoria excesiva - CORREGIDO: Agregar JOIN con user_register
     $sql = "SELECT DISTINCT g.number_id, g.full_name, g.institutional_email, g.mode, g.headquarters,
-                   g.id_bootcamp
+                   g.id_bootcamp,
+                   u.email AS personal_email, u.institution
             FROM groups g
+            LEFT JOIN user_register u ON g.number_id = u.number_id
             WHERE g.number_id IS NOT NULL AND g.number_id != ''
             AND g.id_bootcamp IS NOT NULL AND g.id_bootcamp != ''
             ORDER BY g.full_name ASC";
@@ -460,23 +464,28 @@ try {
             $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : 
                             (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
             
+            // Aplicar lógica de institución
+            $institution = !empty($data['institution']) ? $data['institution'] : 'No especificado';
+            
             // Llenar fila
             $sheet->setCellValue('A' . $row, $contador);
             $sheet->setCellValue('B' . $row, $data['number_id']);
             $sheet->setCellValue('C' . $row, strtoupper($data['full_name']));
-            $sheet->setCellValue('D' . $row, $data['institutional_email']);
-            $sheet->setCellValue('E' . $row, $data['mode']);
-            $sheet->setCellValue('F' . $row, $data['headquarters']);
-            $sheet->setCellValue('G' . $row, $horasAsistidas . '/' . $horasRequeridas);
-            $sheet->setCellValue('H' . $row, number_format($porcentajeAsistencia, 1) . '%');
+            $sheet->setCellValue('D' . $row, $data['personal_email'] ?? '');
+            $sheet->setCellValue('E' . $row, $data['institutional_email']);
+            $sheet->setCellValue('F' . $row, $data['mode']);
+            $sheet->setCellValue('G' . $row, $data['headquarters']);
+            $sheet->setCellValue('H' . $row, $institution);
+            $sheet->setCellValue('I' . $row, $horasAsistidas . '/' . $horasRequeridas);
+            $sheet->setCellValue('J' . $row, number_format($porcentajeAsistencia, 1) . '%');
             
             // Datos del técnico
-            $sheet->setCellValue('I' . $row, obtenerNombrePrograma($conn, $data['id_bootcamp']));
-            $sheet->setCellValue('J' . $row, number_format($notasTecnico['grade1'], 1));
-            $sheet->setCellValue('K' . $row, number_format($notasTecnico['grade2'], 1));
-            $sheet->setCellValue('L' . $row, number_format($notasTecnico['final'], 1));
-            $sheet->setCellValue('M' . $row, $estadoTecnico);
-            $sheet->setCellValue('N' . $row, date('Y-m-d H:i:s'));
+            $sheet->setCellValue('K' . $row, obtenerNombrePrograma($conn, $data['id_bootcamp']));
+            $sheet->setCellValue('L' . $row, number_format($notasTecnico['grade1'], 1));
+            $sheet->setCellValue('M' . $row, number_format($notasTecnico['grade2'], 1));
+            $sheet->setCellValue('N' . $row, number_format($notasTecnico['final'], 1));
+            $sheet->setCellValue('O' . $row, $estadoTecnico);
+            $sheet->setCellValue('P' . $row, date('Y-m-d H:i:s'));
             
             // Aplicar colores
             $colorAprobado = 'FFFFD700'; // Dorado
@@ -485,7 +494,7 @@ try {
             
             $color = $estadoTecnico === 'Aprobado' ? $colorAprobado : 
                     ($estadoTecnico === 'Apto' ? $colorApto : $colorNoApto);
-            $sheet->getStyle('M' . $row)->getFill()
+            $sheet->getStyle('O' . $row)->getFill()
                   ->setFillType(Fill::FILL_SOLID)
                   ->getStartColor()->setARGB($color);
             
@@ -511,19 +520,19 @@ try {
 
     if ($contador === 1) {
         $sheet->setCellValue('A2', 'No hay estudiantes matriculados en cursos técnicos');
-        $sheet->mergeCells('A2:N2');
+        $sheet->mergeCells('A2:P2');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
     // Auto-ajustar columnas
-    foreach(range('A','N') as $columnID) {
+    foreach(range('A','P') as $columnID) {
         $sheet->getColumnDimension($columnID)->setAutoSize(true);
     }
 
     // Aplicar bordes
     $totalRows = $row - 1;
     if ($totalRows >= 1) {
-        $sheet->getStyle('A1:N' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A1:P' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
     }
 
     // Generar archivo
