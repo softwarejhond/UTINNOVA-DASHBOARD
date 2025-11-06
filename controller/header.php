@@ -72,6 +72,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                     </li>
                 <?php endif; ?>
 
+
                 <?php if ($rol !== 'Visualizador'): ?>
 
 
@@ -90,8 +91,12 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                 </a>
                             <?php endif; ?>
                             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
+
                                 <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
                                 <li><a class="dropdown-item" href="metasDePagos.php"><b>Metas y pagos</b></a></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
+                                </li>
 
                                 <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_lote2', 'semanal_lote2')">Informe semanal Lote 2</a></li>
@@ -106,6 +111,11 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
+
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
+                                </li>
+
                             <?php endif; ?>
 
                             <?php if ($rol === 'Control maestro'): ?>
@@ -819,6 +829,236 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
         const url = `components/infoWeek/export_E29_specific_L2.php?action=export&docs=${encodeURIComponent(docsString)}`;
 
         descargarInforme(url, `E29_especifico_L2_${documentos.length}_docs`);
+    }
+
+    function abrirSwalCedulas() {
+        Swal.fire({
+            title: 'Descargar cédulas en ZIP',
+            html: `
+        <div style="margin-bottom:15px;">
+            <p style="font-weight:bold; color:#006d68;">Ingrese los números de identificación (number_id) para descargar sus PDFs:</p>
+        </div>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="numberIdsPaste" style="font-weight:bold;">Números de Identificación</label>
+                <textarea id="numberIdsPaste" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los number_id (uno por línea)"></textarea>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="numberIdsResult" style="font-weight:bold;">Vista Previa</label>
+                <textarea id="numberIdsResult" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled placeholder="Aquí verás los number_id procesados"></textarea>
+            </div>
+        </div>
+        `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Generar ZIP',
+            confirmButtonColor: '#006d68',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#dc3545',
+            width: 700,
+            didOpen: () => {
+                const pasteArea = document.getElementById('numberIdsPaste');
+                const resultArea = document.getElementById('numberIdsResult');
+
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0);
+                    resultArea.value = lines.join('\n');
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('numberIdsPaste');
+                const numberIds = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0);
+
+                if (numberIds.length === 0) {
+                    Swal.fire('Error', 'Debes ingresar al menos un number_id.', 'error');
+                    return;
+                }
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Generando ZIP...',
+                    html: 'Por favor espere mientras se genera el archivo ZIP.',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Enviar POST al script
+                fetch('controller/generar_zip_cedulas.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            number_ids: numberIds
+                        })
+                    })
+                    .then(response => {
+                        // Extraer información de los headers
+                        const totalRequested = response.headers.get('X-Total-Requested') || '0';
+                        const totalProcessed = response.headers.get('X-Total-Processed') || '0';
+                        const notFoundCount = response.headers.get('X-Not-Found-Count') || '0';
+                        const notFoundIds = response.headers.get('X-Not-Found-IDs') || '';
+                        const notFoundDB = response.headers.get('X-Not-Found-DB') || '';
+                        const filesNotFound = response.headers.get('X-Files-Not-Found') || '';
+
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                let errorData;
+                                try {
+                                    errorData = JSON.parse(text);
+                                } catch (e) {
+                                    errorData = { message: text };
+                                }
+                                throw new Error(JSON.stringify(errorData));
+                            });
+                        }
+                        
+                        return response.blob().then(blob => ({
+                            blob,
+                            totalRequested: parseInt(totalRequested),
+                            totalProcessed: parseInt(totalProcessed),
+                            notFoundCount: parseInt(notFoundCount),
+                            notFoundIds: notFoundIds ? notFoundIds.split(',').filter(id => id) : [],
+                            notFoundDB: notFoundDB ? notFoundDB.split(',').filter(id => id) : [],
+                            filesNotFound: filesNotFound ? filesNotFound.split(',').filter(id => id) : []
+                        }));
+                    })
+                    .then(({blob, totalRequested, totalProcessed, notFoundCount, notFoundIds, notFoundDB, filesNotFound}) => {
+                        // Verificar que el blob no esté vacío
+                        if (blob.size === 0) {
+                            throw new Error('El archivo ZIP está vacío');
+                        }
+
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `cedulas_${new Date().toISOString().split('T')[0]}.zip`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+
+                        // Crear el resumen para mostrar
+                        let summaryHtml = `
+                            <div class="text-start">
+                                <div class="alert alert-success mb-3">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    <strong>ZIP descargado correctamente</strong>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="card border-primary">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-file-earmark-zip text-primary" style="font-size: 2em;"></i>
+                                                <h5 class="card-title text-primary">${totalProcessed}</h5>
+                                                <p class="card-text">Archivos procesados</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="card border-info">
+                                            <div class="card-body text-center">
+                                                <i class="bi bi-files text-info" style="font-size: 2em;"></i>
+                                                <h5 class="card-title text-info">${totalRequested}</h5>
+                                                <p class="card-text">Total solicitados</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                        `;
+
+                        if (notFoundCount > 0) {
+                            summaryHtml += `
+                                <div class="alert alert-warning mt-3">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <strong>Archivos no encontrados: ${notFoundCount}</strong>
+                                </div>
+                            `;
+
+                            if (notFoundDB.length > 0) {
+                                summaryHtml += `
+                                    <div class="mb-3">
+                                        <h6 class="text-danger"><i class="bi bi-database-x"></i> No encontrados en la base de datos (${notFoundDB.length}):</h6>
+                                        <div class="bg-light p-2 rounded" style="max-height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.9em;">
+                                            ${notFoundDB.join(', ')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+
+                            if (filesNotFound.length > 0) {
+                                summaryHtml += `
+                                    <div class="mb-3">
+                                        <h6 class="text-warning"><i class="bi bi-file-earmark-x"></i> Registros sin archivo físico (${filesNotFound.length}):</h6>
+                                        <div class="bg-light p-2 rounded" style="max-height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.9em;">
+                                            ${filesNotFound.join(', ')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+
+                        summaryHtml += '</div>';
+
+                        Swal.fire({
+                            icon: totalProcessed > 0 ? 'success' : 'warning',
+                            title: totalProcessed > 0 ? '¡Descarga Completada!' : 'Descarga con Advertencias',
+                            html: summaryHtml,
+                            confirmButtonColor: '#006d68',
+                            confirmButtonText: 'Entendido',
+                            width: 700,
+                            customClass: {
+                                popup: 'text-start'
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        let errorData;
+                        try {
+                            errorData = JSON.parse(error.message);
+                        } catch (e) {
+                            errorData = { message: error.message || 'No se pudo generar el ZIP.' };
+                        }
+
+                        let errorHtml = `<p>${errorData.message}</p>`;
+                        
+                        if (errorData.not_found_in_db && errorData.not_found_in_db.length > 0) {
+                            errorHtml += `
+                                <div class="alert alert-warning mt-3">
+                                    <strong>No encontrados en BD (${errorData.not_found_in_db.length}):</strong><br>
+                                    <small>${errorData.not_found_in_db.join(', ')}</small>
+                                </div>
+                            `;
+                        }
+                        
+                        if (errorData.files_not_found && errorData.files_not_found.length > 0) {
+                            errorHtml += `
+                                <div class="alert alert-danger mt-3">
+                                    <strong>Archivos no encontrados (${errorData.files_not_found.length}):</strong><br>
+                                    <small>${errorData.files_not_found.join(', ')}</small>
+                                </div>
+                            `;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            html: errorHtml,
+                            confirmButtonColor: '#dc3545',
+                            width: 600
+                        });
+                    });
+            }
+        });
     }
 </script>
 
