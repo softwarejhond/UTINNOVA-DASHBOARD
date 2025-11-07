@@ -186,7 +186,7 @@ if ($result_bootcamp && $result_bootcamp->num_rows > 0) {
                                         <tr>
                                             <td class="text-center text-nowrap"><?= htmlspecialchars($row['headquarters']) ?></td>
                                             <td class="text-center text-nowrap"><?= htmlspecialchars($row['classroom_name']) ?></td>
-                                            <td class="text-center text-nowrap"><?= htmlspecialchars($row['course_name']) ?></td>
+                                            <td class="text-center text-nowrap"><?= $row['course_name'] ? htmlspecialchars($row['course_name']) : 'N/A' ?></td>
                                             <td class="text-center text-nowrap"><?= $row['user_name'] ? htmlspecialchars($row['user_name']) : 'N/A' ?></td>
                                             <td class="text-center text-nowrap"><?= htmlspecialchars($row['created_at']) ?></td>
                                             <td class="text-center text-nowrap">

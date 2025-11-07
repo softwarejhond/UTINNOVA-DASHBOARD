@@ -1347,9 +1347,9 @@
                                             <button type="button" class="btn btn-sm bg-teal-dark text-white" onclick="rotateImage('verifyImageBack_${numberId}', -90)">
                                                 <i class="bi bi-arrow-counterclockwise"></i>
                                             </button>
-                                            <!-- <button type="button" class="btn btn-sm bg-magenta-dark text-white" onclick="toggleZoom('verifyImageBack_${numberId}')">
+                                            <button type="button" class="btn btn-sm bg-magenta-dark text-white" onclick="toggleZoom('verifyImageBack_${numberId}')">
                                                 <i class="bi bi-zoom-in"></i>
-                                            </button> -->
+                                            </button>
                                             <button type="button" class="btn btn-sm bg-teal-dark text-white" onclick="rotateImage('verifyImageBack_${numberId}', 90)">
                                                 <i class="bi bi-arrow-clockwise"></i>
                                             </button>

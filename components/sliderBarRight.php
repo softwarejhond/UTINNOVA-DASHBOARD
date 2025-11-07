@@ -193,6 +193,26 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
+                        <div class="col">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Formatos roles y radicados (Académicos y administrativos)">
+                                <a href="rolesAndContracts.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="fa-solid fa-file-contract icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Radicados</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     <?php if ($extraRol === 'Extra Administrador' || $rol === 'Control maestro'): ?>
                         <div class="col">
                             <div class="checkbox"
