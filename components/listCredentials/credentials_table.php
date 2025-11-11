@@ -1,52 +1,28 @@
 <?php
 $rol = $infoUsuario['rol']; // Obtener el rol del usuario
 
-// Modificar la consulta para incluir información del carnet
-$sql = "SELECT g.*, ur.*, g.department as group_department, 
-               cr.id as carnet_id, cr.file_path, cr.file_name, cr.generated_at as carnet_date
-        FROM groups g 
-        LEFT JOIN user_register ur ON g.number_id = ur.number_id
-        LEFT JOIN carnet_records cr ON g.number_id = cr.number_id AND cr.is_active = 1";
-
-$result = $conn->query($sql);
-$data = [];
-
-// Llenar $data con los resultados de la consulta
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-}
-
-// Reiniciar el puntero del resultado para usarlo después en la tabla
-$result = $conn->query($sql);
-
-// Obtener datos únicos para los filtros
-$departamentos = ['BOYACÁ', 'CUNDINAMARCA'];
-$programas = [];
-$modalidades = [];
+// Consultas DISTINCT para llenar los filtros
 $sedes = [];
+$modalidades = [];
+$bootcamps = [];
 
-foreach ($data as $row) {
-    $sede = $row['headquarters'];
-    if (!in_array($sede, $sedes)) {
-        $sedes[] = $sede;
-    }
-    if (!in_array($row['program'], $programas)) {
-        $programas[] = $row['program'];
-    }
-    if (!in_array($row['mode'], $modalidades)) {
-        $modalidades[] = $row['mode'];
-    }
-    if (!in_array($row['group_department'], $departamentos)) {
-        $departamentos[] = $row['group_department'];
-    }
+// Obtener sedes únicas
+$resultSedes = $conn->query("SELECT DISTINCT headquarters FROM groups ORDER BY headquarters");
+while ($row = $resultSedes->fetch_assoc()) {
+    $sedes[] = $row['headquarters'];
 }
 
-// Ordenar los arrays para mejor visualización
-sort($sedes);
-sort($programas);
-sort($modalidades);
+// Obtener modalidades únicas
+$resultModalidades = $conn->query("SELECT DISTINCT mode FROM groups ORDER BY mode");
+while ($row = $resultModalidades->fetch_assoc()) {
+    $modalidades[] = $row['mode'];
+}
+
+// Obtener bootcamps únicos (id_bootcamp y bootcamp_name)
+$resultBootcamps = $conn->query("SELECT DISTINCT id_bootcamp, bootcamp_name FROM groups WHERE id_bootcamp IS NOT NULL ORDER BY bootcamp_name");
+while ($row = $resultBootcamps->fetch_assoc()) {
+    $bootcamps[] = $row; // Array asociativo con 'id_bootcamp' y 'bootcamp_name'
+}
 
 ?>
 
@@ -57,17 +33,22 @@ sort($modalidades);
 
 <!-- Filtros existentes -->
 <div class="row p-3 mb-1">
-    <b class="text-left mb-1"><i class="bi bi-filter-circle"></i> Filtrar beneficiario</b>
+    <b class="text-left mb-1"><i class="bi bi-filter-circle"></i> Filtrar campistas</b>
 
     <div class="col-md-6 col-sm-12 col-lg-3">
-        <div class="filter-title"><i class="bi bi-map"></i> Departamento</div>
-        <div class="card filter-card card-department" data-icon="📍">
+        <div class="filter-title"><i class="bi bi-123"></i> Buscar por Número de CC</div>
+        <div class="card filter-card card-number-id" data-icon="🔢">
             <div class="card-body">
-                <select id="filterDepartment" class="form-select">
-                    <option value="">Todos los departamentos</option>
-                    <option value="BOYACÁ">BOYACÁ</option>
-                    <option value="CUNDINAMARCA">CUNDINAMARCA</option>
-                </select>
+                <input 
+                    type="text" 
+                    id="filterNumberId" 
+                    class="form-control" 
+                    placeholder="Ingrese número de CC" 
+                    inputmode="numeric" 
+                    pattern="[0-9]*"
+                    maxlength="20"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                >
             </div>
         </div>
     </div>
@@ -87,13 +68,13 @@ sort($modalidades);
     </div>
 
     <div class="col-md-6 col-sm-12 col-lg-3">
-        <div class="filter-title"><i class="bi bi-mortarboard"></i> Programa</div>
-        <div class="card filter-card card-program" data-icon="🎓">
+        <div class="filter-title"><i class="bi bi-mortarboard"></i> Bootcamp</div>
+        <div class="card filter-card card-bootcamp" data-icon="🎓">
             <div class="card-body">
-                <select id="filterProgram" class="form-select">
-                    <option value="">Todos los programas</option>
-                    <?php foreach ($programas as $programa): ?>
-                        <option value="<?= htmlspecialchars($programa) ?>"><?= htmlspecialchars($programa) ?></option>
+                <select id="filterBootcamp" class="form-select">
+                    <option value="">Todos los bootcamps</option>
+                    <?php foreach ($bootcamps as $bootcamp): ?>
+                        <option value="<?= htmlspecialchars($bootcamp['id_bootcamp']) ?>"><?= htmlspecialchars($bootcamp['bootcamp_name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -135,52 +116,16 @@ sort($modalidades);
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-                    <tr data-department="<?= htmlspecialchars($row['group_department']) ?>"
-                        data-headquarters="<?= htmlspecialchars($row['headquarters']) ?>"
-                        data-program="<?= htmlspecialchars($row['program']) ?>"
-                        data-mode="<?= htmlspecialchars($row['mode']) ?>">
-
-                        <td><?php echo htmlspecialchars($row['type_id']); ?></td>
-                        <td><?php echo htmlspecialchars($row['number_id']); ?></td>
-                        <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($row['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['first_phone']); ?></td>
-                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                        <td><?php echo htmlspecialchars($row['institutional_email']); ?></td>
-                        <td>
-                            <?php
-                            $departamento = htmlspecialchars($row['group_department']);
-                            if ($departamento === 'CUNDINAMARCA') {
-                                echo "<button class='btn bg-lime-light w-100'><b>{$departamento}</b></button>";
-                            } elseif ($departamento === 'BOYACÁ') {
-                                echo "<button class='btn bg-indigo-light w-100'><b>{$departamento}</b></button>";
-                            } else {
-                                echo "<span>{$departamento}</span>";
-                            }
-                            ?>
-                        </td>
-                        <td><b class="text-center"><?php echo htmlspecialchars($row['headquarters']); ?></b></td>
-                        <td><?php echo htmlspecialchars($row['mode']); ?></td>
-                        <td>
-                            <?php if ($row['carnet_id'] && file_exists($row['file_path'])): ?>
-                                <div class="d-flex flex-column gap-1">
-                                    <button class="btn btn-success btn-sm" 
-                                            onclick="viewCarnet('<?php echo $row['number_id']; ?>', '<?php echo htmlspecialchars($row['file_name']); ?>')"
-                                            title="Ver Carnet">
-                                        <i class="bi bi-eye"></i> Ver Carnet
-                                    </button>
-                                </div>
-                            <?php else: ?>
-                                <button class="btn btn-primary btn-sm" 
-                                        onclick="generateCarnet('<?php echo $row['number_id']; ?>')"
-                                        title="Generar Carnet">
-                                    <i class="bi bi-card-text"></i> Generar
-                                </button>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php } ?>
+            <tbody id="tableBody">
+                <!-- Datos se cargarán aquí vía AJAX -->
+                <tr id="loadingRow">
+                    <td colspan="10" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Cargando...</span>
+                        </div>
+                        <p>Cargando datos...</p>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -210,6 +155,8 @@ sort($modalidades);
 </div>
 
 <script>
+    let dataTable = null;
+
     // Función para generar carnet
     function generateCarnet(numberId) {
         // Mostrar loader
@@ -308,6 +255,183 @@ sort($modalidades);
         link.click();
         document.body.removeChild(link);
     }
+
+    // Función para cargar datos vía AJAX
+    function loadCredentialsData() {
+        const numberId = $('#filterNumberId').val() || '';
+        const headquarters = $('#filterHeadquarters').val() || '';
+        const bootcamp = $('#filterBootcamp').val() || '';
+        const mode = $('#filterMode').val() || '';
+
+        // Verificar si hay al menos un filtro aplicado
+        if (!numberId && !headquarters && !bootcamp && !mode) {
+            $('#tableBody').html(`
+                <tr>
+                    <td colspan="10" class="text-center py-5">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="bi bi-funnel text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted mt-3 mb-2">Aplicar filtros para ver resultados</h5>
+                            <p class="text-muted mb-0">
+                                Utilice los filtros superiores para buscar campistas por:
+                            </p>
+                            <ul class="text-muted text-start mt-2">
+                                <li>Número de documento</li>
+                                <li>Sede</li>
+                                <li>Bootcamp</li>
+                                <li>Modalidad</li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            `);
+            return;
+        }
+
+        // Destruir DataTable si existe
+        if (dataTable) {
+            dataTable.destroy();
+            dataTable = null;
+        }
+
+        // Mostrar indicador de carga
+        $('#tableBody').html(`
+            <tr>
+                <td colspan="10" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p>Cargando datos...</p>
+                </td>
+            </tr>
+        `);
+
+        // Llamada AJAX a getCredentialsData.php
+        $.ajax({
+            url: 'components/listCredentials/getCredentialsData.php',
+            method: 'GET',
+            data: {
+                number_id: numberId,
+                headquarters: headquarters,
+                bootcamp: bootcamp,
+                mode: mode
+            },
+            success: function(data) {
+                let html = '';
+                
+                if (!Array.isArray(data)) {
+                    html = '<tr><td colspan="10" class="text-center text-danger">Error: Formato de datos incorrecto</td></tr>';
+                } else if (data.length === 0) {
+                    html = `
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-search text-muted" style="font-size: 2.5rem;"></i>
+                                    <h5 class="text-muted mt-3 mb-2">No se encontraron resultados</h5>
+                                    <p class="text-muted mb-0">
+                                        No hay campistas que coincidan con los filtros aplicados.
+                                    </p>
+                                    <small class="text-muted">Intente modificar los criterios de búsqueda.</small>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    data.forEach((row) => {
+                        html += `
+                            <tr>
+                                <td>${row.type_id || 'N/A'}</td>
+                                <td>${row.number_id || 'N/A'}</td>
+                                <td style="width: 300px; min-width: 300px; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${row.full_name || 'N/A'}</td>
+                                <td>${row.first_phone || 'N/A'}</td>
+                                <td>${row.email || 'N/A'}</td>
+                                <td>${row.institutional_email || 'N/A'}</td>
+                                <td>
+                                    ${(row.group_department === 'CUNDINAMARCA') ? `<button class='btn bg-lime-light w-100'><b>${row.group_department}</b></button>` : 
+                                      (row.group_department === 'BOYACÁ') ? `<button class='btn bg-indigo-light w-100'><b>${row.group_department}</b></button>` : 
+                                      `<span>${row.group_department || 'N/A'}</span>`}
+                                </td>
+                                <td><b class="text-center">${row.headquarters || 'N/A'}</b></td>
+                                <td>${row.mode || 'N/A'}</td>
+                                <td>
+                                    ${(row.carnet_id && row.file_path) ? `
+                                        <div class="d-flex flex-column gap-1">
+                                            <button class="btn btn-success btn-sm" onclick="viewCarnet('${row.number_id || ''}', '${row.file_name || ''}')" title="Ver Carnet">
+                                                <i class="bi bi-eye"></i> Ver Carnet
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <button class="btn btn-primary btn-sm" onclick="generateCarnet('${row.number_id || ''}')" title="Generar Carnet">
+                                            <i class="bi bi-card-text"></i> Generar
+                                        </button>
+                                    `}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                $('#tableBody').html(html);
+
+                // Reinicializar DataTable después de cargar datos
+                if (data.length > 0) {
+                    setTimeout(() => {
+                        try {
+                            dataTable = $('#listaInscritos').DataTable({
+                                responsive: true,
+                                language: {
+                                    url: "controller/datatable_esp.json"
+                                },
+                                pagingType: "simple",
+                                destroy: true
+                            });
+                        } catch (error) {
+                            // Error silencioso
+                        }
+                    }, 100);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#tableBody').html('<tr><td colspan="10" class="text-center text-danger">Error al cargar datos: ' + error + '</td></tr>');
+            }
+        });
+    }
+
+    // Document ready y event listeners
+    $(document).ready(function() {
+        // Mostrar mensaje inicial
+        $('#tableBody').html(`
+            <tr>
+                <td colspan="10" class="text-center py-5">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="bi bi-funnel text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mt-3 mb-2">Aplicar filtros para ver resultados</h5>
+                        <p class="text-muted mb-0">
+                            Utilice los filtros superiores para buscar campistas por:
+                        </p>
+                        <ul class="text-muted text-start mt-2">
+                            <li>Número de documento</li>
+                            <li>Sede</li>
+                            <li>Bootcamp</li>
+                            <li>Modalidad</li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        `);
+
+        // Event listeners para filtros
+        let searchTimeout;
+        $('#filterNumberId').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                loadCredentialsData();
+            }, 500);
+        });
+
+        $('#filterHeadquarters, #filterBootcamp, #filterMode').on('change', function() {
+            loadCredentialsData();
+        });
+    });
 
     // Manejo global de errores para requests fallidos
     window.addEventListener('error', function(e) {

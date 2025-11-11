@@ -81,41 +81,18 @@ $rol = $infoUsuario['rol'];
 <script src="js/dataTables.js?v=0.2"></script>
 
 <script>
-    $(document).ready(function() {
-        $('#link-dashboard').addClass('pagina-activa');
+    // $(document).ready(function() {
+    //     $('#link-dashboard').addClass('pagina-activa');
 
-        var table = $('#listaInscritos').DataTable({
-            responsive: true,
-            language: {
-                url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-            },
-            pagingType: "simple"
-        });
-
-        $('#filterDepartment, #filterHeadquarters, #filterProgram, #filterMode').on('change', function() {
-            table.draw();
-        });
-
-        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-            var selectedDepartment = $('#filterDepartment').val();
-            var selectedHeadquarters = $('#filterHeadquarters').val();
-            var selectedProgram = $('#filterProgram').val();
-            var selectedMode = $('#filterMode').val();
-
-            var row = table.row(dataIndex).node();
-            var rowDepartment = $(row).data('department');
-            var rowHeadquarters = $(row).data('headquarters');
-            var rowProgram = $(row).data('program');
-            var rowMode = $(row).data('mode');
-
-            var departmentMatch = !selectedDepartment || rowDepartment === selectedDepartment;
-            var headquartersMatch = !selectedHeadquarters || rowHeadquarters === selectedHeadquarters;
-            var programMatch = !selectedProgram || rowProgram === selectedProgram;
-            var modeMatch = !selectedMode || rowMode === selectedMode;
-
-            return departmentMatch && headquartersMatch && programMatch && modeMatch;
-        });
-    });
+    //     // Inicialización de DataTable
+    //     $('#listaInscritos').DataTable({
+    //         responsive: true,
+    //         language: {
+    //             url: "controller/datatable_esp.json"
+    //         },
+    //         pagingType: "simple"
+    //     });
+    // });
 </script>
 
 </body>
