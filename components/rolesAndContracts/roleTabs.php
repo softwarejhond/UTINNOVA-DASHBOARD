@@ -200,7 +200,7 @@ function getRolName($rol)
 
 <!-- Modal para asignar información -->
 <div class="modal fade" id="asignarModal" tabindex="-1" aria-labelledby="asignarModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="asignarModalLabel">Asignar información para formato de radicados</h5>
@@ -224,14 +224,30 @@ function getRolName($rol)
                         </div>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <h6>Asignaciones existentes:</h6>
+                    <div id="existingAssignments" class="table-responsive">
+                        <!-- Aquí se poblará la tabla de asignaciones existentes -->
+                    </div>
+                </div>
                 <form id="asignarForm">
+                    <h6 id="formTitle">Agregar nueva asignación:</h6>
                     <div class="mb-3">
                         <label for="radicado" class="form-label">Radicado</label>
                         <input type="text" class="form-control" id="radicado" name="radicado" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="fechaRadicado" class="form-label">Fecha del Radicado</label>
-                        <input type="date" class="form-control" id="fechaRadicado" name="fechaRadicado" required>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label for="fechaRadicado" class="form-label">Fecha del Radicado</label>
+                            <input type="date" class="form-control" id="fechaRadicado" name="fechaRadicado" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="lote" class="form-label">Lote</label>
+                            <select class="form-select" id="lote" name="lote" required>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="rolContrato" class="form-label">Rol de Contrato</label>
@@ -239,6 +255,8 @@ function getRolName($rol)
                             <!-- Opciones se poblarán dinámicamente -->
                         </select>
                     </div>
+                    
+                    <input type="hidden" id="assignmentId" name="assignmentId">  <!-- Nuevo: campo para ID -->
                     <input type="hidden" id="username" name="username">
                 </form>
             </div>
@@ -352,15 +370,23 @@ function getRolName($rol)
                     username: username
                 },
                 success: function(response) {
-                    if (response.success && response.data) {
-                        $('#radicado').val(response.data.filing_number);
-                        $('#fechaRadicado').val(response.data.filing_date);
-                        $('#rolContrato').val(response.data.contract_role);
+                    if (response.success && response.data.length > 0) {
+                        let tableHtml = '<table class="table table-sm"><thead><tr><th>Radicado</th><th>Fecha</th><th>Rol</th><th>Lote</th><th>Acciones</th></tr></thead><tbody>';
+                        response.data.forEach(assignment => {
+                            tableHtml += `<tr><td>${assignment.filing_number}</td><td>${assignment.filing_date}</td><td>${assignment.contract_role}</td><td>${assignment.lote}</td><td><button class='btn btn-sm btn-warning edit-assignment' data-id='${assignment.id}' data-radicado='${assignment.filing_number}' data-fecha='${assignment.filing_date}' data-rol='${assignment.contract_role}' data-lote='${assignment.lote}'>Editar</button></td></tr>`;
+                        });
+                        tableHtml += '</tbody></table>';
+                        $('#existingAssignments').html(tableHtml);
                     } else {
-                        $('#asignarForm')[0].reset();
+                        $('#existingAssignments').html('<p>No hay asignaciones existentes.</p>');
                     }
+                    $('#asignarForm')[0].reset();
+                    $('#assignmentId').val('');  // Limpiar ID
+                    $('#formTitle').text('Agregar nueva asignación:');
+                    $('#guardarAsignacion').text('Guardar');
                 },
                 error: function() {
+                    $('#existingAssignments').html('<p>Error al cargar asignaciones.</p>');
                     $('#asignarForm')[0].reset();
                 }
             });
@@ -372,6 +398,7 @@ function getRolName($rol)
             formData.append('filing_number', $('#radicado').val());
             formData.append('filing_date', $('#fechaRadicado').val());
             formData.append('contract_role', $('#rolContrato').val());
+            formData.append('lote', $('#lote').val());  // Nuevo: enviar lote
 
             $.ajax({
                 url: 'components/rolesAndContracts/saveFilingAssignment.php',
@@ -389,6 +416,7 @@ function getRolName($rol)
                         });
                         $('#asignarModal').modal('hide');
                         $('#asignarForm')[0].reset();
+                        // Opcional: recargar la lista de asignaciones sin cerrar el modal
                     } else {
                         Swal.fire({
                             title: 'Error',
@@ -420,8 +448,8 @@ function getRolName($rol)
                 type: 'GET',
                 success: function(response) {
                     if (response.success) {
-                        response.courses.forEach(course => {
-                            cursosSelect.append(`<option value="${course.code}">${course.code} - ${course.nombre}</option>`);
+                        response.cursos.forEach(curso => {
+                            cursosSelect.append(`<option value="${curso.codigo}">${curso.codigo} - ${curso.nombre}</option>`);
                         });
 
                         // Inicializar Select2
@@ -572,6 +600,23 @@ function getRolName($rol)
             setTimeout(function() {
                 Swal.close();
             }, 2000);
+        });
+
+        // Evento para editar asignación
+        $(document).on('click', '.edit-assignment', function() {
+            const id = $(this).data('id');
+            const radicado = $(this).data('radicado');
+            const fecha = $(this).data('fecha');
+            const rol = $(this).data('rol');
+            const lote = $(this).data('lote');
+            
+            $('#assignmentId').val(id);
+            $('#radicado').val(radicado);
+            $('#fechaRadicado').val(fecha);
+            $('#rolContrato').val(rol);
+            $('#lote').val(lote);
+            $('#formTitle').text('Editar asignación:');
+            $('#guardarAsignacion').text('Actualizar');
         });
     });
 </script>

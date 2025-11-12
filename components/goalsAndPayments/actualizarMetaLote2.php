@@ -238,6 +238,7 @@ try {
     $total75General = 0;
     $totalMenos75General = 0;
     $totalAlMenosUnaPresente = 0;
+    $totalStatus6General = 0; // Nueva variable para contar statusAdmin = 6
 
     // Procesar cada bootcamp
     foreach ($bootcamps as $code => $name) {
@@ -314,13 +315,71 @@ try {
         }
         $stmtFormados->close();
 
+        // NUEVO: Obtener total de status 6
+        $sqlStatus6 = "
+            SELECT COUNT(*) as total_status6
+            FROM groups g
+            INNER JOIN user_register ur ON g.number_id = ur.number_id
+            LEFT JOIN participantes p ON ur.number_id = p.numero_documento 
+            WHERE ur.lote = 2
+            AND g.id_bootcamp = ?
+            AND ur.statusAdmin = 6
+        ";
+        $paramsStatus6 = [$code];
+        $paramTypesStatus6 = "s";
+        
+        if ($modalidad !== 'Todas') {
+            $sqlStatus6 .= " AND g.mode = ?";
+            $paramsStatus6[] = $modalidad;
+            $paramTypesStatus6 .= "s";
+        }
+
+        if ($contrapartida !== 'Todas') {
+            $contrapartidaInt = intval($contrapartida);
+            if ($contrapartidaInt) {
+                $sqlStatus6 .= " AND (p.numero_documento IS NOT NULL OR ur.directed_base = 1)";
+            } else {
+                $sqlStatus6 .= " AND (p.numero_documento IS NULL AND ur.directed_base != 1)";
+            }
+        }
+
+        if (!empty($institucionesArray) || $incluirSinInstitucion) {
+            $condicionesInstitucion = [];
+            $parametrosInstitucion = [];
+            
+            if (!empty($institucionesArray)) {
+                $institutionPlaceholders = str_repeat('?,', count($institucionesArray) - 1) . '?';
+                $condicionesInstitucion[] = "ur.institution IN ($institutionPlaceholders)";
+                $parametrosInstitucion = array_merge($parametrosInstitucion, $institucionesArray);
+            }
+            
+            if ($incluirSinInstitucion) {
+                $condicionesInstitucion[] = "(ur.institution IS NULL OR ur.institution = '')";
+            }
+            
+            $sqlStatus6 .= " AND (" . implode(' OR ', $condicionesInstitucion) . ")";
+            $paramsStatus6 = array_merge($paramsStatus6, $parametrosInstitucion);
+            $paramTypesStatus6 .= str_repeat('s', count($parametrosInstitucion));
+        }
+
+        $stmtStatus6 = $conn->prepare($sqlStatus6);
+        $stmtStatus6->bind_param($paramTypesStatus6, ...$paramsStatus6);
+        $stmtStatus6->execute();
+        $resStatus6 = $stmtStatus6->get_result();
+        $totalStatus6 = 0;
+        if ($rowStatus6 = $resStatus6->fetch_assoc()) {
+            $totalStatus6 = intval($rowStatus6['total_status6']);
+        }
+        $stmtStatus6->close();
+
         $totalesPorCurso[$name] = [
             'inscritos' => 0,
             'mayor75' => 0,
             'menor75' => 0,
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'formados' => $totalFormados
+            'formados' => $totalFormados,
+            'status6' => $totalStatus6 // Agregar al array
         ];
 
         // Construir consulta dinámica para inscritos
@@ -418,6 +477,9 @@ try {
             }
         }
         $stmtInscritos->close();
+
+        // Sumar al total general de status 6
+        $totalStatus6General += $totalStatus6;
     }
 
     header('Content-Type: application/json');
@@ -427,7 +489,8 @@ try {
         'total75General' => $total75General,
         'totalMenos75General' => $totalMenos75General,
         'metaGoal' => $metaGoal,
-        'totalAlMenosUnaPresente' => $totalAlMenosUnaPresente
+        'totalAlMenosUnaPresente' => $totalAlMenosUnaPresente,
+        'totalStatus6General' => $totalStatus6General // Agregar al JSON de respuesta
     ]);
 
 } catch (Exception $e) {

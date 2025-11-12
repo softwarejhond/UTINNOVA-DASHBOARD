@@ -23,6 +23,16 @@
         background-color: #e67300 !important;
     }
 
+    /* Quinto badge: Aproximandose al 75% */
+    .row.mb-4 .col-md-3:nth-child(5) .badge-total-metas {
+        background-color: #8e44ad !important;
+    }
+
+    /* Sexto badge: Certificados (Status 6) */
+    .row.mb-4 .col-md-3:nth-child(6) .badge-total-metas {
+        background-color: #d35400 !important;
+    }
+
     .card-meta {
         border: none;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -249,11 +259,21 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 mt-4">
         <div class="card card-meta h-100 bg-white text-dark">
             <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
                 <h4 class="card-title mb-3">Aproximandose al 75%</h4>
                 <span class="badge badge-total-metas mt-auto mb-2" id="badgeAlMenosUnaLote2" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NUEVA TARJETA: Status Admin 6 -->
+    <div class="col-md-3 mt-4">
+        <div class="card card-meta h-100 bg-white text-dark">
+            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
+                <h4 class="card-title mb-3">Certificados</h4>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeStatus6Lote2" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
             </div>
         </div>
     </div>
@@ -381,7 +401,8 @@
                 document.getElementById('badgeMetaLote2').textContent = '0';
                 document.getElementById('badgeFaltanteLote2').textContent = '0';
                 document.getElementById('badgeFormadosLote2').textContent = '0';
-                document.getElementById('badgeAlMenosUnaLote2').textContent = '0';  // Agregar esta línea para resetear la tarjeta faltante
+                document.getElementById('badgeAlMenosUnaLote2').textContent = '0';
+                document.getElementById('badgeStatus6Lote2').textContent = '0'; // NUEVO
                 resumenGeneralTotalesLote2.innerHTML = '';
             }
         }
@@ -478,7 +499,8 @@
                 document.getElementById('badgeMetaLote2').textContent = datos.metaGoal;
                 document.getElementById('badgeFaltanteLote2').textContent = Math.max(0, datos.metaGoal - datos.total75General);
                 document.getElementById('badgeFormadosLote2').textContent = totalFormados;
-                document.getElementById('badgeAlMenosUnaLote2').textContent = datos.totalAlMenosUnaPresente;  // Agregar esta línea para asignar el valor calculado
+                document.getElementById('badgeAlMenosUnaLote2').textContent = datos.totalAlMenosUnaPresente;
+                document.getElementById('badgeStatus6Lote2').textContent = datos.totalStatus6General; // NUEVO
 
                 // Listado de cursos en tabla
                 let htmlCursos = `
@@ -579,6 +601,8 @@
                 document.getElementById('badgeMetaLote2').textContent = '0';
                 document.getElementById('badgeFaltanteLote2').textContent = '0';
                 document.getElementById('badgeFormadosLote2').textContent = '0';
+                document.getElementById('badgeAlMenosUnaLote2').textContent = '0';
+                document.getElementById('badgeStatus6Lote2').textContent = '0'; // NUEVO
             }
         }
 

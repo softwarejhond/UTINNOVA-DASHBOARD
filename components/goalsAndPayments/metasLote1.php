@@ -23,6 +23,21 @@
         background-color: #e67300 !important;
     }
 
+    /* Quinto badge: Aproximandose al 75% */
+    .row.mb-4 .col-md-3:nth-child(5) .badge-total-metas {
+        background-color: #8e44ad !important;
+    }
+
+    /* Sexto badge: Certificados */
+    .row.mb-4 .col-md-3:nth-child(6) .badge-total-metas {
+        background-color: #d35400 !important;
+    }
+
+    /* Séptimo badge: Status 6 */
+    .row.mb-4 .col-md-3:nth-child(7) .badge-total-metas {
+        background-color: #c0392b !important;
+    }
+
     .card-meta {
         border: none;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -217,7 +232,7 @@
     Seleccione un número de pago para cargar los datos.
 </div>
 
-<!-- Tarjetas de prueba -->
+<!-- Tarjetas de métricas -->
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card card-meta h-100 bg-white text-dark">
@@ -251,7 +266,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 mt-4">
         <div class="card card-meta h-100 bg-white text-dark">
             <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
                 <h4 class="card-title mb-3">Aproximandose al 75%</h4>
@@ -260,6 +275,15 @@
         </div>
     </div>
 
+    <!-- NUEVA TARJETA: Status Admin 6 -->
+    <div class="col-md-3 mt-4">
+        <div class="card card-meta h-100 bg-white text-dark">
+            <div class="card-body d-flex flex-column align-items-center justify-content-between text-center" style="height: 100%;">
+                <h4 class="card-title mb-3">Certificados</h4>
+                <span class="badge badge-total-metas mt-auto mb-2" id="badgeStatus6" style="font-size:1.5rem; padding:0.6em 1.5em;"></span>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Listado de cursos y totales -->
@@ -386,6 +410,7 @@
                 document.getElementById('badgeFaltante').textContent = '0';
                 document.getElementById('badgeFormados').textContent = '0';
                 document.getElementById('badgeAlMenosUna').textContent = '0';
+                document.getElementById('badgeStatus6').textContent = '0'; // NUEVO
                 resumenGeneralTotales.innerHTML = '';
             }
         }
@@ -481,6 +506,7 @@
                 document.getElementById('badgeFaltante').textContent = Math.max(0, datos.metaGoal - datos.total75General);
                 document.getElementById('badgeFormados').textContent = totalFormados;
                 document.getElementById('badgeAlMenosUna').textContent = datos.totalAlMenosUnaPresente;
+                document.getElementById('badgeStatus6').textContent = datos.totalStatus6General; // NUEVO
 
                 // Listado de cursos en tabla
                 let htmlCursos = `
@@ -582,6 +608,7 @@
                 document.getElementById('badgeFaltante').textContent = '0';
                 document.getElementById('badgeFormados').textContent = '0';
                 document.getElementById('badgeAlMenosUna').textContent = '0';
+                document.getElementById('badgeStatus6').textContent = '0'; // NUEVO
             }
         }
 

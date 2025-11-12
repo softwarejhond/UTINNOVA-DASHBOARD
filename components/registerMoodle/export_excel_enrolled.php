@@ -2,7 +2,6 @@
 require __DIR__ . '../../../vendor/autoload.php';
 require  '../../controller/conexion.php';// Asegúrate de incluir la conexión a la BD
 
-
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -55,15 +54,15 @@ $sheet->setCellValue('R1', 'English Code');
 $sheet->setCellValue('S1', 'ID Habilidades');
 $sheet->setCellValue('T1', 'Habilidades');
 $sheet->setCellValue('U1', 'Cohorte');
-$sheet->setCellValue('V1', 'Horario principal');         // NUEVO
-$sheet->setCellValue('W1', 'Horario alternativo');       // NUEVO
-$sheet->setCellValue('X1', 'Aula');                     // NUEVO
+$sheet->setCellValue('V1', 'Horario principal');
+$sheet->setCellValue('W1', 'Horario alternativo');
+$sheet->setCellValue('X1', 'Aula');
 $sheet->setCellValue('Y1', 'Nivel Elegido');
 $sheet->setCellValue('Z1', 'Puntaje de Prueba');
 $sheet->setCellValue('AA1', 'Nivel Obtenido');
-$sheet->setCellValue('AB1', 'Es Contrapartida'); // NUEVA COLUMNA
+$sheet->setCellValue('AB1', 'Es Contrapartida');
 
-// Query to get data (agregando DISTINCT y nuevos campos)
+// Query to get data
 $query = "SELECT DISTINCT
             g.*, 
             ur.first_phone, 
@@ -95,52 +94,51 @@ while ($data = mysqli_fetch_assoc($stmt)) {
     }
     $procesados[] = $data['number_id'];
 
-    $sheet->setCellValue('A' . $row, $data['type_id']);
-    $sheet->setCellValue('B' . $row, $data['number_id']);
-    $sheet->setCellValue('C' . $row, str_replace(['Á','É','Í','Ó','Ú','á','é','í','ó','ú'], ['A','E','I','O','U','a','e','i','o','u'], mb_strtoupper($data['full_name'], 'UTF-8')));
-    $sheet->setCellValue('D' . $row, str_replace('+57', '', $data['first_phone']));
-    $sheet->setCellValue('E' . $row, $data['email']);
-    $sheet->setCellValue('F' . $row, $data['institutional_email']);
-    $sheet->setCellValue('G' . $row, $data['mode']);
-    $sheet->setCellValue('H' . $row, $data['lote']);
-    $sheet->setCellValue('I' . $row, $data['headquarters']);
-    $sheet->setCellValue('J' . $row, $data['password']);
-    $sheet->setCellValue('K' . $row, $data['start_date']);
-    $sheet->setCellValue('L' . $row, $data['end_date']);
-    $sheet->setCellValue('M' . $row, $data['id_bootcamp']);
-    $sheet->setCellValue('N' . $row, $data['bootcamp_name']);
-    $sheet->setCellValue('O' . $row, $data['id_leveling_english']);
-    $sheet->setCellValue('P' . $row, $data['leveling_english_name']);
-    $sheet->setCellValue('Q' . $row, $data['id_english_code']);
-    $sheet->setCellValue('R' . $row, $data['english_code_name']);
-    $sheet->setCellValue('S' . $row, $data['id_skills']);
-    $sheet->setCellValue('T' . $row, $data['skills_name']);
-    $sheet->setCellValue('U' . $row, $data['course_cohort']);
+    $sheet->setCellValue('A' . $row, $data['type_id'] ?? '');
+    $sheet->setCellValue('B' . $row, $data['number_id'] ?? '');
+    $sheet->setCellValue('C' . $row, isset($data['full_name']) ? str_replace(['Á','É','Í','Ó','Ú','á','é','í','ó','ú'], ['A','E','I','O','U','a','e','i','o','u'], mb_strtoupper($data['full_name'], 'UTF-8')) : '');
+    $sheet->setCellValue('D' . $row, isset($data['first_phone']) ? str_replace('+57', '', $data['first_phone']) : '');
+    $sheet->setCellValue('E' . $row, $data['email'] ?? '');
+    $sheet->setCellValue('F' . $row, $data['institutional_email'] ?? '');
+    $sheet->setCellValue('G' . $row, $data['mode'] ?? '');
+    $sheet->setCellValue('H' . $row, $data['lote'] ?? '');
+    $sheet->setCellValue('I' . $row, $data['headquarters'] ?? '');
+    $sheet->setCellValue('J' . $row, $data['password'] ?? '');
+    $sheet->setCellValue('K' . $row, $data['start_date'] ?? '');
+    $sheet->setCellValue('L' . $row, $data['end_date'] ?? '');
+    $sheet->setCellValue('M' . $row, $data['id_bootcamp'] ?? '');
+    $sheet->setCellValue('N' . $row, $data['bootcamp_name'] ?? '');
+    $sheet->setCellValue('O' . $row, $data['id_leveling_english'] ?? '');
+    $sheet->setCellValue('P' . $row, $data['leveling_english_name'] ?? '');
+    $sheet->setCellValue('Q' . $row, $data['id_english_code'] ?? '');
+    $sheet->setCellValue('R' . $row, $data['english_code_name'] ?? '');
+    $sheet->setCellValue('S' . $row, $data['id_skills'] ?? '');
+    $sheet->setCellValue('T' . $row, $data['skills_name'] ?? '');
+    $sheet->setCellValue('U' . $row, $data['course_cohort'] ?? '');
     $sheet->setCellValue('V' . $row, $data['schedules'] ?? '');
     $sheet->setCellValue('W' . $row, $data['schedules_alternative'] ?? '');
     $sheet->setCellValue('X' . $row, $data['classroom_name'] ?? '');
     $sheet->setCellValue('Y' . $row, $data['level'] ?? '');
 
-    // Puntaje de prueba y nivel obtenido
-    if (isset($nivelesUsuarios[$data['number_id']])) {
-        $puntaje = $nivelesUsuarios[$data['number_id']];
+    // Puntaje de prueba y nivel obtenido con ternarios
+    $cedula = $data['number_id'] ?? null;
+    $puntaje = isset($nivelesUsuarios[$cedula]) ? $nivelesUsuarios[$cedula] : null;
+    
+    if ($puntaje !== null) {
         $sheet->setCellValue('Z' . $row, $puntaje);
-        if ($puntaje >= 0 && $puntaje <= 5) {
-            $sheet->setCellValue('AA' . $row, 'Básico');
-        } elseif ($puntaje >= 6 && $puntaje <= 10) {
-            $sheet->setCellValue('AA' . $row, 'Intermedio');
-        } elseif ($puntaje >= 11 && $puntaje <= 15) {
-            $sheet->setCellValue('AA' . $row, 'Avanzado');
-        } else {
-            $sheet->setCellValue('AA' . $row, 'Sin clasificar');
-        }
+        $nivelObtenido = ($puntaje >= 0 && $puntaje <= 5) ? 'Básico' : 
+                        (($puntaje >= 6 && $puntaje <= 10) ? 'Intermedio' : 
+                        (($puntaje >= 11 && $puntaje <= 15) ? 'Avanzado' : 'Sin clasificar'));
+        $sheet->setCellValue('AA' . $row, $nivelObtenido);
     } else {
         $sheet->setCellValue('Z' . $row, 'No presentó');
         $sheet->setCellValue('AA' . $row, 'No presentó');
     }
 
-    // Determinar si es contrapartida
-    $esContrapartida = (!empty($data['es_participante']) || $data['directed_base'] == '1') ? 'Sí' : 'No';
+    // Determinar si es contrapartida con ternario
+    $esParticipante = !empty($data['es_participante']);
+    $esDirectedBase = ($data['directed_base'] ?? '0') == '1';
+    $esContrapartida = ($esParticipante || $esDirectedBase) ? 'Sí' : 'No';
     $sheet->setCellValue('AB' . $row, $esContrapartida);
 
     $row++;

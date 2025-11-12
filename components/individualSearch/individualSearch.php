@@ -1122,6 +1122,22 @@
                                                             <?= !empty($matricula['institutional_email']) ? htmlspecialchars($matricula['institutional_email']) : 'No asignado' ?>
                                                         </span>
                                                     </div>
+
+                                                    <!-- Carnet Insti -->
+                                                    <div class="d-flex justify-content-between align-items-center w-100 mt-2">
+                                                        <span class="text-muted">Carnet institucional:</span>
+                                                        <span class="text-end">
+                                                            <button type="button" id="descargarCarnet_<?= $number_id ?>"
+                                                                class="btn btn-sm bg-indigo-dark text-white"
+                                                                title="Descargar carnet"
+                                                                data-bs-toggle="popover"
+                                                                data-bs-placement="top"
+                                                                data-bs-trigger="hover"
+                                                                data-bs-content="Descargar carnet institucional del estudiante">
+                                                                <i class="bi bi-download"></i> Descargar
+                                                            </button>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -5591,6 +5607,62 @@
             position: 'top-end'
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Agregar event listener al botón de descarga de carnet
+        const btnDescargarCarnet = document.getElementById('descargarCarnet_<?= $number_id ?>');
+
+        if (btnDescargarCarnet) {
+            btnDescargarCarnet.addEventListener('click', function() {
+                const numberId = '<?= $number_id ?>';
+
+                // Mostrar indicador de carga
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i> Descargando...';
+                this.disabled = true;
+
+                // Verificar si existe el carnet antes de intentar descargar
+                fetch(`components/individualSearch/verificar_carnet.php?number_id=${numberId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            // Si existe, proceder con la descarga
+                            window.location.href = `components/individualSearch/descargar_carnet.php?number_id=${numberId}`;
+
+                            // Restaurar el botón después de un breve momento
+                            setTimeout(() => {
+                                this.innerHTML = originalContent;
+                                this.disabled = false;
+                            }, 2000);
+                        } else {
+                            // Si no existe, mostrar mensaje de error
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Carnet no disponible',
+                                text: 'No se encontró un carnet generado para este estudiante.',
+                                confirmButtonColor: '#2B5BAC'
+                            });
+
+                            // Restaurar el botón
+                            this.innerHTML = originalContent;
+                            this.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al verificar carnet:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Ocurrió un error al verificar el carnet. Inténtelo nuevamente.'
+                        });
+
+                        // Restaurar el botón
+                        this.innerHTML = originalContent;
+                        this.disabled = false;
+                    });
+            });
+        }
+    });
 </script>
 
 
