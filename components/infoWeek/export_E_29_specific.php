@@ -180,6 +180,34 @@ function exportDataToExcelSpecific($conn, $documents)
             // Verificar si el usuario está en la tabla groups
             $estaEnGroups = !empty($row['id_bootcamp']) || !empty($row['id_leveling_english']) || !empty($row['id_english_code']) || !empty($row['id_skills']);
 
+            // Determinar el valor para Eje_tematico, Eje final y Programa de Formación
+            $programValue = $row['program'];
+            if ($estaEnGroups || in_array($row['statusAdmin'], ['3', '10', '6'])) {
+                // Eliminar los guiones y limpiar espacios extra
+                $programValue = preg_replace('/\s+(Explorador|Integrador|Innovador)\s+.*/', '', $row['bootcamp_name']);
+                $programValue = str_replace('-', '', $programValue);
+                $programValue = trim($programValue);
+            }
+
+            // Determinar estado de prueba
+            $puntaje = $nivelesUsuarios[$row['number_id']] ?? '';
+            $estadoPrueba = 'No presentó prueba';
+            if ($puntaje) {
+                if ($puntaje >= 0 && $puntaje <= 5) {
+                    $estadoPrueba = 'Básico';
+                } elseif ($puntaje >= 6 && $puntaje <= 10) {
+                    $estadoPrueba = 'Intermedio';
+                } elseif ($puntaje >= 11 && $puntaje <= 15) {
+                    $estadoPrueba = 'Avanzado';
+                }
+            }
+
+            //Victima del conflicto armado
+            $victimaConflictoArmado = ($row['vulnerable_type'] === 'Victima del conflicto armado') ? 'SI' : 'NO';
+
+            // Verificar si el usuario está en la tabla groups
+            $estaEnGroups = !empty($row['id_bootcamp']) || !empty($row['id_leveling_english']) || !empty($row['id_english_code']) || !empty($row['id_skills']);
+
             //tieneProfesor
             $tieneProfesor = '';
             if (!$estaEnGroups) {
@@ -250,7 +278,7 @@ function exportDataToExcelSpecific($conn, $documents)
                 'Correo' => $row['email'],
                 'Codigo_departamento' => $row['department'],
                 'Departamento' => strtoupper($row['departamento']),
-                'Región' => 'Región 7 Lote 1',
+                'Región' => 'Región 8 Lote 1',
                 'Codigo_municipio' => $row['municipality'],
                 'Municipio' => strtoupper($row['municipio']),
                 'Telefono_movil' => str_replace('+57', '', $row['first_phone']),
@@ -280,7 +308,7 @@ function exportDataToExcelSpecific($conn, $documents)
                     default => 'NO'
                 },
                 'Presento_prueba' => ($puntaje !== null && $puntaje !== '') ? 'SI' : 'NO',
-                'Curso_bootcamp_al_que_se_inscribio' => $row['program'],
+                'Curso_bootcamp_al_que_se_inscribio' => $programValue,
                 'Origen' => 'UTI-R8L1',
                 'Fecha inscripción' => fechaAExcel($row['creationDate']),
                 'Cumple requisitos' => 'SI',

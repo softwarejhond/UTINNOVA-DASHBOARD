@@ -213,10 +213,17 @@ function exportDataToExcel($conn)
             //Victima del conflicto armado
             $victimaConflictoArmado = ($row['vulnerable_type'] === 'Victima del conflicto armado') ? 'SI' : 'NO';
 
-
             // Verificar si el usuario está en la tabla groups
             $estaEnGroups = !empty($row['id_bootcamp']) || !empty($row['id_leveling_english']) || !empty($row['id_english_code']) || !empty($row['id_skills']);
 
+            // Determinar el valor para Eje_tematico, Eje final y Programa de Formación
+            $programValue = $row['program'];
+            if ($estaEnGroups || in_array($row['statusAdmin'], ['3', '10', '6'])) {
+                // Eliminar los guiones y limpiar espacios extra
+                $programValue = preg_replace('/\s+(Explorador|Integrador|Innovador)\s+.*/', '', $row['bootcamp_name']);
+                $programValue = str_replace('-', '', $programValue);
+                $programValue = trim($programValue);
+            }
 
             //tieneProfesor
             $tieneProfesor = '';
@@ -341,8 +348,8 @@ function exportDataToExcel($conn)
                 'Presento' => ($puntaje !== null && $puntaje !== '') ? 'SI' : 'NO',
                 'fecha_ini' => $row['fecha_registro'] ? fechaAExcel($row['fecha_registro']) : '',
                 'tiempo_segundos' => '',
-                'Eje_tematico' => $row['program'],
-                'Eje final' => $row['program'],
+                'Eje_tematico' => $programValue,
+                'Eje final' => $programValue,
                 'Puntaje_eje_tematico_seleccionado' => ($puntaje !== null && $puntaje !== '') ? $puntaje : 'Sin presentar',
                 'linea_1_programacion' => '',
                 'linea_2_inteligecia_artificial' => '',
@@ -368,7 +375,7 @@ function exportDataToExcel($conn)
                 'Origen' => 'UTI-R8L2',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
                 'Estado' => ($row['statusAdmin'] === '10') ? 'Formado' : $tieneProfesor, // Cambio: agregar verificación de estado 10
-                'Programa de Formación' => $estaEnGroups ? $row['program'] : '',
+                'Programa de Formación' => ($estaEnGroups || in_array($row['statusAdmin'], ['3', '10', '6'])) ? $programValue : '',
                 'Nivel' => $estaEnGroups ? match ($row['level']) {
                     'Explorador' => 'Básico',
                     'Integrador' => 'Intermedio',
