@@ -186,7 +186,7 @@ function exportDataToExcelSpecific($conn, $documents)
                 $tieneProfesor = '';
             } else {
                 if ($row['statusAdmin'] === '6') {
-                    $tieneProfesor = 'Culmino proceso';
+                    $tieneProfesor = 'CERTIFICADO';
                 } elseif ($row['statusAdmin'] === '2') {
                     $tieneProfesor = 'Rechazado';
                 } elseif ($row['statusAdmin'] === '10') {

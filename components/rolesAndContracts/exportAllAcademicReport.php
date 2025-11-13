@@ -17,7 +17,7 @@ $sql = "SELECT
     fa.filing_number as radicado_aprobacion,
     fa.filing_date as fecha_radicado_aprobacion,
     fa.contract_role as rol,
-    'Sin asignación específica' as curso_asignado
+    fa.lote as lote
 FROM filing_assignments fa
 LEFT JOIN users u ON fa.username = u.username
 WHERE u.rol IN (5,7,8)
@@ -29,18 +29,58 @@ if (!$result) {
     die("Error en la consulta: " . mysqli_error($conn));
 }
 
+// Función para obtener cursos asignados por usuario
+function getCursosAsignados($conn, $username) {
+    $cursos = [];
+    
+    // Buscar como teacher
+    $sqlTeacher = "SELECT name FROM courses WHERE teacher = ?";
+    $stmtTeacher = mysqli_prepare($conn, $sqlTeacher);
+    mysqli_stmt_bind_param($stmtTeacher, "s", $username);
+    mysqli_stmt_execute($stmtTeacher);
+    $resultTeacher = mysqli_stmt_get_result($stmtTeacher);
+    
+    while ($row = mysqli_fetch_assoc($resultTeacher)) {
+        $cursos[] = $row['name'] . " (Docente)";
+    }
+    
+    // Buscar como mentor
+    $sqlMentor = "SELECT name FROM courses WHERE mentor = ?";
+    $stmtMentor = mysqli_prepare($conn, $sqlMentor);
+    mysqli_stmt_bind_param($stmtMentor, "s", $username);
+    mysqli_stmt_execute($stmtMentor);
+    $resultMentor = mysqli_stmt_get_result($stmtMentor);
+    
+    while ($row = mysqli_fetch_assoc($resultMentor)) {
+        $cursos[] = $row['name'] . " (Mentor)";
+    }
+    
+    // Buscar como monitor
+    $sqlMonitor = "SELECT name FROM courses WHERE monitor = ?";
+    $stmtMonitor = mysqli_prepare($conn, $sqlMonitor);
+    mysqli_stmt_bind_param($stmtMonitor, "s", $username);
+    mysqli_stmt_execute($stmtMonitor);
+    $resultMonitor = mysqli_stmt_get_result($stmtMonitor);
+    
+    while ($row = mysqli_fetch_assoc($resultMonitor)) {
+        $cursos[] = $row['name'] . " (Monitor)";
+    }
+    
+    return empty($cursos) ? ['Sin asignación específica'] : $cursos;
+}
+
 // Crear nuevo documento Excel
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
 // Configurar título del documento
 $sheet->setCellValue('A1', "Reporte Completo de Personal Académico");
-$sheet->mergeCells('A1:F1');
+$sheet->mergeCells('A1:G1');
 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
 $sheet->setCellValue('A2', "Fecha de generación: " . date('Y-m-d H:i:s'));
-$sheet->mergeCells('A2:F2');
+$sheet->mergeCells('A2:G2');
 $sheet->getStyle('A2')->getFont()->setBold(true);
 $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
@@ -50,10 +90,11 @@ $sheet->setCellValue('B4', 'Nombre');
 $sheet->setCellValue('C4', 'Radicado Aprobación');
 $sheet->setCellValue('D4', 'Fecha Radicado Aprobación');
 $sheet->setCellValue('E4', 'Rol');
-$sheet->setCellValue('F4', 'Curso Asignado');
+$sheet->setCellValue('F4', 'Lote');
+$sheet->setCellValue('G4', 'Cursos Asignados');
 
 // Dar formato a los encabezados
-$headerRange = 'A4:F4';
+$headerRange = 'A4:G4';
 $sheet->getStyle($headerRange)->getFont()->setBold(true);
 $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID);
 $sheet->getStyle($headerRange)->getFill()->getStartColor()->setRGB('D9D9D9');
@@ -65,37 +106,44 @@ $hasData = false;
 while ($data = mysqli_fetch_assoc($result)) {
     $hasData = true;
     
-    $sheet->setCellValue('A' . $row, $data['cedula']);
-    $sheet->setCellValue('B' . $row, strtoupper($data['nombre'] ?? 'Nombre no disponible'));
-    $sheet->setCellValue('C' . $row, $data['radicado_aprobacion'] ?? 'No disponible');
-    $sheet->setCellValue('D' . $row, $data['fecha_radicado_aprobacion'] ?? 'No disponible');
-    $sheet->setCellValue('E' . $row, $data['rol'] ?? 'No disponible');
-    $sheet->setCellValue('F' . $row, $data['curso_asignado']);
+    // Obtener cursos asignados
+    $cursosAsignados = getCursosAsignados($conn, $data['cedula']);
     
-    // Alternar colores de filas para mejor legibilidad
-    if ($row % 2 == 0) {
-        $sheet->getStyle("A{$row}:F{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
-        $sheet->getStyle("A{$row}:F{$row}")->getFill()->getStartColor()->setRGB('F8F9FA');
+    // Si hay múltiples cursos, crear una fila por cada curso
+    for ($i = 0; $i < count($cursosAsignados); $i++) {
+        $sheet->setCellValue('A' . $row, $data['cedula']);
+        $sheet->setCellValue('B' . $row, strtoupper($data['nombre'] ?? 'Nombre no disponible'));
+        $sheet->setCellValue('C' . $row, $data['radicado_aprobacion'] ?? 'No disponible');
+        $sheet->setCellValue('D' . $row, $data['fecha_radicado_aprobacion'] ?? 'No disponible');
+        $sheet->setCellValue('E' . $row, $data['rol'] ?? 'No disponible');
+        $sheet->setCellValue('F' . $row, $data['lote'] ?? 'No disponible');
+        $sheet->setCellValue('G' . $row, $cursosAsignados[$i]);
+        
+        // Alternar colores de filas para mejor legibilidad
+        if ($row % 2 == 0) {
+            $sheet->getStyle("A{$row}:G{$row}")->getFill()->setFillType(Fill::FILL_SOLID);
+            $sheet->getStyle("A{$row}:G{$row}")->getFill()->getStartColor()->setRGB('F8F9FA');
+        }
+        
+        $row++;
     }
-    
-    $row++;
 }
 
 // Si no hay datos, mostrar mensaje
 if (!$hasData) {
     $sheet->setCellValue('A5', 'No se encontraron datos de personal académico con asignaciones');
-    $sheet->mergeCells('A5:F5');
+    $sheet->mergeCells('A5:G5');
     $sheet->getStyle('A5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     $sheet->getStyle('A5')->getFont()->setItalic(true);
 }
 
 // Agregar información adicional
 $sheet->setCellValue('A' . ($row + 1), "Reporte generado para todo el personal académico registrado");
-$sheet->mergeCells('A' . ($row + 1) . ':F' . ($row + 1));
+$sheet->mergeCells('A' . ($row + 1) . ':G' . ($row + 1));
 $sheet->getStyle('A' . ($row + 1))->getFont()->setItalic(true)->setSize(10);
 
 // Ajustar ancho de columnas
-foreach (range('A', 'F') as $col) {
+foreach (range('A', 'G') as $col) {
     $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 

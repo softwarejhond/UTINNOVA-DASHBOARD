@@ -82,7 +82,7 @@ function getRolName($rol)
                     <div class="container-fluid">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h4 class="mb-0">Personal Académico</h4>
-                            <button class="btn bg-teal-dark text-white" data-bs-toggle="modal" data-bs-target="#asignarCursosModal">
+                            <button type="button" class="btn bg-magenta-dark text-white" id="exportarTodos">
                                 <i class="bi bi-file-earmark-spreadsheet"></i> Descargar reporte
                             </button>
                         </div>
