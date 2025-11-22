@@ -374,7 +374,7 @@ function exportDataToExcel($conn)
                 'area_3_des_contenidos_digitales' => '',
                 'Origen' => 'UTI-R8L2',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
-                'Estado' => ($row['statusAdmin'] === '10') ? 'Formado' : $tieneProfesor, // Cambio: agregar verificación de estado 10
+                'Estado' => ($row['statusAdmin'] === '10') ? 'Formado' : (($row['statusAdmin'] === '12') ? 'No aprobado' : $tieneProfesor), // Cambio: agregar verificación de estado 10 y 12
                 'Programa de Formación' => ($estaEnGroups || in_array($row['statusAdmin'], ['3', '10', '6'])) ? $programValue : '',
                 'Nivel' => $estaEnGroups ? match ($row['level']) {
                     'Explorador' => 'Básico',

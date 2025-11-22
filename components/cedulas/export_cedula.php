@@ -67,63 +67,6 @@ try {
         exit;
     }
 
-    // Función para aplicar transformaciones CSS
-    function imgTransformStyle($transform)
-    {
-        $rotation = isset($transform['rotation']) ? (float)$transform['rotation'] : 0;
-        $scale = isset($transform['scale']) ? (float)$transform['scale'] : 1;
-        $offsetX = isset($transform['offsetX']) ? (float)$transform['offsetX'] : 0;
-        $offsetY = isset($transform['offsetY']) ? (float)$transform['offsetY'] : 0;
-
-        return "transform: rotate({$rotation}deg) scale({$scale}) translate({$offsetX}px, {$offsetY}px);";
-    }
-
-    // Solo aplicar rotación en el PDF
-    function imgRotationStyle($transform)
-    {
-        $rotation = isset($transform['rotation']) ? (float)$transform['rotation'] : 0;
-        return "transform: rotate({$rotation}deg);";
-    }
-
-    // Validar que las imágenes existan - versión simplificada
-    function validateImagePath($imagePath)
-    {
-        error_log("Validating image: " . $imagePath);
-
-        // Si es una URL completa (http/https), la dejamos pasar
-        if (filter_var($imagePath, FILTER_VALIDATE_URL)) {
-            error_log("Image is URL, accepting: " . $imagePath);
-            return $imagePath;
-        }
-
-        // Para rutas relativas, intentar diferentes combinaciones
-        $possiblePaths = [
-            $_SERVER['DOCUMENT_ROOT'] . '/' . ltrim($imagePath, '/'),
-            $_SERVER['DOCUMENT_ROOT'] . $imagePath,
-            dirname(__FILE__) . '/../../' . ltrim($imagePath, '/')
-        ];
-
-        foreach ($possiblePaths as $path) {
-            if (file_exists($path)) {
-                error_log("Image found at: " . $path);
-                return $imagePath; // Retornamos la ruta original
-            }
-        }
-
-        // Si no encontramos el archivo, log pero no fallar inmediatamente
-        error_log("Warning: Image not found in filesystem: " . $imagePath);
-        return $imagePath; // Dejamos que DOMPDF maneje la imagen
-    }
-
-    try {
-        $front_image = validateImagePath($front_image);
-        $back_image = validateImagePath($back_image);
-        error_log("Image paths validated");
-    } catch (Exception $imgError) {
-        error_log("Image validation error: " . $imgError->getMessage());
-        // Continuamos, quizás DOMPDF pueda manejar las rutas
-    }
-
     // Verificar si DOMPDF está disponible
     if (!class_exists('Dompdf\Dompdf')) {
         throw new Exception('DOMPDF no está disponible. Verifica la instalación de Composer.');
@@ -142,15 +85,24 @@ try {
     // Configurar DOMPDF con opciones más conservadoras
     $options = new Options();
     $options->set('isHtml5ParserEnabled', true);
-    $options->set('isRemoteEnabled', true);
+    $options->set('isRemoteEnabled', true); // Permite cargar imágenes desde URLs (para front/back)
+    $options->set('chroot', $_SERVER['DOCUMENT_ROOT'] . $baseDir); // Directorio base para seguridad
     $options->set('debugKeepTemp', false);
     $options->set('isPhpEnabled', false); // Seguridad
 
     error_log("DOMPDF options configured");
 
-    // Generar HTML más simple para el PDF
-    $frontRotationCSS = imgRotationStyle($front_transform);
-    $backRotationCSS = imgRotationStyle($back_transform);
+    // Rutas locales absolutas para las imágenes de header y footer
+    $headerImagePath = $_SERVER['DOCUMENT_ROOT'] . $baseDir . 'img/header_documentos.png';
+    $footerImagePath = $_SERVER['DOCUMENT_ROOT'] . $baseDir . 'img/footer_documentos.png';
+
+    // Verificar que las imágenes de header/footer existan
+    if (!file_exists($headerImagePath)) {
+        throw new Exception('No se encuentra la imagen del header: ' . $headerImagePath);
+    }
+    if (!file_exists($footerImagePath)) {
+        throw new Exception('No se encuentra la imagen del footer: ' . $footerImagePath);
+    }
 
     $html = '
     <!DOCTYPE html>
@@ -178,7 +130,7 @@ try {
                 width: 100%;
                 height: 100%;
                 display: block;
-                max-height: 200px;
+                max-height: 170px;
                 margin-top: 50px;
             }
             .footer-img {
@@ -194,7 +146,7 @@ try {
                 position: absolute;
                 top: 180px;
                 left: 30px;
-                right: 0;
+                right: 30px;
                 bottom: 65px;
                 display: flex;
                 flex-direction: column;
@@ -217,13 +169,6 @@ try {
                 align-items: center;
                 gap: 8px;
             }
-            .label {
-                font-weight: bold;
-                font-size: 14px;
-                text-align: center;
-                color: #333;
-                margin-bottom: 5px;
-            }
             .img-container {
                 width: 95%;
                 height: 3.5in;
@@ -239,18 +184,16 @@ try {
                 box-sizing: border-box;
             }
             .doc-img {
-                width: auto;
-                height: 100%;
-                object-fit: cover;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
                 display: block;
                 margin: auto;
-                position: absolute;
-                top: 0; left: 0; bottom: 0; right: 0;
             }
         </style>
     </head>
     <body>
-        <img src="https://dashboard.utinnova.co/dashboard/img/header_documentos.png" alt="Header" class="header-img">
+        <img src="' . $headerImagePath . '" alt="Header" class="header-img">
         
         <div class="contenido">
             <div class="imagenes-container">
@@ -268,7 +211,7 @@ try {
             </div>
         </div>
         
-        <img src="https://dashboard.utinnova.co/dashboard/img/footer_documentos.png" alt="Footer" class="footer-img">
+        <img src="' . $footerImagePath . '" alt="Footer" class="footer-img">
     </body>
     </html>
     ';
@@ -339,6 +282,7 @@ try {
     error_log("Stack trace: " . $e->getTraceAsString());
 
     // Respuesta de error en JSON
+    http_response_code(500);
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage(),
@@ -353,6 +297,7 @@ try {
     error_log("Error fatal en export_cedula.php: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
 
+    http_response_code(500);
     echo json_encode([
         'success' => false,
         'error' => 'Error interno del servidor: ' . $e->getMessage(),
@@ -363,3 +308,4 @@ try {
 
 // Asegurar limpieza final del buffer
 ob_end_flush();
+?>

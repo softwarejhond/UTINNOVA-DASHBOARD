@@ -112,10 +112,6 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
 
-                                <li>
-                                    <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
-                                </li>
-
                             <?php endif; ?>
 
                             <?php if ($rol === 'Control maestro'): ?>

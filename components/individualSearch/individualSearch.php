@@ -1568,8 +1568,8 @@
                                         $porcentajeHabilidades = $totalHabilidades > 0 ? min(100, round(($horasActualesHabilidades / $totalHabilidades) * 100)) : 0;
 
                                         // MODIFICADO: Calcular total general INCLUYENDO inglés nivelatorio (igual que exportHoursEL.php)
-                                        $horasTotalActual = $horasActualesTecnico + $horasActualesNivelador + $horasActualesIngles + $horasActualesHabilidades;
-                                        $horasTotalRequerido = $totalTecnico + $totalNivelador + $totalIngles + $totalHabilidades; // 179 horas
+                                        $horasTotalActual = $horasActualesTecnico + $horasActualesIngles + $horasActualesHabilidades;
+                                        $horasTotalRequerido = $totalTecnico + $totalIngles + $totalHabilidades; // 159 horas
                                         $porcentajeTotal = $horasTotalRequerido > 0 ? min(100, round(($horasTotalActual / $horasTotalRequerido) * 100)) : 0;
                                     ?>
                                         <div class="w-100">
