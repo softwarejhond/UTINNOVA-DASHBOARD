@@ -9,7 +9,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 // Configuraciones para evitar timeout
 set_time_limit(300); // 5 minutos
-ini_set('memory_limit', '1024M'); // 1GB
+ini_set('memory_limit', '2048'); // 1GB
 ini_set('max_execution_time', 300);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -95,7 +95,7 @@ function exportDataToExcel($conn)
     LEFT JOIN users sk_monitor ON sk.monitor = sk_monitor.username
     LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
     WHERE departamentos.id_departamento IN (11)
-    AND user_register.statusAdmin = '10'
+    AND user_register.statusAdmin IN (3, 10, 6)
     AND user_register.lote = '1'
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
@@ -115,6 +115,16 @@ function exportDataToExcel($conn)
     if ($resultAttendance && $resultAttendance->num_rows > 0) {
         while ($attendance = $resultAttendance->fetch_assoc()) {
             $attendanceCount[$attendance['student_id']] = $attendance['total_attendance'];
+        }
+    }
+
+    // Consulta para obtener las calificaciones finales por estudiante
+    $sqlGrades = "SELECT student_number_id, final_grade FROM course_approvals";
+    $resultGrades = $conn->query($sqlGrades);
+    $finalGrades = [];
+    if ($resultGrades && $resultGrades->num_rows > 0) {
+        while ($grade = $resultGrades->fetch_assoc()) {
+            $finalGrades[$grade['student_number_id']] = $grade['final_grade'];
         }
     }
 
@@ -323,6 +333,8 @@ function exportDataToExcel($conn)
                 'Link documento soporte' =>
                 'https://dashboard.utinnova.co/files/idFilesFront/' . ($row['file_front_id'] ?? '') .
                     ' - https://dashboard.utinnova.co/files/idFilesBack/' . ($row['file_back_id'] ?? ''),
+                'Sede de de formación' => !empty($row['headquarters']) ? $row['headquarters'] : '',
+                'Resultado obtenido en el bootcamp (Calificación)' => isset($finalGrades[$row['number_id']]) ? $finalGrades[$row['number_id']] : '',
             ];
         }
     }

@@ -135,6 +135,16 @@ function exportDataToExcelSpecific($conn, $documents)
     }
     $stmtAttendance->close();
 
+    // Consulta para obtener las calificaciones finales por estudiante
+    $sqlGrades = "SELECT student_number_id, final_grade FROM course_approvals";
+    $resultGrades = $conn->query($sqlGrades);
+    $finalGrades = [];
+    if ($resultGrades && $resultGrades->num_rows > 0) {
+        while ($grade = $resultGrades->fetch_assoc()) {
+            $finalGrades[$grade['student_number_id']] = $grade['final_grade'];
+        }
+    }
+
     if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
             // Calcular edad
@@ -339,6 +349,8 @@ function exportDataToExcelSpecific($conn, $documents)
                 'Link documento soporte' =>
                 'https://dashboard.utinnova.co/files/idFilesFront/' . ($row['file_front_id'] ?? '') .
                     ' - https://dashboard.utinnova.co/files/idFilesBack/' . ($row['file_back_id'] ?? ''),
+                'Sede de de formación' => !empty($row['headquarters']) ? $row['headquarters'] : '',
+                'Resultado obtenido en el bootcamp (Calificación)' => isset($finalGrades[$row['number_id']]) ? $finalGrades[$row['number_id']] : '',
                 'Estado Admision' => match (intval($row['statusAdmin'])) {
                     1 => 'BENEFICIARIO',
                     0 => 'SIN ESTADO',
