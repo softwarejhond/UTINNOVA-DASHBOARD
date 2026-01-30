@@ -288,7 +288,7 @@ $stmt->close();
 // Cargar imágenes y convertirlas a base64
 $headerImg = imgToBase64($rootPath . 'img/header_constancia.png');
 $footerImg1 = imgToBase64($rootPath . 'img/footer_certificado.png');
-$firma = imgToBase64($rootPath . 'img/firma_certificado.jpg');
+$firma = imgToBase64($rootPath . 'img/firma_direccion.png');
 $marcaAgua = imgToBase64($rootPath . 'img/innova_opaco.png');
 $headerCorreo = imgToBase64($rootPath . 'img/header_correo_const.png'); // Agregar esta línea
 
@@ -376,7 +376,7 @@ $html = '<html>
         <div class="linea"></div>
     </div>
     <div class="nombre">
-        Giovanni Andrés Caicedo Castro 
+         Luis Jhonson Gallego Giraldo
     </div>
     <div class="cargo">
         Director del proyecto<br>
@@ -511,7 +511,7 @@ try {
         <div class="firma-bloque" style="margin-top: 40px;">
             <img src="' . $firma . '" alt="Firma" style="max-width:200px; height: auto;">
             <div class="linea"></div>
-            <div class="nombre">Giovanni Andrés Caicedo Castro</div>
+            <div class="nombre">Luis Jhonson Gallego Giraldo</div>
             <div class="cargo">
             Director del proyecto<br>
             <b>UT INNOVA DIGITAL - Bogotá</b>

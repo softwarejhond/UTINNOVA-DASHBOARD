@@ -13,7 +13,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 }
 
 // Consulta para lote = 1
-$sql_total_user_register_1 = "SELECT COUNT(*) as total_user_register FROM user_register WHERE lote = 1";
+$sql_total_user_register_1 = "SELECT COUNT(*) as total_user_register FROM user_register WHERE lote = 1 AND statusAdmin NOT IN (2, 7, 11)";
 $result_user_register_1 = $conn->query($sql_total_user_register_1);
 $total_user_register_1 = $result_user_register_1->fetch_assoc()['total_user_register'];
 
@@ -39,7 +39,7 @@ $data1 = [
 ];
 
 // Consulta para lote = 2
-$sql_total_user_register_2 = "SELECT COUNT(*) as total_user_register FROM user_register WHERE lote = 2";
+$sql_total_user_register_2 = "SELECT COUNT(*) as total_user_register FROM user_register WHERE lote = 2 AND statusAdmin NOT IN (2, 7, 11)";
 $result_user_register_2 = $conn->query($sql_total_user_register_2);
 $total_user_register_2 = $result_user_register_2->fetch_assoc()['total_user_register'];
 

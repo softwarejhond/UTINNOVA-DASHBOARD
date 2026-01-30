@@ -235,6 +235,27 @@ require_once __DIR__ . '/../components/modals/register_course.php';
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Control maestro'): ?>
+                        <div class="col-4">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Subir y consultar diplomas emitidos">
+                                <a href="tablaCertificados.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-award-fill icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Diplomas</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($rol === 'Administrador' || $rol === 'Académico' || $rol === 'Control maestro'): ?>
                         <div class="col-4">
                             <div class="checkbox"

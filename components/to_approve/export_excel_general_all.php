@@ -460,9 +460,29 @@ try {
             // Verificar aprobación
             $aprobadoTecnico = estaAprobado($conn, $data['number_id'], $data['id_bootcamp']);
             
+            // Verificar si el estudiante tiene statusAdmin = 12 (NO APROBADO)
+            $sql_status = "SELECT statusAdmin FROM user_register WHERE number_id = ?";
+            $stmt_status = $conn->prepare($sql_status);
+            $isNoAprobado = false;
+            if ($stmt_status) {
+                $stmt_status->bind_param("s", $data['number_id']);
+                if ($stmt_status->execute()) {
+                    $result_status = $stmt_status->get_result();
+                    $row_status = $result_status->fetch_assoc();
+                    if ($row_status && $row_status['statusAdmin'] == 12) {
+                        $isNoAprobado = true;
+                    }
+                }
+                $stmt_status->close();
+            }
+            
             // Determinar estado - CORREGIDO: Validar asistencia mínima del 75%
-            $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : 
-                            (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
+            if ($isNoAprobado) {
+                $estadoTecnico = 'NO APROBADO';
+            } else {
+                $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : 
+                                (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
+            }
             
             // Aplicar lógica de institución
             $institution = !empty($data['institution']) ? $data['institution'] : 'No especificado';

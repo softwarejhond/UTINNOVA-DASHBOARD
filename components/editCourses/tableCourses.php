@@ -236,7 +236,7 @@ if ($result_users->num_rows > 0) {
                                     <input type="number" class="form-control" id="realHours<?php echo $course['code']; ?>"
                                         name="real_hours" value="<?php echo $course['real_hours']; ?>"
                                         min="0" step="1" required
-                                        <?php echo ($rol !== 'Control maestro') ? 'disabled' : 'disabled'; ?>>
+                                        disabled>
                                 </div>
                                 <div class="input-group mb-2">
                                     <span class="input-group-text">Lunes</span>
@@ -485,7 +485,6 @@ if ($result_users->num_rows > 0) {
 
     function toggleHoursEdit(courseCode) {
         const isEnabled = document.getElementById(`enableHoursEdit${courseCode}`).checked;
-        document.getElementById(`realHours${courseCode}`).disabled = !isEnabled;
 
         // Habilitar/deshabilitar todos los inputs de horas por día
         const diasSemana = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];

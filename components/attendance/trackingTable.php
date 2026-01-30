@@ -1368,15 +1368,13 @@ $courses_data = filterValidCourses($moodle_courses, $valid_course_codes);
                                     <option value="no responde">No responde</option>
                                     <option value="condicion de salud">Condición de salud</option>
                                     <option value="dificultades economicas">Dificultades económicas</option>
-                                    <option value="dificultades familiares">Dificultades familiares</option>
-                                    <option value="dificultades de conexion a internet">Dificultades de conexión a internet</option>
                                     <option value="dificultades tecnicas con equipo">Dificultades técnicas con equipo</option>
                                     <option value="incompatibilidad con los horarios">Incompatibilidad con los horarios</option>
                                     <option value="insercion academica">Inserción académica</option>
                                     <option value="insercion laboral">Inserción laboral</option>
                                     <option value="inconformidad con el proceso">Inconformidad con el proceso</option>
+                                    <option value="inconformidades con el proceso academico">Inconformidades con el proceso académico</option>
                                     <option value="motivos personales">Motivos personales</option>
-                                    <option value="viaje">Viaje</option>
                                     <option value="otras causas">Otras causas</option>
                                 </select>
                             </div>

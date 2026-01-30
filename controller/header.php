@@ -67,8 +67,14 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 <?php endif; ?>
 
                 <?php if ($rol === 'Control maestro'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="abrirSwalDocumentos(); return false;">Cambiar base</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownCambioMultiple" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Cambio múltiple
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownCambioMultiple">
+                            <li><a class="dropdown-item" href="#" onclick="abrirSwalDocumentos(); return false;">Cambiar base</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="abrirSwalNoAprobado(); return false;">Pasar a no aprobado</a></li>
+                        </ul>
                     </li>
                 <?php endif; ?>
 
@@ -121,14 +127,15 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                         <b>Subir informe semanal</b>
                                     </a>
                                 </li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 L2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 L2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF L2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/asistenciasComprobantes.php?action=export', 'Asistencias_Comprobantes')">Comprobantes presencial</a></li>
                             <?php endif; ?>
 
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
@@ -911,12 +918,14 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                 try {
                                     errorData = JSON.parse(text);
                                 } catch (e) {
-                                    errorData = { message: text };
+                                    errorData = {
+                                        message: text
+                                    };
                                 }
                                 throw new Error(JSON.stringify(errorData));
                             });
                         }
-                        
+
                         return response.blob().then(blob => ({
                             blob,
                             totalRequested: parseInt(totalRequested),
@@ -927,7 +936,15 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             filesNotFound: filesNotFound ? filesNotFound.split(',').filter(id => id) : []
                         }));
                     })
-                    .then(({blob, totalRequested, totalProcessed, notFoundCount, notFoundIds, notFoundDB, filesNotFound}) => {
+                    .then(({
+                        blob,
+                        totalRequested,
+                        totalProcessed,
+                        notFoundCount,
+                        notFoundIds,
+                        notFoundDB,
+                        filesNotFound
+                    }) => {
                         // Verificar que el blob no esté vacío
                         if (blob.size === 0) {
                             throw new Error('El archivo ZIP está vacío');
@@ -1022,11 +1039,13 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         try {
                             errorData = JSON.parse(error.message);
                         } catch (e) {
-                            errorData = { message: error.message || 'No se pudo generar el ZIP.' };
+                            errorData = {
+                                message: error.message || 'No se pudo generar el ZIP.'
+                            };
                         }
 
                         let errorHtml = `<p>${errorData.message}</p>`;
-                        
+
                         if (errorData.not_found_in_db && errorData.not_found_in_db.length > 0) {
                             errorHtml += `
                                 <div class="alert alert-warning mt-3">
@@ -1035,7 +1054,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                 </div>
                             `;
                         }
-                        
+
                         if (errorData.files_not_found && errorData.files_not_found.length > 0) {
                             errorHtml += `
                                 <div class="alert alert-danger mt-3">
@@ -1053,6 +1072,116 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             width: 600
                         });
                     });
+            }
+        });
+    }
+
+    function abrirSwalNoAprobado() {
+        Swal.fire({
+            title: 'Pasar a No Aprobado',
+            html: `
+        <div style="margin-bottom:15px;">
+            <p style="font-weight:bold; color:#dc3545;">Ingrese los números de documento que desea pasar a estado "No Aprobado" (statusAdmin = 12):</p>
+        </div>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docPasteNoAprobado" style="font-weight:bold;">Documentos</label>
+                <textarea id="docPasteNoAprobado" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento"></textarea>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label for="docResultNoAprobado" style="font-weight:bold;">Resultado</label>
+                <textarea id="docResultNoAprobado" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled></textarea>
+            </div>
+        </div>
+        `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Pasar a No Aprobado',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Limpiar',
+            cancelButtonColor: '#6c757d',
+            width: 700,
+            footer: `<button type="button" id="swalCloseBtn" class="swal2-confirm swal2-styled" style="background:#6c757d;margin-top:10px;">Cerrar</button>`,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPasteNoAprobado');
+                const resultArea = document.getElementById('docResultNoAprobado');
+
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0);
+                    resultArea.value = lines.map(l => l + ',').join('\n');
+                });
+
+                document.getElementById('swalCloseBtn').onclick = function() {
+                    Swal.close();
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPasteNoAprobado');
+                const documentos = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0);
+
+                if (documentos.length === 0) {
+                    Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
+                    return;
+                }
+
+                // Mostrar confirmación antes de proceder
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    html: `Se cambiarán <strong>${documentos.length}</strong> registros al estado "No Aprobado" (statusAdmin = 12).<br><br>Esta acción no se puede deshacer fácilmente.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, cambiar estado',
+                    cancelButtonText: 'Cancelar'
+                }).then((confirmResult) => {
+                    if (confirmResult.isConfirmed) {
+                        // Mostrar loading
+                        Swal.fire({
+                            title: 'Procesando...',
+                            html: 'Actualizando estado de los registros...',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        fetch('controller/pasar_no_aprobado.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                documentos
+                            })
+                        })
+                        .then(res => {
+                            if (!res.ok) {
+                                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                            }
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('¡Listo!', 'Se actualizó el estado a "No Aprobado" correctamente.', 'success');
+                            } else {
+                                Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error completo:', error);
+                            Swal.fire('Error', `Hubo un problema con la petición: ${error.message}`, 'error');
+                        });
+                    }
+                });
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                abrirSwalNoAprobado(); // Reinicia el modal al limpiar
             }
         });
     }

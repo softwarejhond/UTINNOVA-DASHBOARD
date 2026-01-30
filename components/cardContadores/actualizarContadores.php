@@ -249,12 +249,12 @@ try {
     }
 
     // Total registrados Lote 1
-    $sql_total_registrados_lote1 = "SELECT COUNT(*) AS total_registrados_lote1 FROM user_register WHERE lote = 1";
+    $sql_total_registrados_lote1 = "SELECT COUNT(*) AS total_registrados_lote1 FROM user_register WHERE lote = 1 AND statusAdmin NOT IN (2, 7, 11)";
     $result_total_registrados_lote1 = mysqli_query($conn, $sql_total_registrados_lote1);
     $total_registrados_lote1 = mysqli_fetch_assoc($result_total_registrados_lote1)['total_registrados_lote1'];
 
     // Total registrados Lote 2
-    $sql_total_registrados_lote2 = "SELECT COUNT(*) AS total_registrados_lote2 FROM user_register WHERE lote = 2";
+    $sql_total_registrados_lote2 = "SELECT COUNT(*) AS total_registrados_lote2 FROM user_register WHERE lote = 2 AND statusAdmin NOT IN (2, 7, 11)";
     $result_total_registrados_lote2 = mysqli_query($conn, $sql_total_registrados_lote2);
     $total_registrados_lote2 = mysqli_fetch_assoc($result_total_registrados_lote2)['total_registrados_lote2'];
 

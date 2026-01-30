@@ -190,6 +190,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Incluir gráfico de observaciones -->
+    <?php include 'components/attendance/observationsChart.php'; ?>
+
 </div>
 
 <!-- Mensaje cuando no hay curso seleccionado -->

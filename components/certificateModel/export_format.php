@@ -198,7 +198,7 @@ $stmt->close();
 // Cargar imágenes y convertirlas a base64
 $headerImg = imgToBase64($rootPath . 'img/header_certificado.png');
 $footerImg1 = imgToBase64($rootPath . 'img/footer_certificado.png');
-$firma = imgToBase64($rootPath . 'img/firma_certificado.jpg');
+$firma = imgToBase64($rootPath . 'img/firma_direccion.png');
 $marcaAgua = imgToBase64($rootPath . 'img/innova_opaco.png');
 
 // Verificar que las imágenes se cargaron correctamente
@@ -291,7 +291,7 @@ $html = '<html>
         <div class="linea"></div>
     </div>
     <div class="nombre">
-        Giovanni Andrés Caicedo Castro 
+        Luis Jhonson Gallego Giraldo
     </div>
     <div class="cargo">
         Director del proyecto<br>
