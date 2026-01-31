@@ -374,6 +374,27 @@ $extraRol = $infoUsuario['extra_rol'] ?? ''; // Obtener el extra_rol del usuario
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($rol === 'Administrador' || $rol === 'Control maestro' || $rol === 'Mentor'): ?>
+                        <div class="col">
+                            <div class="checkbox"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="bottom"
+                                data-bs-content="Creación de códigos QR y registro de asistencias a mentorías">
+                                <a href="gestion_mentorias.php">
+                                    <label class="checkbox-wrapper">
+                                        <span class="checkbox-tile">
+                                            <span class="checkbox-icon">
+                                                <i class="bi bi-file-easel-fill icono"></i>
+                                            </span>
+                                            <span class="checkbox-label">Mentorias</span>
+                                        </span>
+                                    </label>
+                                </a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($rol === 'Control maestro' || $rol === 'Administrador'): ?>
                         <div class="col">
                             <div class="checkbox"
