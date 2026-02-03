@@ -15,7 +15,7 @@
  * - El diseño es responsivo y utiliza Bootstrap.
  */
 
-$rol = $infoUsuario['rol']; // Obtener el rol del usuario'
+$rol = $infoUsuario['rol']; // Obtener el rol del usuario
 $extraRol = $infoUsuario['extra_rol']; // Obtener el extra_rol del usuario
 
 require_once __DIR__ . '/../components/modals/cohortes.php';
@@ -75,6 +75,21 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             <li><a class="dropdown-item" href="#" onclick="abrirSwalDocumentos(); return false;">Cambiar base</a></li>
                             <li><a class="dropdown-item" href="#" onclick="abrirSwalNoAprobado(); return false;">Pasar a no aprobado</a></li>
                         </ul>
+                    </li>
+                <?php endif; ?>
+
+                <!-- Boton facturas mentorias -->
+                <?php if ($rol === 'Mentor'): ?>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-success nav-link border-0 bg-transparent"
+                            type="button"
+                            onclick="generarFacturaMentorias()"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="bottom"
+                            title="Generar factura de mentorías del mes actual">
+                            <i class="fas fa-file-invoice me-1"></i>
+                            Factura Mentorías
+                        </button>
                     </li>
                 <?php endif; ?>
 
@@ -1153,36 +1168,135 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         });
 
                         fetch('controller/pasar_no_aprobado.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                documentos
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    documentos
+                                })
                             })
-                        })
-                        .then(res => {
-                            if (!res.ok) {
-                                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                            }
-                            return res.json();
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire('¡Listo!', 'Se actualizó el estado a "No Aprobado" correctamente.', 'success');
-                            } else {
-                                Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error completo:', error);
-                            Swal.fire('Error', `Hubo un problema con la petición: ${error.message}`, 'error');
-                        });
+                            .then(res => {
+                                if (!res.ok) {
+                                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                                }
+                                return res.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire('¡Listo!', 'Se actualizó el estado a "No Aprobado" correctamente.', 'success');
+                                } else {
+                                    Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error completo:', error);
+                                Swal.fire('Error', `Hubo un problema con la petición: ${error.message}`, 'error');
+                            });
                     }
                 });
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 abrirSwalNoAprobado(); // Reinicia el modal al limpiar
             }
+        });
+    }
+
+    /**
+     * Función para generar factura de mentorías del mes actual
+     * Solo disponible para usuarios con rol 'Mentor'
+     */
+        function generarFacturaMentorias() {
+        // Mostrar SweetAlert de confirmación
+        Swal.fire({
+            title: 'Generar Factura de Mentorías',
+            html: `
+                <div class="text-center">
+                    <i class="fas fa-file-invoice fa-3x text-success mb-3"></i>
+                    <p>Se generará la factura de mentorías autorizadas del <strong>mes actual</strong></p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información:</strong><br>
+                        • Solo incluye mentorías autorizadas<br>
+                        • Período: ${new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}<br>
+                        • Formato: PDF descargable
+                    </div>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-download"></i> Generar PDF',
+            cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return fetch('components/qrMentorias/factura_mentorias.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const link = document.createElement('a');
+                        link.href = data.pdf;
+                        link.download = `Factura_Mentorias_${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else {
+                        throw new Error(data.error || 'Error al generar PDF');
+                    }
+                });
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: '¡Factura Generada!',
+                    html: `
+                        <div class="text-center">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p>La factura de mentorías se ha generado correctamente</p>
+                            <div class="alert alert-success mt-3">
+                                <i class="fas fa-download"></i>
+                                El archivo PDF se está descargando automáticamente
+                            </div>
+                            <small class="text-muted">
+                                Si la descarga no inicia automáticamente, 
+                                verifique las mentorías autorizadas del mes actual
+                            </small>
+                        </div>
+                    `,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745',
+                    confirmButtonText: 'Perfecto'
+                });
+            }
+        }).catch((error) => {
+            console.error('Error al generar factura:', error);
+            Swal.fire({
+                title: 'Error en la Generación',
+                html: `
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <p>Hubo un problema al generar la factura de mentorías</p>
+                        <div class="alert alert-warning">
+                            <strong>Posibles causas:</strong><br>
+                            • No hay mentorías autorizadas este mes<br>
+                            • Error de conexión con el servidor<br>
+                            • Permisos insuficientes
+                        </div>
+                        <small class="text-muted">
+                            Contacte al administrador si el problema persiste
+                        </small>
+                    </div>
+                `,
+                icon: 'error',
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Entendido'
+            });
         });
     }
 </script>

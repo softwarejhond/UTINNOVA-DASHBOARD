@@ -64,38 +64,34 @@ function getCoursesByMentor($conn, $username)
 // Obtener cursos y almacenarlos en $courses_data
 $courses_data = getCoursesByMentor($conn, $username);
 
-
-// Función para obtener todos los códigos QR
-function getQRCodes($conn)
+// Función para obtener códigos QR pendientes únicamente
+function getPendingQRCodes($conn)
 {
     global $rol, $username;
     if ($rol === 'Mentor' && $username) {
-        // Solo los QR creados por el mentor actual (INT)
-        $sql = "SELECT * FROM qr_mentorias 
-                WHERE created_by = ?
-                ORDER BY 
-                    (authorized_by = 0 OR authorized = 0) DESC, 
-                    created_at DESC";
+        // Solo los QR pendientes creados por el mentor actual
+        $sql = "SELECT qr.*, u.username, u.nombre FROM qr_mentorias qr LEFT JOIN users u ON qr.created_by = u.username 
+                WHERE qr.created_by = ? AND (qr.authorized_by = 0 OR qr.authorized = 0)
+                ORDER BY qr.created_at DESC";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $username); // INT aquí
+        $stmt->bind_param("i", (int)$username);
         $stmt->execute();
         $result = $stmt->get_result();
         $qrs = $result->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
         return $qrs;
     } else {
-        // Todos los QR para otros roles
-        $sql = "SELECT * FROM qr_mentorias 
-                ORDER BY 
-                    (authorized_by = 0 OR authorized = 0) DESC, 
-                    created_at DESC";
+        // Todos los QR pendientes para otros roles
+        $sql = "SELECT qr.*, u.username, u.nombre FROM qr_mentorias qr LEFT JOIN users u ON qr.created_by = u.username 
+                WHERE (qr.authorized_by = 0 OR qr.authorized = 0)
+                ORDER BY qr.created_at DESC";
         $result = $conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 }
 
-// Obtener los códigos QR
-$qrCodes = getQRCodes($conn);
+// Obtener solo los códigos QR pendientes
+$qrCodes = getPendingQRCodes($conn);
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
@@ -119,19 +115,55 @@ $qrCodes = getQRCodes($conn);
 <div class="tab-content" id="qrTabContent">
     <!-- Tab de Códigos QR -->
     <div class="tab-pane fade show active" id="qr-list" role="tabpanel" aria-labelledby="qr-list-tab">
-        <!-- Botón para agregar nuevo código QR -->
+        <!-- Botón para agregar nuevo código QR y controles en la misma línea -->
         <div class="mb-4">
-            <button type="button" class="btn bg-magenta-dark text-white" data-bs-toggle="modal" data-bs-target="#addQRModal">
-                <i class="bi bi-plus-circle"></i> Nuevo Código QR
-            </button>
+            <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn bg-magenta-dark text-white" data-bs-toggle="modal" data-bs-target="#addQRModal">
+                        <i class="bi bi-plus-circle"></i> Nuevo Código QR
+                    </button>
+                    <?php if ($rol !== 'Mentor'): ?>
+                        <button type="button" class="btn bg-success text-white" id="exportExcelBtn">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                        </button>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($rol !== 'Mentor'): ?>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="filterStatus" class="form-label mb-0">Filtrar:</label>
+                        <select id="filterStatus" class="form-select" style="width: auto;">
+                            <option value="pending">Pendientes</option>
+                            <option value="authorized">Autorizadas</option>
+                            <option value="all">Todas</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="max-width: 320px;">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar por cédula del mentor...">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Loading spinner -->
+        <div id="loadingSpinner" class="text-center d-none">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
         </div>
 
         <!-- Grid de cards para códigos QR -->
-        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="qrCardsContainer">
             <?php foreach ($qrCodes as $qr): ?>
                 <?php
-                    $isPending = ($qr['authorized_by'] == 0 || $qr['authorized'] == 0);
-                    $headerClass = $isPending ? 'bg-warning text-dark' : 'bg-teal-dark text-white';
+                $isPending = ($qr['authorized_by'] == 0 || $qr['authorized'] == 0);
+                $headerClass = $isPending ? 'bg-warning text-dark' : 'bg-teal-dark text-white';
                 ?>
                 <div class="col">
                     <div class="card h-100 shadow-sm">
@@ -152,7 +184,6 @@ $qrCodes = getQRCodes($conn);
                             </div>
                             <div class="separator w-100 border-bottom my-2"></div>
                             <div class="qr-info w-100">
-
                                 <p class="card-text small text-muted mb-2">
                                     <button type="button" class="btn btn-sm ms-2 copy-url-btn" title="Copiar URL" data-url="<?php echo htmlspecialchars($qr['url']); ?>">
                                         <i class="bi bi-clipboard"></i>
@@ -179,6 +210,12 @@ $qrCodes = getQRCodes($conn);
                                     <i class="bi bi-calendar3"></i>
                                     <?php echo date('d/m/Y H:i', strtotime($qr['created_at'])); ?>
                                 </p>
+                                <?php if ($rol !== 'Mentor'): ?>
+                                    <p class="card-text small mb-0">
+                                        <i class="bi bi-person"></i> Creado por: <br><?php echo htmlspecialchars($qr['username'] ?? ''); ?>
+                                        (<?php echo htmlspecialchars($qr['nombre'] ?? ''); ?>)
+                                    </p>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="card-footer bg-transparent">
@@ -213,6 +250,22 @@ $qrCodes = getQRCodes($conn);
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination" id="pagination">
+                    <!-- Se llenará por JavaScript -->
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Info de paginación -->
+        <div class="text-center mt-2">
+            <small class="text-muted" id="paginationInfo">
+                <!-- Se llenará por JavaScript -->
+            </small>
+        </div>
     </div>
     <!-- Tab de Prueba -->
     <div class="tab-pane fade" id="qr-test" role="tabpanel" aria-labelledby="qr-test-tab">
@@ -220,7 +273,7 @@ $qrCodes = getQRCodes($conn);
             <?php
             // Obtener cursos con masterclass y asistencias registradas
             $sql = "SELECT DISTINCT am.code, c.name
-                    FROM asistencias_masterclass am
+                    FROM asistencias_mentorias am
                     INNER JOIN courses c ON am.code = c.code
                     ORDER BY c.name";
             $result = $conn->query($sql);
@@ -340,6 +393,10 @@ $qrCodes = getQRCodes($conn);
                     <div class="mb-3">
                         <label for="fecha" class="form-label">Fecha</label>
                         <input type="date" class="form-control" id="fecha" name="fecha" required min="<?php echo date('Y-m-d'); ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label for="hora" class="form-label">Hora</label>
+                        <input type="time" class="form-control" id="hora" name="hora" required>
                     </div>
                     <div class="mb-3">
                         <label for="url" class="form-label">URL</label>
@@ -513,7 +570,7 @@ $qrCodes = getQRCodes($conn);
                         if (secondResult.isConfirmed) {
                             // Proceder con la eliminación
                             $.ajax({
-                                url: 'components/qrNivelaciones/delete_qr.php',
+                                url: 'components/qrMentorias/delete_qr.php',
                                 method: 'POST',
                                 data: {
                                     id: id,
@@ -527,7 +584,8 @@ $qrCodes = getQRCodes($conn);
                                             icon: 'success',
                                             confirmButtonColor: '#3085d6'
                                         }).then(() => {
-                                            location.reload();
+                                            // Recargar la vista actual
+                                            document.getElementById('filterStatus').dispatchEvent(new Event('change'));
                                         });
                                     } else {
                                         Swal.fire({
@@ -567,7 +625,7 @@ $qrCodes = getQRCodes($conn);
                         title: '¡Actualizado!',
                         text: 'Las clases equivalentes han sido actualizadas.',
                         icon: 'success',
-                        confirmButtonColor: '#3085d6'
+                        confirmButtonColor: '#30336b'
                     }).then(() => {
                         $('#editQRModal').modal('hide');
                         location.reload();
@@ -588,11 +646,12 @@ $qrCodes = getQRCodes($conn);
     function updateTitleAndUrl() {
         const bootcamp = document.getElementById('bootcamp');
         const fecha = document.getElementById('fecha').value;
+        const hora = document.getElementById('hora').value;
         const selected = bootcamp.options[bootcamp.selectedIndex];
         const courseName = selected.getAttribute('data-fullname');
         document.getElementById('course_name').value = courseName;
 
-        if (courseName && fecha) {
+        if (courseName && fecha && hora) {
             // Formato fecha para título y URL
             const fechaObj = new Date(fecha);
             const d = String(fechaObj.getDate()).padStart(2, '0');
@@ -600,10 +659,13 @@ $qrCodes = getQRCodes($conn);
             const y = fechaObj.getFullYear();
             const fechaTitulo = `${d}/${m}/${y}`;
             const fechaUrl = `${y}-${m}-${d}`;
+            
+            // Formatear hora
+            const horaFormateada = hora.substring(0, 5); // HH:MM
 
             // Actualizar campos
-            document.getElementById('title').value = `Mentoria ${courseName}, ${fechaTitulo}`;
-            document.getElementById('url').value = `https://dashboard.utinnova.co/asistenciaMentorias.php?fecha=${fechaUrl}&curso=${bootcamp.value}`;
+            document.getElementById('title').value = `Mentoria ${courseName}, ${fechaTitulo} ${horaFormateada}`;
+            document.getElementById('url').value = `https://dashboard.utinnova.co/asistenciaMentorias.php?fecha=${fechaUrl}&curso=${bootcamp.value}&hora=${hora}`;
         } else {
             document.getElementById('title').value = '';
             document.getElementById('url').value = '';
@@ -612,6 +674,339 @@ $qrCodes = getQRCodes($conn);
 
     document.getElementById('bootcamp').addEventListener('change', updateTitleAndUrl);
     document.getElementById('fecha').addEventListener('change', updateTitleAndUrl);
+    document.getElementById('hora').addEventListener('change', updateTitleAndUrl);
+
+    // Manejar exportación a Excel
+    document.getElementById('exportExcelBtn').addEventListener('click', function() {
+        // Mostrar loading
+        Swal.fire({
+            title: 'Generando Excel...',
+            text: 'Por favor espere mientras se genera el archivo.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Crear formulario para envío POST y descarga directa
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'components/qrMentorias/export_excel.php';
+        form.style.display = 'none';
+
+        // Agregar campos de datos (aunque no se usen por los cambios realizados)
+        const statusInput = document.createElement('input');
+        statusInput.name = 'status';
+        statusInput.value = currentStatus;
+        form.appendChild(statusInput);
+
+        const searchInput = document.createElement('input');
+        searchInput.name = 'search';
+        searchInput.value = currentSearch;
+        form.appendChild(searchInput);
+
+        // Agregar el formulario al body y enviarlo
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        // Cerrar el loading después de un breve momento
+        setTimeout(() => {
+            Swal.close();
+            Swal.fire({
+                title: '¡Descarga iniciada!',
+                text: 'El archivo Excel se está descargando automáticamente.',
+                icon: 'success',
+                confirmButtonColor: '#30336b',
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }, 1000);
+    });
+
+    // Variables globales para paginación y búsqueda
+    let currentPage = 1;
+    let currentSearch = '';
+    let currentStatus = 'pending';
+    const itemsPerPage = 16;
+    let searchTimeout = null;
+
+    // Función para cargar datos con paginación y búsqueda
+    function loadQRData(page = 1, search = '', status = 'pending') {
+        const container = document.getElementById('qrCardsContainer');
+        const loading = document.getElementById('loadingSpinner');
+
+        // Mostrar spinner
+        loading.classList.remove('d-none');
+        container.style.opacity = '0.5';
+
+        $.ajax({
+            url: 'components/qrMentorias/get_qr_codes.php',
+            method: 'POST',
+            data: {
+                status: status,
+                page: page,
+                search: search,
+                limit: itemsPerPage
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    container.innerHTML = response.html;
+                    updatePagination(response.pagination);
+
+                    // Reinitializar eventos para los nuevos elementos
+                    initializeQREvents();
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.error || 'Error al cargar los códigos QR',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error en la solicitud: ' + error,
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            },
+            complete: function() {
+                // Ocultar spinner
+                loading.classList.add('d-none');
+                container.style.opacity = '1';
+            }
+        });
+    }
+
+    // Función para actualizar la paginación
+    function updatePagination(pagination) {
+        const paginationContainer = document.getElementById('pagination');
+        const paginationInfo = document.getElementById('paginationInfo');
+
+        // Actualizar información
+        paginationInfo.textContent = `Mostrando ${pagination.from}-${pagination.to} de ${pagination.total} resultados`;
+
+        // Limpiar paginación
+        paginationContainer.innerHTML = '';
+
+        if (pagination.total_pages <= 1) {
+            return;
+        }
+
+        // Botón anterior
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${pagination.current_page <= 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">Anterior</a>`;
+        paginationContainer.appendChild(prevLi);
+
+        // Páginas
+        const startPage = Math.max(1, pagination.current_page - 2);
+        const endPage = Math.min(pagination.total_pages, pagination.current_page + 2);
+
+        if (startPage > 1) {
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item';
+            firstLi.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+            paginationContainer.appendChild(firstLi);
+
+            if (startPage > 2) {
+                const dotsLi = document.createElement('li');
+                dotsLi.className = 'page-item disabled';
+                dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                paginationContainer.appendChild(dotsLi);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === pagination.current_page ? 'active' : ''}`;
+            pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+            paginationContainer.appendChild(pageLi);
+        }
+
+        if (endPage < pagination.total_pages) {
+            if (endPage < pagination.total_pages - 1) {
+                const dotsLi = document.createElement('li');
+                dotsLi.className = 'page-item disabled';
+                dotsLi.innerHTML = `<span class="page-link">...</span>`;
+                paginationContainer.appendChild(dotsLi);
+            }
+
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item';
+            lastLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.total_pages}">${pagination.total_pages}</a>`;
+            paginationContainer.appendChild(lastLi);
+        }
+
+        // Botón siguiente
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${pagination.current_page >= pagination.total_pages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}">Siguiente</a>`;
+        paginationContainer.appendChild(nextLi);
+
+        // Agregar eventos a los botones de paginación
+        paginationContainer.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (e.target.classList.contains('page-link') && e.target.dataset.page) {
+                const page = parseInt(e.target.dataset.page);
+                if (page !== pagination.current_page && page >= 1 && page <= pagination.total_pages) {
+                    currentPage = page;
+                    loadQRData(currentPage, currentSearch, currentStatus);
+                }
+            }
+        });
+    }
+
+    // Manejar cambio de filtro de estado
+    document.getElementById('filterStatus').addEventListener('change', function() {
+        currentStatus = this.value;
+        currentPage = 1;
+        loadQRData(currentPage, currentSearch, currentStatus);
+    });
+
+    // Manejar búsqueda en tiempo real
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const searchValue = this.value.trim();
+
+        // Cancelar timeout anterior
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        // Establecer nuevo timeout
+        searchTimeout = setTimeout(function() {
+            currentSearch = searchValue;
+            currentPage = 1;
+            loadQRData(currentPage, currentSearch, currentStatus);
+        }, 300); // 300ms de delay
+    });
+
+    // Botón limpiar búsqueda
+    document.getElementById('clearSearch').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        currentSearch = '';
+        currentPage = 1;
+        loadQRData(currentPage, currentSearch, currentStatus);
+    });
+
+    // Función para reinitializar eventos después de cargar contenido AJAX
+    function initializeQREvents() {
+        // Reinitializar eventos de copy URL
+        document.querySelectorAll('.copy-url-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const url = btn.getAttribute('data-url');
+                navigator.clipboard.writeText(url).then(function() {
+                    btn.innerHTML = '<i class="bi bi-clipboard-check"></i>';
+                    setTimeout(function() {
+                        btn.innerHTML = '<i class="bi bi-clipboard"></i>';
+                    }, 1200);
+                });
+            });
+        });
+
+        // Reinitializar eventos de descarga
+        $('.download-qr').off('click').on('click', function() {
+            const filename = $(this).data('filename');
+            const qrUrl = `img/qrcodes/${filename}`;
+
+            const link = document.createElement('a');
+            link.href = qrUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Reinitializar eventos de eliminación
+        $('.delete-qr').off('click').on('click', function() {
+            const id = $(this).data('id');
+            const title = $(this).data('title');
+            const filename = $(this).data('filename');
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `¿Deseas eliminar el código QR "${title}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Segunda confirmación
+                    Swal.fire({
+                        title: 'Confirmar eliminación',
+                        text: 'Esta acción no se puede deshacer',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, eliminar definitivamente',
+                        cancelButtonText: 'Cancelar'
+                    }).then((secondResult) => {
+                        if (secondResult.isConfirmed) {
+                            // Proceder con la eliminación
+                            $.ajax({
+                                url: 'components/qrMentorias/delete_qr.php',
+                                method: 'POST',
+                                data: {
+                                    id: id,
+                                    filename: filename
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        Swal.fire({
+                                            title: '¡Eliminado!',
+                                            text: 'El código QR ha sido eliminado correctamente',
+                                            icon: 'success',
+                                            confirmButtonColor: '#3085d6'
+                                        }).then(() => {
+                                            // Recargar la vista actual
+                                            loadQRData(currentPage, currentSearch, currentStatus);
+                                        });
+                                    } else {
+                                        Swal.fire({
+                                            title: 'Error',
+                                            text: response.error || 'Error al eliminar el código QR',
+                                            icon: 'error',
+                                            confirmButtonColor: '#d33'
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
+        // Reinitializar eventos de edición
+        $('.edit-qr').off('click').on('click', function() {
+            $('#edit_qr_id').val($(this).data('id'));
+            $('#edit_title').val($(this).data('title'));
+            $('#edit_url').val($(this).data('url'));
+            $('#edit_clases_equivalentes').val($(this).data('clases'));
+            $('#editQRModal').modal('show');
+        });
+    }
+
+    // Cargar paginación inicial
+    $(document).ready(function() {
+        // Inicializar con datos de la primera carga
+        const initialCards = document.querySelectorAll('#qrCardsContainer .col').length;
+        updatePagination({
+            current_page: 1,
+            total_pages: Math.ceil(initialCards / itemsPerPage),
+            total: initialCards,
+            from: 1,
+            to: Math.min(itemsPerPage, initialCards)
+        });
+    });
 
     $(document).ready(function() {
         var tabla = $('#listaMasterclass').DataTable({
@@ -627,7 +1022,7 @@ $qrCodes = getQRCodes($conn);
             tabla.clear().draw();
             if (curso_id) {
                 $.ajax({
-                    url: 'components/qrNivelaciones/get_asistentes_masterclass.php',
+                    url: 'components/qrMentorias/get_asistentes_mentoria.php',
                     method: 'POST',
                     data: {
                         curso_id: curso_id

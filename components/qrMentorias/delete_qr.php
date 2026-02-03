@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Luego eliminamos el registro de la base de datos
-        $stmt = $conn->prepare("DELETE FROM qr_masterclass WHERE id = ?");
+        $stmt = $conn->prepare("DELETE FROM qr_mentorias WHERE id = ?");
         if (!$stmt) {
             throw new Exception("Error en la preparación de la consulta");
         }
