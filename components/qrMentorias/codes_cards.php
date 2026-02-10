@@ -74,7 +74,8 @@ function getPendingQRCodes($conn)
                 WHERE qr.created_by = ? AND (qr.authorized_by = 0 OR qr.authorized = 0)
                 ORDER BY qr.created_at DESC";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", (int)$username);
+        $username_int = (int)$username; // Crear variable temporal
+        $stmt->bind_param("i", $username_int);
         $stmt->execute();
         $result = $stmt->get_result();
         $qrs = $result->fetch_all(MYSQLI_ASSOC);

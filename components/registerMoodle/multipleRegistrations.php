@@ -289,6 +289,7 @@ foreach ($data as $row) {
                                         <i class="bi bi-patch-check-fill"></i>
                                     </th>
                                     <th>Email</th>
+                                    <th>Enviar Email</th>
                                     <th>Nuevo Email</th>
                                     <th>Departamento</th>
                                     <th>Sede</th>
@@ -320,7 +321,8 @@ foreach ($data as $row) {
                                         data-program="<?= htmlspecialchars($row['program']) ?>"
                                         data-level="<?= htmlspecialchars($row['level']) ?>"
                                         data-schedule="<?= htmlspecialchars($row['schedules']) ?>"
-                                        data-mode="<?= htmlspecialchars($row['mode']) ?>">
+                                        data-mode="<?= htmlspecialchars($row['mode']) ?>"
+                                        data-send-email="1">
                                         <td><?php echo htmlspecialchars($row['typeID']); ?></td>
                                         <td><?php echo htmlspecialchars($row['number_id']); ?></td>
                                         <td style="width: 350px; min-width: 350px; max-width: 380px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -346,6 +348,24 @@ foreach ($data as $row) {
                                                 onclick="this.style.backgroundColor = this.checked ? 'magenta' : 'white'">
                                         </td>
                                         <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                        <td>
+                                            <div class="form-check form-switch d-flex justify-content-center">
+                                                <input class="form-check-input send-email-checkbox"
+                                                    type="checkbox"
+                                                    checked
+                                                    style="width: 2.5em; height: 1.5em; background-color: #fff; border: 2px solid #30336b; transition: background-color 0.2s;"
+                                                    onchange="this.style.backgroundColor = this.checked ? '#30336b' : '#fff';"
+                                                    onload="this.style.backgroundColor = this.checked ? '#30336b' : '#fff';">
+                                            </div>
+                                            <script>
+                                                // Asegura el color inicial al cargar
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    document.querySelectorAll('.send-email-checkbox').forEach(function(cb) {
+                                                        cb.style.backgroundColor = cb.checked ? '#30336b' : '#fff';
+                                                    });
+                                                });
+                                            </script>
+                                        </td>
                                         <td><?php echo htmlspecialchars($nuevoCorreo); ?></td>
 
                                         <td>
@@ -617,6 +637,11 @@ foreach ($data as $row) {
 
             for (const formData of usersToEnroll) {
                 try {
+                    // ***** DEBUGGING - MOSTRAR QUÉ DATOS LLEGAN *****
+                    console.log(`Procesando usuario ${formData.number_id}:`);
+                    console.log(`- send_email: ${formData.send_email}`);
+                    console.log(`- Datos completos:`, formData);
+
                     // Matrícula
                     const enrollResponse = await fetch('components/registerMoodle/enroll_user_multiple.php', {
                         method: 'POST',
@@ -658,11 +683,12 @@ foreach ($data as $row) {
                     // Si la matrícula fue exitosa
                     if (enrollData.success) {
                         successes++;
+                        
+                        // Obtener el carnet
                         let carnetFilePath = null;
                         try {
                             // Intentar generar/obtener el carnet
-                            // Llamamos a generate_carnet.php sin el parámetro 'download=1' para obtener la ruta del archivo
-                            const carnetResponse = await fetch(`components/listCredentials/generate_carnet.php?generate_carnet=1&number_id=${formData.number_id}&username=${encodeURIComponent(formData.full_name)}`); // Asumimos que el nombre de usuario para el registro del carnet puede ser el nombre completo. Ajustar si es necesario.
+                            const carnetResponse = await fetch(`components/listCredentials/generate_carnet.php?generate_carnet=1&number_id=${formData.number_id}&username=${encodeURIComponent(formData.full_name)}`);
                             if (carnetResponse.ok) {
                                 const carnetData = await carnetResponse.json();
                                 if (carnetData.success && carnetData.file_path) {
@@ -676,9 +702,9 @@ foreach ($data as $row) {
                                     });
                                 }
                             } else {
-                                 const errorText = await carnetResponse.text();
-                                 console.error(`Error HTTP al generar/obtener carnet para ${formData.number_id}: ${carnetResponse.status} - ${errorText}`);
-                                 errors.push({
+                                const errorText = await carnetResponse.text();
+                                console.error(`Error HTTP al generar/obtener carnet para ${formData.number_id}: ${carnetResponse.status} - ${errorText}`);
+                                errors.push({
                                     student: formData.number_id,
                                     message: `Matrícula exitosa, pero error HTTP (${carnetResponse.status}) al generar/obtener carnet.`,
                                     type: 'carnet_http_error'
@@ -693,26 +719,31 @@ foreach ($data as $row) {
                             });
                         }
 
-                        try {
-                            const emailResponse = await sendEnrollmentEmail(formData, carnetFilePath); // Pasar la ruta del carnet
-                            if (emailResponse && emailResponse.success) {
-                                emailSuccesses++;
-                            } else {
-                                // Mostrar error en consola y agregar detalles al error
-                                console.error('Error al enviar correo:', emailResponse?.message, emailResponse);
+                        // ***** AQUÍ ESTÁ LA VERIFICACIÓN CRÍTICA *****
+                        console.log(`¿Enviar email? ${formData.send_email} para ${formData.number_id}`);
+                        
+                        if (formData.send_email) {  // Solo enviar email si el switch está activado
+                            console.log(`SÍ enviando email para ${formData.number_id}`);
+                            try {
+                                const emailResponse = await sendEnrollmentEmail(formData, carnetFilePath);
+                                if (emailResponse && emailResponse.success) {
+                                    emailSuccesses++;
+                                } else {
+                                    errors.push({
+                                        student: formData.number_id,
+                                        message: `Matrícula exitosa, pero error al enviar correo: ${emailResponse?.message || 'Error desconocido'}\nDetalles: ${JSON.stringify(emailResponse)}`,
+                                        type: 'email'
+                                    });
+                                }
+                            } catch (emailError) {
                                 errors.push({
                                     student: formData.number_id,
-                                    message: `Matrícula exitosa, pero error al enviar correo: ${emailResponse?.message || 'Error desconocido'}<br>Detalles: <pre>${JSON.stringify(emailResponse, null, 2)}</pre>`,
+                                    message: `Matrícula exitosa, pero error al enviar correo: ${emailError.message}\nDetalles: ${emailError.stack || 'No disponible'}`,
                                     type: 'email'
                                 });
                             }
-                        } catch (emailError) {
-                            console.error('Error al enviar correo (catch):', emailError);
-                            errors.push({
-                                student: formData.number_id,
-                                message: `Matrícula exitosa, pero error al enviar correo: ${emailError.message}<br>Detalles: <pre>${emailError.stack || 'No disponible'}</pre>`,
-                                type: 'email'
-                            });
+                        } else {
+                            console.log(`NO enviando email para ${formData.number_id} - switch desactivado`);
                         }
                     } else {
                         errors.push({
@@ -722,9 +753,9 @@ foreach ($data as $row) {
                         });
                     }
                 } catch (error) {
-                    processed++;
+                    processed++; // Asegurarse de que processed se incremente incluso si hay un error temprano.
                     errors.push({
-                        student: formData.number_id,
+                        student: formData.number_id || 'Desconocido', // formData puede no estar completamente definido si el error es muy temprano
                         message: `Error: ${error.message}\nDetalles: ${error.stack || 'No disponible'}\nDatos enviados: ${JSON.stringify(formData)}`,
                         type: 'server'
                     });
@@ -750,12 +781,12 @@ foreach ($data as $row) {
             message += `<p>Errores totales: <b>${errors.length}</b></p>`;
 
             if (errors.length > 0) {
-                message += '<hr><h5>Detalles de errores:</h5>';
+                message += '<hr><h5>Detalles de errores/advertencias:</h5>';
                 message += '<div style="max-height: 200px; overflow-y: auto; text-align: left;">';
                 errors.forEach((err, index) => {
                     message += `
                         <p><b>${index + 1}. Usuario:</b> ${err.student}</p>
-                        <p><b>Tipo de error:</b> ${err.type}</p>
+                        <p><b>Tipo:</b> ${err.type}</p>
                         <p><b>Mensaje:</b> ${err.message}</p>
                         <hr>
                     `;
@@ -795,6 +826,10 @@ foreach ($data as $row) {
                 };
             };
 
+            // Leer dinámicamente el estado del switch
+            const sendEmailCheckbox = row.querySelector('.send-email-checkbox');
+            const send_email = sendEmailCheckbox ? sendEmailCheckbox.checked : true;
+
             const formData = {
                 type_id: userData.type_id || row.dataset.typeId,
                 number_id: numberId,
@@ -813,7 +848,8 @@ foreach ($data as $row) {
                 id_english_code: getCourseData('english_code').id,
                 english_code_name: getCourseData('english_code').name,
                 id_skills: getCourseData('skills').id,
-                skills_name: getCourseData('skills').name
+                skills_name: getCourseData('skills').name,
+                send_email: send_email // Usar el valor leído del switch, no hardcodeado
             };
 
             return formData;
@@ -827,12 +863,22 @@ foreach ($data as $row) {
             }
 
             try {
+                // LEER DINÁMICAMENTE el estado del switch para cada usuario
                 const usersToEnroll = Array.from(selectedUsers.values()).map(userData => {
                     const row = document.querySelector(`tr[data-number-id="${userData.number_id}"]`);
                     if (!row) {
                         throw new Error(`No se encontraron los datos completos para el usuario ${userData.full_name}`);
                     }
-                    return getFormDataFromRow(row);
+                    
+                    // Leer el estado ACTUAL del switch
+                    const sendEmailCheckbox = row.querySelector('.send-email-checkbox');
+                    const send_email = sendEmailCheckbox ? sendEmailCheckbox.checked : true;
+                    
+                    // Combinar datos guardados con el estado actual del switch
+                    return {
+                        ...userData,
+                        send_email: send_email  // Estado actual del switch
+                    };
                 });
 
                 confirmBulkEnrollment(usersToEnroll);
@@ -868,7 +914,7 @@ foreach ($data as $row) {
                 const englishCode = getCourseData('english_code');
                 const skills = getCourseData('skills');
 
-                // Agregar usuario a la lista con todos los campos requeridos
+                // NO guardamos send_email aquí - siempre se leerá dinámicamente
                 selectedUsers.set(numberId, {
                     type_id: row.dataset.typeId,
                     number_id: numberId,
@@ -888,6 +934,7 @@ foreach ($data as $row) {
                     english_code_name: englishCode.name,
                     id_skills: skills.id,
                     skills_name: skills.name
+                    // SIN send_email - se leerá dinámicamente
                 });
             } else {
                 selectedUsers.delete(numberId);

@@ -331,6 +331,7 @@ foreach ($data as $row) {
                                             style="width: 25px; height: 25px; appearance: none; background-color: white; border: 2px solid #ec008c; cursor: pointer; position: relative;">
                                     </th>
                                     <th>Email</th>
+                                    <th>Enviar email</th>
                                     <th>Nuevo Email</th>
                                     <th>Departamento</th>
                                     <th>Sede</th>
@@ -670,6 +671,16 @@ foreach ($data as $row) {
                                    style="width: 25px; height: 25px; appearance: none; background-color: white; border: 2px solid #ec008c; cursor: pointer;">
                         </td>
                         <td>${rowData.email || ''}</td>
+                        <td>
+                            <div class="form-check form-switch d-flex justify-content-center">
+                                <input class="form-check-input send-email-checkbox"
+                                    type="checkbox"
+                                    checked
+                                    style="width: 2.5em; height: 1.5em; background-color: #fff; border: 2px solid #30336b; transition: background-color 0.2s;"
+                                    onchange="this.style.backgroundColor = this.checked ? '#30336b' : '#fff';"
+                                    onload="this.style.backgroundColor = this.checked ? '#30336b' : '#fff';">
+                            </div>
+                        </td>
                         <td>${nuevoCorreo}</td>
                         <td>${rowData.departamento || ''}</td>
                         <td>${rowData.headquarters || ''}</td>
@@ -695,6 +706,12 @@ foreach ($data as $row) {
                     popoverTriggerList.forEach(popoverTriggerEl => {
                         new bootstrap.Popover(popoverTriggerEl);
                     });
+
+                    // Inicializar el estilo del switch
+                    const sendEmailCheckbox = tr.querySelector('.send-email-checkbox');
+                    if (sendEmailCheckbox) {
+                        sendEmailCheckbox.style.backgroundColor = sendEmailCheckbox.checked ? '#30336b' : '#fff';
+                    }
 
                     return tr;
                 }
@@ -978,26 +995,85 @@ foreach ($data as $row) {
                     }
 
                     try {
+                        // LEER DINÁMICAMENTE el estado del switch para cada usuario
                         const usersToEnroll = [];
 
-                        // Procesamiento asíncrono de usuarios seleccionados
-                        const processUsers = async () => {
-                            for (const userData of selectedUsers.values()) {
-                                try {
-                                    const formData = await getFormDataFromRow(userData);
-                                    usersToEnroll.push(formData);
-                                } catch (error) {
-                                    console.error('Error procesando usuario:', error);
-                                    throw new Error(`Error al preparar datos para ${userData.full_name}: ${error.message}`);
-                                }
-                            }
-                            confirmBulkEnrollment(usersToEnroll);
-                        };
+                        selectedUsers.forEach((userData, numberId) => {
+                            console.log('Procesando usuario:', userData); // Debug
 
-                        processUsers().catch(error => {
-                            Swal.fire('Error', error.message, 'error');
+                            const row = document.querySelector(`tr[data-number-id="${numberId}"]`);
+                            if (!row) {
+                                throw new Error(`No se encontraron los datos completos para el usuario con ID: ${numberId}`);
+                            }
+
+                            // Verificar que userData tenga todos los campos necesarios
+                            if (!userData.type_id || !userData.number_id || !userData.full_name) {
+                                console.error('Datos incompletos del usuario:', userData);
+                                throw new Error(`Datos incompletos para el usuario: ${userData.full_name || numberId}`);
+                            }
+
+                            // Leer el estado ACTUAL del switch
+                            const sendEmailCheckbox = row.querySelector('.send-email-checkbox');
+                            const send_email = sendEmailCheckbox ? sendEmailCheckbox.checked : true;
+
+                            // Crear formData con todos los datos necesarios
+                            const formData = {
+                                type_id: userData.type_id,
+                                number_id: userData.number_id,
+                                full_name: userData.full_name,
+                                email: userData.email,
+                                institutional_email: userData.institutional_email,
+                                department: userData.department,
+                                headquarters: userData.headquarters,
+                                program: userData.program,
+                                mode: userData.mode,
+                                level: userData.level,
+                                schedule: userData.schedule,
+                                password: 'UTt@2025!',
+                                send_email: send_email
+                            };
+
+                            // Agregar datos de cursos
+                            const getCourseData = (prefix) => {
+                                const select = document.getElementById(prefix);
+                                if (!select) {
+                                    console.error(`Select no encontrado: ${prefix}`);
+                                    return {
+                                        id: '0',
+                                        name: 'No seleccionado'
+                                    };
+                                }
+                                const option = select.options[select.selectedIndex];
+                                const fullText = option.text;
+                                const id = option.value;
+                                const name = fullText.split(' - ').slice(1).join(' - ').trim();
+                                return {
+                                    id,
+                                    name
+                                };
+                            };
+
+                            const bootcamp = getCourseData('bootcamp');
+                            const ingles = getCourseData('ingles');
+                            const englishCode = getCourseData('english_code');
+                            const skills = getCourseData('skills');
+
+                            formData.id_bootcamp = bootcamp.id;
+                            formData.bootcamp_name = bootcamp.name;
+                            formData.id_leveling_english = ingles.id;
+                            formData.leveling_english_name = ingles.name;
+                            formData.id_english_code = englishCode.id;
+                            formData.english_code_name = englishCode.name;
+                            formData.id_skills = skills.id;
+                            formData.skills_name = skills.name;
+
+                            console.log('FormData completo:', formData); // Debug
+                            usersToEnroll.push(formData);
                         });
+
+                        confirmBulkEnrollment(usersToEnroll);
                     } catch (error) {
+                        console.error('Error preparando datos:', error);
                         Swal.fire('Error', error.message, 'error');
                     }
                 });
@@ -1110,7 +1186,7 @@ foreach ($data as $row) {
                             try {
                                 // Intentar generar/obtener el carnet
                                 // Llamamos a generate_carnet.php sin el parámetro 'download=1' para obtener la ruta del archivo
-                                const carnetResponse = await fetch(`components/listCredentials/generate_carnet.php?generate_carnet=1&number_id=${formData.number_id}&username=${encodeURIComponent(formData.full_name)}`); // Asumimos que el nombre de usuario para el registro del carnet puede ser el nombre completo. Ajustar si es necesario.
+                                const carnetResponse = await fetch(`components/listCredentials/generate_carnet.php?generate_carnet=1&number_id=${formData.number_id}&username=${encodeURIComponent(formData.full_name)}`);
                                 if (carnetResponse.ok) {
                                     const carnetData = await carnetResponse.json();
                                     if (carnetData.success && carnetData.file_path) {
@@ -1141,23 +1217,30 @@ foreach ($data as $row) {
                                 });
                             }
 
-                            try {
-                                const emailResponse = await sendEnrollmentEmail(formData, carnetFilePath); // Pasar la ruta del carnet
-                                if (emailResponse && emailResponse.success) {
-                                    emailSuccesses++;
-                                } else {
+                            // VERIFICAR SI DEBE ENVIAR EMAIL ANTES DE INTENTAR ENVIARLO
+                            if (formData.send_email === true) {
+                                try {
+                                    console.log(`Enviando email a ${formData.full_name} (${formData.number_id}) - send_email: ${formData.send_email}`); // Debug
+                                    const emailResponse = await sendEnrollmentEmail(formData, carnetFilePath); // Pasar la ruta del carnet
+                                    if (emailResponse && emailResponse.success) {
+                                        emailSuccesses++;
+                                    } else {
+                                        errors.push({
+                                            student: formData.number_id,
+                                            message: `Matrícula exitosa, pero error al enviar correo: ${emailResponse?.message || 'Error desconocido'}`,
+                                            type: 'email'
+                                        });
+                                    }
+                                } catch (emailError) {
                                     errors.push({
                                         student: formData.number_id,
-                                        message: `Matrícula exitosa, pero error al enviar correo: ${emailResponse?.message || 'Error desconocido'}\nDetalles: ${JSON.stringify(emailResponse)}`,
+                                        message: `Matrícula exitosa, pero error al enviar correo: ${emailError.message}\nDetalles: ${emailError.stack || 'No disponible'}`,
                                         type: 'email'
                                     });
                                 }
-                            } catch (emailError) {
-                                errors.push({
-                                    student: formData.number_id,
-                                    message: `Matrícula exitosa, pero error al enviar correo: ${emailError.message}\nDetalles: ${emailError.stack || 'No disponible'}`,
-                                    type: 'email'
-                                });
+                            } else {
+                                // Log para confirmar que NO se envía el email
+                                console.log(`NO enviando email a ${formData.full_name} (${formData.number_id}) - send_email: ${formData.send_email}`); // Debug
                             }
                         } else {
                             errors.push({
@@ -1167,9 +1250,9 @@ foreach ($data as $row) {
                             });
                         }
                     } catch (error) {
-                        processed++;
+                        processed++; // Asegurarse de que processed se incremente incluso si hay un error temprano.
                         errors.push({
-                            student: formData.number_id,
+                            student: formData.number_id || 'Desconocido', // formData puede no estar completamente definido si el error es muy temprano
                             message: `Error: ${error.message}\nDetalles: ${error.stack || 'No disponible'}\nDatos enviados: ${JSON.stringify(formData)}`,
                             type: 'server'
                         });
@@ -1195,12 +1278,12 @@ foreach ($data as $row) {
                 message += `<p>Errores totales: <b>${errors.length}</b></p>`;
 
                 if (errors.length > 0) {
-                    message += '<hr><h5>Detalles de errores:</h5>';
+                    message += '<hr><h5>Detalles de errores/advertencias:</h5>';
                     message += '<div style="max-height: 200px; overflow-y: auto; text-align: left;">';
                     errors.forEach((err, index) => {
                         message += `
                             <p><b>${index + 1}. Usuario:</b> ${err.student}</p>
-                            <p><b>Tipo de error:</b> ${err.type}</p>
+                            <p><b>Tipo:</b> ${err.type}</p>
                             <p><b>Mensaje:</b> ${err.message}</p>
                             <hr>
                         `;
@@ -1283,7 +1366,15 @@ foreach ($data as $row) {
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Error HTTP: ${response.status}`);
+                        // Intentar obtener más detalles del error si la respuesta no es JSON
+                        let errorDetails = `Error HTTP: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorDetails += ` - ${errorData.message || JSON.stringify(errorData)}`;
+                        } catch (e) {
+                            errorDetails += ` - ${await response.text()}`;
+                        }
+                        throw new Error(errorDetails);
                     }
 
                     const data = await response.json();
