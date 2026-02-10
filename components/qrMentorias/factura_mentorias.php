@@ -202,6 +202,30 @@ try {
             .table tbody tr:nth-child(even) {
                 background-color: #f8f9fa;
             }
+            /* Estilos del footer */
+            @font-face {
+                font-family: "Sparose";
+                src: url("fonts/fonnts.com-Sparose.ttf") format("truetype");
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
+            .footer {
+                margin-top: 40px;
+                padding: 15px 0;
+                text-align: center;
+                border-top: 1px solid #ddd;
+                background-color: #f8f9fa;
+                font-size: 10px;
+                font-family: "Sparose", Arial, sans-serif !important;
+                color: #30336b !important;
+            }
+            .text-indigo-dark {
+                color: #30336b !important;
+            }
+            .text-lime-dark {
+                color: #32CD32 !important;
+            }
         </style>
     </head>
     <body>
@@ -250,9 +274,24 @@ try {
         $contador++;
     }
 
+    // Obtener información de la empresa
+    $queryCompany = mysqli_query($conn, "SELECT nombre,nit FROM company");
+    $empresa = '';
+    while ($empresaLog = mysqli_fetch_array($queryCompany)) {
+        $empresa = $empresaLog['nombre'];
+    }
+
     $html .= '
             </tbody>
         </table>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="text-center">
+                <b>SYGNIA</b> &copy; Copyright ' . date("Y") . ' Todos los derechos de uso para <span class="text-lime-dark"><b>' . $empresa . '</b></span> |
+                Eagle Software
+            </div>
+        </footer>
     </body>
     </html>';
 

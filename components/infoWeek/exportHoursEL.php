@@ -3,10 +3,38 @@
 ob_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../../logs/export_errors.log');
+
+// Configurar tiempo de ejecución a 10 minutos (puedes reducir si la optimización es suficiente)
+set_time_limit(600); // 10 minutos
+ini_set('max_execution_time', 600);
+ini_set('memory_limit', '512M'); // Aumentar memoria disponible
+
+// Configurar timeout para MySQL
+ini_set('mysql.connect_timeout', 600);
+ini_set('default_socket_timeout', 600);
 
 // Corregir ruta del autoload
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../../controller/conexion.php';
+
+// Verificar conexión a la base de datos
+if (!$conn) {
+    ob_end_clean();
+    error_log("No se pudo conectar a la base de datos");
+    header('Content-Type: application/json');
+    http_response_code(500);
+    echo json_encode([
+        'error' => true,
+        'message' => 'No se pudo conectar a la base de datos'
+    ]);
+    exit;
+}
+
+// Configurar timeout de MySQL
+mysqli_query($conn, "SET SESSION wait_timeout = 600");
+mysqli_query($conn, "SET SESSION interactive_timeout = 600");
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -15,68 +43,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-// Función actualizada para calcular horas basadas en asistencia
-function calcularHorasAsistencia($conn, $studentId, $courseId)
-{
-    if (empty($courseId)) return 0;
-
-    $sql = "SELECT ar.class_date, 
-                   CASE 
-                      WHEN ar.attendance_status = 'presente' THEN 
-                          CASE DAYOFWEEK(ar.class_date)
-                              WHEN 2 THEN c.monday_hours    -- Lunes
-                              WHEN 3 THEN c.tuesday_hours   -- Martes
-                              WHEN 4 THEN c.wednesday_hours -- Miércoles
-                              WHEN 5 THEN c.thursday_hours  -- Jueves
-                              WHEN 6 THEN c.friday_hours    -- Viernes
-                              WHEN 7 THEN c.saturday_hours  -- Sábado
-                              WHEN 1 THEN c.sunday_hours    -- Domingo
-                              ELSE 0
-                          END
-                      WHEN ar.attendance_status = 'tarde' THEN ar.recorded_hours
-                      ELSE 0 
-                   END as horas,
-                   ar.attendance_status
-            FROM attendance_records ar
-            JOIN courses c ON ar.course_id = c.code
-            WHERE ar.student_id = ? 
-            AND ar.course_id = ?
-            ORDER BY ar.class_date, FIELD(ar.attendance_status, 'presente', 'tarde')";
-
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        error_log("Error preparando consulta: " . $conn->error);
-        return 0;
-    }
-
-    $stmt->bind_param("si", $studentId, $courseId);
-    if (!$stmt->execute()) {
-        error_log("Error ejecutando consulta: " . $stmt->error);
-        return 0;
-    }
-
-    $result = $stmt->get_result();
-
-    $fechasContadas = [];
-    $totalHoras = 0;
-
-    while ($asistencia = $result->fetch_assoc()) {
-        $fecha = $asistencia['class_date'];
-
-        // Solo contar una asistencia por fecha (la primera después de ordenar)
-        if (!in_array($fecha, $fechasContadas)) {
-            $totalHoras += $asistencia['horas'];
-            $fechasContadas[] = $fecha;
-        }
-    }
-
-    $stmt->close();
-    return $totalHoras;
-}
-
 // Función para configurar encabezados de una hoja
-function configurarEncabezados($sheet)
-{
+function configurarEncabezados($sheet) {
     $sheet->setCellValue('A1', 'Número de Identificación');
     $sheet->setCellValue('B1', 'Nombre del Estudiante');
     $sheet->setCellValue('C1', 'Correo Personal');
@@ -87,7 +55,7 @@ function configurarEncabezados($sheet)
     $sheet->setCellValue('H1', 'Modalidad');
     $sheet->setCellValue('I1', 'Institución');
 
-    // Títulos específicos por área (desplazados una columna)
+    // Títulos específicos por área
     $sheet->setCellValue('J1', 'Técnico - Horas Actuales');
     $sheet->setCellValue('K1', 'Técnico - Horas Reales');
     $sheet->setCellValue('L1', 'Técnico - Total Horas');
@@ -111,11 +79,19 @@ function configurarEncabezados($sheet)
     $sheet->setCellValue('Y1', 'Porcentaje Actuales');
     $sheet->setCellValue('Z1', 'Porcentaje Reales');
     $sheet->setCellValue('AA1', 'Porcentaje Faltante');
+
+    // Nuevas columnas de export_excel_general_all.php
+    $sheet->setCellValue('AB1', '% Asistencia');
+    $sheet->setCellValue('AC1', 'Nota 1');
+    $sheet->setCellValue('AD1', 'Nota 2');
+    $sheet->setCellValue('AE1', 'Nota Final');
+    $sheet->setCellValue('AF1', 'Estado');
+    $sheet->setCellValue('AG1', 'ESTADO ADMISION');
+    $sheet->setCellValue('AH1', 'Año de finalización');
 }
 
 // Función para aplicar estilos a una hoja
-function aplicarEstilos($sheet, $lastRow)
-{
+function aplicarEstilos($sheet, $lastRow) {
     // Estilos por área
     $basicHeaderStyle = [
         'font' => ['bold' => true],
@@ -135,14 +111,6 @@ function aplicarEstilos($sheet, $lastRow)
 
     $tecnicoDataStyle = array_merge($basicDataStyle, [
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF2F2']], // Rojo más claro para datos
-    ]);
-
-    $niveladordHeaderStyle = array_merge($basicHeaderStyle, [
-        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E6F3FF']], // Azul claro
-    ]);
-
-    $niveladordDataStyle = array_merge($basicDataStyle, [
-        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F8FF']], // Azul más claro para datos
     ]);
 
     $inglesHeaderStyle = array_merge($basicHeaderStyle, [
@@ -177,42 +145,54 @@ function aplicarEstilos($sheet, $lastRow)
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFF2']], // Amarillo más claro para datos
     ]);
 
-    // Aplicar estilos específicos por área - Headers (actualizado para incluir modalidad)
+    // Estilo para nuevas columnas (notas y estados)
+    $notasEstadosHeaderStyle = array_merge($basicHeaderStyle, [
+        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E6F3FF']], // Azul claro
+    ]);
+
+    $notasEstadosDataStyle = array_merge($basicDataStyle, [
+        'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F9FF']], // Azul más claro para datos
+    ]);
+
+    // Aplicar estilos específicos por área - Headers
     $sheet->getStyle('A1:I1')->applyFromArray($basicHeaderStyle); // Información básica
     $sheet->getStyle('J1:L1')->applyFromArray($tecnicoHeaderStyle);     // Técnico
-    $sheet->getStyle('M1:O1')->applyFromArray($niveladordHeaderStyle);  // Inglés Nivelador
-    $sheet->getStyle('P1:R1')->applyFromArray($inglesHeaderStyle);     // Inglés
+    $sheet->getStyle('M1:O1')->applyFromArray($inglesHeaderStyle);      // Inglés Nivelador
+    $sheet->getStyle('P1:R1')->applyFromArray($inglesHeaderStyle);      // Inglés
     $sheet->getStyle('S1:U1')->applyFromArray($habilidadesHeaderStyle); // Habilidades
-    $sheet->getStyle('V1:X1')->applyFromArray($totalesHeaderStyle);    // Totales
+    $sheet->getStyle('V1:X1')->applyFromArray($totalesHeaderStyle);     // Totales
     $sheet->getStyle('Y1:AA1')->applyFromArray($porcentajesHeaderStyle); // Porcentajes
+    $sheet->getStyle('AB1:AH1')->applyFromArray($notasEstadosHeaderStyle); // Nuevas columnas
 
     // Aplicar estilos específicos por área - Datos
     if ($lastRow >= 2) {
         $sheet->getStyle('A2:I' . $lastRow)->applyFromArray($basicDataStyle); // Información básica
         $sheet->getStyle('J2:L' . $lastRow)->applyFromArray($tecnicoDataStyle);     // Técnico
-        $sheet->getStyle('M2:O' . $lastRow)->applyFromArray($niveladordDataStyle);  // Inglés Nivelador
-        $sheet->getStyle('P2:R' . $lastRow)->applyFromArray($inglesDataStyle);     // Inglés
+        $sheet->getStyle('M2:O' . $lastRow)->applyFromArray($inglesDataStyle);      // Inglés Nivelador
+        $sheet->getStyle('P2:R' . $lastRow)->applyFromArray($inglesDataStyle);      // Inglés
         $sheet->getStyle('S2:U' . $lastRow)->applyFromArray($habilidadesDataStyle); // Habilidades
-        $sheet->getStyle('V2:X' . $lastRow)->applyFromArray($totalesDataStyle);    // Totales
+        $sheet->getStyle('V2:X' . $lastRow)->applyFromArray($totalesDataStyle);     // Totales
         $sheet->getStyle('Y2:AA' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
+        $sheet->getStyle('AB2:AH' . $lastRow)->applyFromArray($notasEstadosDataStyle); // Nuevas columnas
     }
 
-    // Aplicar formato de porcentaje a las columnas Y, Z y AA
+    // Asegurar que los porcentajes tengan el formato correcto
     if ($lastRow >= 2) {
         $sheet->getStyle('Y2:AA' . $lastRow)->getNumberFormat()
-            ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+              ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+        $sheet->getStyle('AB2:AB' . $lastRow)->getNumberFormat()
+              ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
     }
 
     // Autoajustar columnas
-    foreach (range('A', 'AA') as $col) {
+    foreach(range('A','AH') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 }
 
-// Función para llenar datos de una hoja con un lote específico
-function llenarDatosLote($conn, $sheet, $lote)
-{
-    // Consulta SQL actualizada para incluir filtro por lote y certificados
+// Función para llenar datos de una hoja con un lote específico (optimizada)
+function llenarDatosLote($conn, $sheet, $lote) {
+    // Consulta principal para estudiantes del lote
     $sql = "SELECT g.*, 
            b.real_hours AS bootcamp_hours, b.code AS bootcamp_code,
            e.real_hours AS english_hours, e.code AS english_code,
@@ -234,12 +214,88 @@ function llenarDatosLote($conn, $sheet, $lote)
     $stmt->execute();
     $result = $stmt->get_result();
 
+    // Pre-cargar datos para optimización
+    $attendanceData = [];
+    $gradesData = [];
+    $admissionStatusData = [];
+    $finalizationYearData = [];
+
+    // 1. Pre-cargar horas de asistencia para todos los estudiantes del lote
+    $attendanceSql = "SELECT ar.student_id, ar.course_id, 
+                             SUM(CASE 
+                                 WHEN ar.attendance_status = 'presente' THEN 
+                                     CASE DAYOFWEEK(ar.class_date)
+                                         WHEN 2 THEN c.monday_hours
+                                         WHEN 3 THEN c.tuesday_hours
+                                         WHEN 4 THEN c.wednesday_hours
+                                         WHEN 5 THEN c.thursday_hours
+                                         WHEN 6 THEN c.friday_hours
+                                         WHEN 7 THEN c.saturday_hours
+                                         WHEN 1 THEN c.sunday_hours
+                                         ELSE 0
+                                     END
+                                 WHEN ar.attendance_status = 'tarde' THEN ar.recorded_hours
+                                 ELSE 0 
+                             END) as total_horas
+                      FROM attendance_records ar
+                      JOIN courses c ON ar.course_id = c.code
+                      JOIN user_register u ON ar.student_id = u.number_id
+                      WHERE u.lote = ?
+                      GROUP BY ar.student_id, ar.course_id";
+    $attendanceStmt = $conn->prepare($attendanceSql);
+    $attendanceStmt->bind_param("i", $lote);
+    $attendanceStmt->execute();
+    $attendanceResult = $attendanceStmt->get_result();
+    while ($row = $attendanceResult->fetch_assoc()) {
+        $attendanceData[$row['student_id']][$row['course_id']] = $row['total_horas'];
+    }
+    $attendanceStmt->close();
+
+    // 2. Pre-cargar notas para todos los estudiantes del lote
+    $gradesSql = "SELECT student_number_id, course_code, final_grade, grade_1, grade_2 FROM course_approvals 
+                  WHERE student_number_id IN (SELECT number_id FROM user_register WHERE lote = ?)
+                  UNION
+                  SELECT number_id, code, NULL, nota1, nota2 FROM notas_estudiantes 
+                  WHERE number_id IN (SELECT number_id FROM user_register WHERE lote = ?)";
+    $gradesStmt = $conn->prepare($gradesSql);
+    $gradesStmt->bind_param("ii", $lote, $lote);
+    $gradesStmt->execute();
+    $gradesResult = $gradesStmt->get_result();
+    while ($row = $gradesResult->fetch_assoc()) {
+        $gradesData[$row['student_number_id']][$row['course_code']] = $row;
+    }
+    $gradesStmt->close();
+
+    // 3. Pre-cargar estados de admisión
+    $admissionSql = "SELECT number_id, statusAdmin FROM user_register WHERE lote = ?";
+    $admissionStmt = $conn->prepare($admissionSql);
+    $admissionStmt->bind_param("i", $lote);
+    $admissionStmt->execute();
+    $admissionResult = $admissionStmt->get_result();
+    while ($row = $admissionResult->fetch_assoc()) {
+        $admissionStatusData[$row['number_id']] = $row['statusAdmin'];
+    }
+    $admissionStmt->close();
+
+    // 4. Pre-cargar años de finalización
+    $finalizationSql = "SELECT bootcamp_code, YEAR(end_date) as year FROM course_periods";
+    $finalizationResult = $conn->query($finalizationSql);
+    while ($row = $finalizationResult->fetch_assoc()) {
+        $finalizationYearData[$row['bootcamp_code']] = $row['year'];
+    }
+
     $row = 2; // Comenzar datos en fila 2
     $lastRow = $row; // Para mantener un registro de la última fila
 
     while ($data = $result->fetch_assoc()) {
-        // Datos básicos con comprobación
-        $sheet->setCellValue('A' . $row, $data['number_id'] ?? '');
+        $studentId = $data['number_id'];
+        $bootcampCode = $data['bootcamp_code'];
+        $englishCode = $data['english_code'];
+        $levelingCode = $data['leveling_code'];
+        $skillsCode = $data['skills_code'];
+
+        // Datos básicos
+        $sheet->setCellValue('A' . $row, $studentId);
         $sheet->setCellValue('B' . $row, $data['full_name'] ?? '');
         $sheet->setCellValue('C' . $row, $data['personal_email'] ?? '');
         $sheet->setCellValue('D' . $row, $data['institutional_email'] ?? '');
@@ -250,24 +306,17 @@ function llenarDatosLote($conn, $sheet, $lote)
         $institution = !empty($data['institution']) ? $data['institution'] : 'No especificado';
         $sheet->setCellValue('I' . $row, $institution);
 
-        // Obtener horas reales con comprobación explícita de valores nulos
+        // Obtener horas reales
         $horasTecnico = isset($data['bootcamp_hours']) ? intval($data['bootcamp_hours']) : 0;
         $horasNivelador = isset($data['leveling_hours']) ? intval($data['leveling_hours']) : 0;
         $horasIngles = isset($data['english_hours']) ? intval($data['english_hours']) : 0;
         $horasHabilidades = isset($data['skills_hours']) ? intval($data['skills_hours']) : 0;
 
-        // Calcular horas actuales con verificación adicional
-        $horasActualesTecnico = isset($data['bootcamp_code']) && !empty($data['bootcamp_code']) ?
-            calcularHorasAsistencia($conn, $data['number_id'], $data['bootcamp_code']) : 0;
-
-        $horasActualesNivelador = isset($data['leveling_code']) && !empty($data['leveling_code']) ?
-            calcularHorasAsistencia($conn, $data['number_id'], $data['leveling_code']) : 0;
-
-        $horasActualesIngles = isset($data['english_code']) && !empty($data['english_code']) ?
-            calcularHorasAsistencia($conn, $data['number_id'], $data['english_code']) : 0;
-
-        $horasActualesHabilidades = isset($data['skills_code']) && !empty($data['skills_code']) ?
-            calcularHorasAsistencia($conn, $data['number_id'], $data['skills_code']) : 0;
+        // Calcular horas actuales desde array pre-cargado
+        $horasActualesTecnico = $attendanceData[$studentId][$bootcampCode] ?? 0;
+        $horasActualesNivelador = $attendanceData[$studentId][$levelingCode] ?? 0;
+        $horasActualesIngles = $attendanceData[$studentId][$englishCode] ?? 0;
+        $horasActualesHabilidades = $attendanceData[$studentId][$skillsCode] ?? 0;
 
         // Verificar si el estudiante está en certificados_senatics
         if ($data['is_certified']) {
@@ -276,49 +325,97 @@ function llenarDatosLote($conn, $sheet, $lote)
             $horasActualesNivelador = 20;
         }
 
-        // APLICAR LÍMITES A LAS HORAS ACTUALES PARA EVITAR SOBREPASO
-        $horasActualesTecnico = min($horasActualesTecnico, 120);          // Máximo 120 horas técnicas
-        $horasActualesNivelador = min($horasActualesNivelador, 20);      // Máximo 20 horas nivelador
-        $horasActualesIngles = min($horasActualesIngles, 24);            // Máximo 24 horas de inglés  
-        $horasActualesHabilidades = min($horasActualesHabilidades, 15);  // Máximo 15 horas de habilidades
+        // Aplicar límites
+        $horasActualesTecnico = min($horasActualesTecnico, 120);
+        $horasActualesNivelador = min($horasActualesNivelador, 20);
+        $horasActualesIngles = min($horasActualesIngles, 24);
+        $horasActualesHabilidades = min($horasActualesHabilidades, 15);
 
-        // Técnico (desplazado una columna)
+        // Técnico
         $sheet->setCellValue('J' . $row, $horasActualesTecnico);
-        $sheet->setCellValue('K' . $row, isset($data['bootcamp_hours']) && $data['bootcamp_hours'] > 0 ? $data['bootcamp_hours'] : 0);
+        $sheet->setCellValue('K' . $row, $horasTecnico);
         $sheet->setCellValue('L' . $row, 120);
 
         // Inglés Nivelador
         $sheet->setCellValue('M' . $row, $horasActualesNivelador);
-        $sheet->setCellValue('N' . $row, isset($data['leveling_hours']) && $data['leveling_hours'] > 0 ? $data['leveling_hours'] : 0);
+        $sheet->setCellValue('N' . $row, $horasNivelador);
         $sheet->setCellValue('O' . $row, 20);
 
         // Inglés
         $sheet->setCellValue('P' . $row, $horasActualesIngles);
-        $sheet->setCellValue('Q' . $row, isset($data['english_hours']) && $data['english_hours'] > 0 ? $data['english_hours'] : 0);
+        $sheet->setCellValue('Q' . $row, $horasIngles);
         $sheet->setCellValue('R' . $row, 24);
 
         // Habilidades
         $sheet->setCellValue('S' . $row, $horasActualesHabilidades);
-        $sheet->setCellValue('T' . $row, isset($data['skills_hours']) && $data['skills_hours'] > 0 ? $data['skills_hours'] : 0);
+        $sheet->setCellValue('T' . $row, $horasHabilidades);
         $sheet->setCellValue('U' . $row, 15);
 
         // Totales
-        $totalActual = intval($horasActualesTecnico) + intval($horasActualesNivelador) +
-            intval($horasActualesIngles) + intval($horasActualesHabilidades);
-
-        $totalReales = intval($horasTecnico) + intval($horasNivelador) +
-            intval($horasIngles) + intval($horasHabilidades);
-
+        $totalActual = intval($horasActualesTecnico) + intval($horasActualesNivelador) + intval($horasActualesIngles) + intval($horasActualesHabilidades);
+        $totalReales = intval($horasTecnico) + intval($horasNivelador) + intval($horasIngles) + intval($horasHabilidades);
         $sheet->setCellValue('V' . $row, $totalActual);
         $sheet->setCellValue('W' . $row, $totalReales);
         $sheet->setCellValue('X' . $row, 179);
 
-        // Porcentajes con validación (0% - 100%)
-        $sheet->setCellValue('Y' . $row, '=MIN(1,MAX(0,V' . $row . '/X' . $row . '))');
-        $sheet->setCellValue('Z' . $row, '=MIN(1,MAX(0,W' . $row . '/X' . $row . '))');
-        $sheet->setCellValue('AA' . $row, '=MIN(1,MAX(0,1-(W' . $row . '/X' . $row . ')))');
+        // Porcentajes
+        $sheet->setCellValue('Y' . $row, '=V' . $row . '/X' . $row);
+        $sheet->setCellValue('Z' . $row, '=W' . $row . '/X' . $row);
+        $sheet->setCellValue('AA' . $row, '=1-(W' . $row . '/X' . $row . ')');
 
-        $lastRow = $row; // Actualizar la última fila
+        // Nuevas columnas - Calcular horas totales asistidas
+        $horasAsistidasTecnico = min($horasActualesTecnico, $horasTecnico ?: 120);
+        $horasAsistidasNivelador = min($horasActualesNivelador, $horasNivelador ?: 20);
+        $horasAsistidasIngles = min($horasActualesIngles, $horasIngles ?: 24);
+        $horasAsistidasHabilidades = min($horasActualesHabilidades, $horasHabilidades ?: 15);
+        $horasAsistidas = $horasAsistidasTecnico + $horasAsistidasNivelador + $horasAsistidasIngles + $horasAsistidasHabilidades;
+        $porcentajeAsistencia = min(($horasAsistidas / 179) * 100, 100);
+        $sheet->setCellValue('AB' . $row, $porcentajeAsistencia / 100);
+
+        // Notas desde array pre-cargado
+        $notasTecnico = $gradesData[$studentId][$bootcampCode] ?? ['final_grade' => null, 'grade_1' => 0, 'grade_2' => 0];
+        if (is_null($notasTecnico['final_grade'])) { // De notas_estudiantes
+            $grade1_raw = floatval($notasTecnico['grade_1']);
+            $grade2_raw = floatval($notasTecnico['grade_2']);
+            $enEscala10 = ($grade1_raw > 5.0 || $grade2_raw > 5.0);
+            $grade1 = $enEscala10 ? ($grade1_raw / 10.0) * 5.0 : $grade1_raw;
+            $grade2 = $enEscala10 ? ($grade2_raw / 10.0) * 5.0 : $grade2_raw;
+            $final = ($grade1 >= 0 && $grade2 >= 0) ? ($grade1 * 0.30) + ($grade2 * 0.70) : max($grade1, $grade2);
+            $notasTecnico = ['final' => round($final, 2), 'grade1' => round($grade1, 2), 'grade2' => round($grade2, 2)];
+        } else { // De course_approvals
+            $grade1 = floatval($notasTecnico['grade_1']);
+            $grade2 = floatval($notasTecnico['grade_2']);
+            $final = ($grade1 >= 0 && $grade2 >= 0) ? ($grade1 * 0.30) + ($grade2 * 0.70) : max($grade1, $grade2);
+            $notasTecnico = ['final' => round($final, 2), 'grade1' => round($grade1, 2), 'grade2' => round($grade2, 2)];
+        }
+
+        $sheet->setCellValue('AC' . $row, number_format($notasTecnico['grade1'], 1));
+        $sheet->setCellValue('AD' . $row, number_format($notasTecnico['grade2'], 1));
+        $sheet->setCellValue('AE' . $row, number_format($notasTecnico['final'], 1));
+
+        // Estado
+        $aprobadoTecnico = !is_null($gradesData[$studentId][$bootcampCode]['final_grade'] ?? null);
+        $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
+        $sheet->setCellValue('AF' . $row, $estadoTecnico);
+
+        // Colores para estado
+        $colorAprobado = 'FFFFD700';
+        $colorApto = 'FF66CC00';
+        $colorNoApto = 'FFFF0000';
+        $color = $estadoTecnico === 'Aprobado' ? $colorAprobado : ($estadoTecnico === 'Apto' ? $colorApto : $colorNoApto);
+        $sheet->getStyle('AF' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
+
+        // Estado admisión desde array
+        $statusAdmin = $admissionStatusData[$studentId] ?? '0';
+        $map = ['1' => 'BENEFICIARIO', '0' => 'SIN ESTADO', '2' => 'RECHAZADO', '3' => 'MATRICULADO', '4' => 'SIN CONTACTO', '5' => 'EN PROCESO', '6' => 'CERTIFICADO', '7' => 'INACTIVO', '8' => 'BENEFICIARIO CONTRAPARTIDA', '9' => 'APLAZADO', '10' => 'FORMADO', '11' => 'NO VALIDO', '12' => 'NO APROBADO'];
+        $estadoAdmision = $map[$statusAdmin] ?? 'SIN ESTADO';
+        $sheet->setCellValue('AG' . $row, $estadoAdmision);
+
+        // Año de finalización desde array
+        $anoFinalizacion = $finalizationYearData[$bootcampCode] ?? 'N/A';
+        $sheet->setCellValue('AH' . $row, $anoFinalizacion);
+
+        $lastRow = $row;
         $row++;
     }
 
@@ -359,13 +456,13 @@ $sqlBootcamps = "SELECT bootcamp_name, COUNT(*) as total
                  LEFT JOIN user_register u ON g.number_id = u.number_id
                  GROUP BY bootcamp_name 
                  ORDER BY bootcamp_name";
-
+                 
 $resultBootcamps = $conn->query($sqlBootcamps);
 
 $row = 2; // Comenzar datos en fila 2
 $totalInscritos = 0; // Variable para el total
 
-while ($bootcampData = $resultBootcamps->fetch_assoc()) {
+while($bootcampData = $resultBootcamps->fetch_assoc()) {
     $sheet3->setCellValue('A' . $row, $bootcampData['bootcamp_name']);
     $sheet3->setCellValue('B' . $row, $bootcampData['total']);
     $totalInscritos += $bootcampData['total']; // Sumar al total
@@ -400,210 +497,28 @@ $headerStyle = [
     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']]
 ];
 
+// Definir basicDataStyle para las hojas
+$basicDataStyle = [
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+];
+
 // Aplicar estilos
 $sheet3->getStyle('A1:B1')->applyFromArray($headerStyle);
 $sheet3->getStyle('A' . $row . ':B' . $row)->applyFromArray($totalStyle);
 $sheet3->getColumnDimension('A')->setAutoSize(true);
 $sheet3->getColumnDimension('B')->setAutoSize(true);
 
-// HOJA 4: Cursos Inglés Nivelatorio Lote 1
+// HOJA 4: Homologados
 $spreadsheet->createSheet();
 $sheet4 = $spreadsheet->getSheet(3);
-$sheet4->setTitle('Inglés Nivelatorio Lote 1');
-
-// Configurar encabezados simples
-$sheet4->setCellValue('A1', 'Código del Curso');
-$sheet4->setCellValue('B1', 'Nombre del Curso');
-$sheet4->setCellValue('C1', 'Horas Reales');
-$sheet4->setCellValue('D1', 'Porcentaje de Avance');
-$sheet4->setCellValue('F1', 'Estadísticas del Lote 1');
-$sheet4->setCellValue('F2', 'Total de Cursos:');
-$sheet4->setCellValue('F3', 'Cursos Completados (100%):');
-$sheet4->setCellValue('F4', '% Cursos Completados:');
-
-// Consulta para obtener cursos de Inglés Nivelatorio del Lote 1
-$sqlInglesNivelatorioLote1 = "SELECT DISTINCT g.id_leveling_english, g.leveling_english_name, c.real_hours 
-                              FROM groups g 
-                              LEFT JOIN user_register ur ON g.number_id = ur.number_id 
-                              LEFT JOIN courses c ON g.id_leveling_english = c.code 
-                              WHERE ur.lote = 1 
-                              AND g.id_leveling_english IS NOT NULL 
-                              AND g.id_leveling_english != ''
-                              ORDER BY g.id_leveling_english";
-
-$resultInglesNivelatorioLote1 = $conn->query($sqlInglesNivelatorioLote1);
-
-$row = 2; // Comenzar datos en fila 2
-$lastRowNivelatorioLote1 = $row;
-$totalCursosLote1 = 0;
-$cursosCompletadosLote1 = 0;
-
-while ($cursoData = $resultInglesNivelatorioLote1->fetch_assoc()) {
-    // Información del curso
-    $sheet4->setCellValue('A' . $row, $cursoData['id_leveling_english']);
-    $sheet4->setCellValue('B' . $row, $cursoData['leveling_english_name']);
-    $sheet4->setCellValue('C' . $row, $cursoData['real_hours'] ?? 0);
-    
-    // Porcentaje basado en 20 horas como 100% con validación (0% - 100%)
-    $sheet4->setCellValue('D' . $row, '=MIN(1,MAX(0,C' . $row . '/20))');
-    
-    // Contar cursos y cursos completados
-    $totalCursosLote1++;
-    if (($cursoData['real_hours'] ?? 0) >= 20) {
-        $cursosCompletadosLote1++;
-    }
-    
-    $lastRowNivelatorioLote1 = $row;
-    $row++;
-}
-
-// Agregar estadísticas en la columna G
-$sheet4->setCellValue('G2', $totalCursosLote1);
-$sheet4->setCellValue('G3', $cursosCompletadosLote1);
-$sheet4->setCellValue('G4', $totalCursosLote1 > 0 ? '=G3/G2' : 0);
-
-// Aplicar estilos a la hoja de Inglés Nivelatorio Lote 1
-$niveladoresHeaderStyle = [
-    'font' => ['bold' => true],
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E6F3FF']] // Azul claro
-];
-
-$niveladoresDataStyle = [
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F8FF']] // Azul más claro
-];
-
-// Estilo para las estadísticas
-$estadisticasHeaderStyle = [
-    'font' => ['bold' => true],
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFE6CC']] // Naranja claro
-];
-
-$estadisticasDataStyle = [
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF2E6']] // Naranja más claro
-];
-
-// Aplicar estilos a encabezados de cursos
-$sheet4->getStyle('A1:D1')->applyFromArray($niveladoresHeaderStyle);
-
-// Aplicar estilos a datos de cursos
-if ($lastRowNivelatorioLote1 >= 2) {
-    $sheet4->getStyle('A2:D' . $lastRowNivelatorioLote1)->applyFromArray($niveladoresDataStyle);
-    
-    // Aplicar formato de porcentaje a la columna D
-    $sheet4->getStyle('D2:D' . $lastRowNivelatorioLote1)->getNumberFormat()
-          ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
-}
-
-// Aplicar estilos a estadísticas
-$sheet4->getStyle('F1:F4')->applyFromArray($estadisticasHeaderStyle);
-$sheet4->getStyle('G2:G4')->applyFromArray($estadisticasDataStyle);
-
-// Aplicar formato de porcentaje a G4
-$sheet4->getStyle('G4')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
-
-// Autoajustar columnas
-foreach (range('A', 'G') as $col) {
-    $sheet4->getColumnDimension($col)->setAutoSize(true);
-}
-
-// HOJA 5: Cursos Inglés Nivelatorio Lote 2
-$spreadsheet->createSheet();
-$sheet5 = $spreadsheet->getSheet(4);
-$sheet5->setTitle('Inglés Nivelatorio Lote 2');
-
-// Configurar encabezados simples
-$sheet5->setCellValue('A1', 'Código del Curso');
-$sheet5->setCellValue('B1', 'Nombre del Curso');
-$sheet5->setCellValue('C1', 'Horas Reales');
-$sheet5->setCellValue('D1', 'Porcentaje de Avance');
-$sheet5->setCellValue('F1', 'Estadísticas del Lote 2');
-$sheet5->setCellValue('F2', 'Total de Cursos:');
-$sheet5->setCellValue('F3', 'Cursos Completados (100%):');
-$sheet5->setCellValue('F4', '% Cursos Completados:');
-
-// Consulta para obtener cursos de Inglés Nivelatorio del Lote 2
-$sqlInglesNivelatorioLote2 = "SELECT DISTINCT g.id_leveling_english, g.leveling_english_name, c.real_hours 
-                              FROM groups g 
-                              LEFT JOIN user_register ur ON g.number_id = ur.number_id 
-                              LEFT JOIN courses c ON g.id_leveling_english = c.code 
-                              WHERE ur.lote = 2 
-                              AND g.id_leveling_english IS NOT NULL 
-                              AND g.id_leveling_english != ''
-                              ORDER BY g.id_leveling_english";
-
-$resultInglesNivelatorioLote2 = $conn->query($sqlInglesNivelatorioLote2);
-
-$row = 2; // Comenzar datos en fila 2
-$lastRowNivelatorioLote2 = $row;
-$totalCursosLote2 = 0;
-$cursosCompletadosLote2 = 0;
-
-while ($cursoData = $resultInglesNivelatorioLote2->fetch_assoc()) {
-    // Información del curso
-    $sheet5->setCellValue('A' . $row, $cursoData['id_leveling_english']);
-    $sheet5->setCellValue('B' . $row, $cursoData['leveling_english_name']);
-    $sheet5->setCellValue('C' . $row, $cursoData['real_hours'] ?? 0);
-    
-    // Porcentaje basado en 20 horas como 100% con validación (0% - 100%)
-    $sheet5->setCellValue('D' . $row, '=MIN(1,MAX(0,C' . $row . '/20))');
-    
-    // Contar cursos y cursos completados
-    $totalCursosLote2++;
-    if (($cursoData['real_hours'] ?? 0) >= 20) {
-        $cursosCompletadosLote2++;
-    }
-    
-    $lastRowNivelatorioLote2 = $row;
-    $row++;
-}
-
-// Agregar estadísticas en la columna G
-$sheet5->setCellValue('G2', $totalCursosLote2);
-$sheet5->setCellValue('G3', $cursosCompletadosLote2);
-$sheet5->setCellValue('G4', $totalCursosLote2 > 0 ? '=G3/G2' : 0);
-
-// Aplicar estilos a encabezados de cursos
-$sheet5->getStyle('A1:D1')->applyFromArray($niveladoresHeaderStyle);
-
-// Aplicar estilos a datos de cursos
-if ($lastRowNivelatorioLote2 >= 2) {
-    $sheet5->getStyle('A2:D' . $lastRowNivelatorioLote2)->applyFromArray($niveladoresDataStyle);
-    
-    // Aplicar formato de porcentaje a la columna D
-    $sheet5->getStyle('D2:D' . $lastRowNivelatorioLote2)->getNumberFormat()
-          ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
-}
-
-// Aplicar estilos a estadísticas
-$sheet5->getStyle('F1:F4')->applyFromArray($estadisticasHeaderStyle);
-$sheet5->getStyle('G2:G4')->applyFromArray($estadisticasDataStyle);
-
-// Aplicar formato de porcentaje a G4
-$sheet5->getStyle('G4')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
-
-// Autoajustar columnas
-foreach (range('A', 'G') as $col) {
-    $sheet5->getColumnDimension($col)->setAutoSize(true);
-}
-
-// HOJA 6: Homologados
-$spreadsheet->createSheet();
-$sheet6 = $spreadsheet->getSheet(5);
-$sheet6->setTitle('Homologados');
+$sheet4->setTitle('Homologados');
 
 // Establecer títulos
-$sheet6->mergeCells('A1:B1');
-$sheet6->setCellValue('A1', 'Estas personas se les homologa 40 a las horas técnicas, la totalidad de las horas de habilidades y la totalidad de las horas de inglés nivelatorio');
-$sheet6->setCellValue('A2', 'Número de Identificación');
-$sheet6->setCellValue('B2', 'Nombre del Estudiante');
+$sheet4->mergeCells('A1:B1');
+$sheet4->setCellValue('A1', 'Estas personas se les homologa 40 a las horas técnicas, y la totalidad de las horas de habilidades de poder');
+$sheet4->setCellValue('A2', 'Número de Identificación');
+$sheet4->setCellValue('B2', 'Nombre del Estudiante');
 
 // Consulta SQL para obtener homologados
 $sqlHomologados = "SELECT cs.number_id, g.full_name
@@ -614,37 +529,23 @@ $sqlHomologados = "SELECT cs.number_id, g.full_name
 $resultHomologados = $conn->query($sqlHomologados);
 
 $row = 3; // Comenzar datos en fila 3
-$lastRow6 = $row; // Para estilos
+$lastRow4 = $row; // Para estilos
 
 while($data = $resultHomologados->fetch_assoc()) {
-    $sheet6->setCellValue('A' . $row, $data['number_id']);
-    $sheet6->setCellValue('B' . $row, $data['full_name']);
-    $lastRow6 = $row;
+    $sheet4->setCellValue('A' . $row, $data['number_id']);
+    $sheet4->setCellValue('B' . $row, $data['full_name']);
+    $lastRow4 = $row;
     $row++;
 }
 
-// Definir headerStyle para la sexta hoja
-$headerStyle = [
-    'font' => ['bold' => true],
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'CCCCCC']]
-];
-
-// Definir basicDataStyle para las hojas
-$basicDataStyle = [
-    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
-];
-
 // Aplicar estilos
-$sheet6->getStyle('A1:B1')->applyFromArray($headerStyle);
-$sheet6->getStyle('A2:B2')->applyFromArray($headerStyle);
-if ($lastRow6 >= 3) {
-    $sheet6->getStyle('A3:B' . $lastRow6)->applyFromArray($basicDataStyle);
+$sheet4->getStyle('A1:B1')->applyFromArray($headerStyle);
+$sheet4->getStyle('A2:B2')->applyFromArray($headerStyle);
+if ($lastRow4 >= 3) {
+    $sheet4->getStyle('A3:B' . $lastRow4)->applyFromArray($basicDataStyle);
 }
-$sheet6->getColumnDimension('A')->setAutoSize(true);
-$sheet6->getColumnDimension('B')->setAutoSize(true);
+$sheet4->getColumnDimension('A')->setAutoSize(true);
+$sheet4->getColumnDimension('B')->setAutoSize(true);
 
 // Limpiar cualquier salida anterior
 ob_end_clean();
@@ -652,14 +553,14 @@ ob_end_clean();
 // Asegurarse de que el archivo se guarde correctamente al final
 try {
     $writer = new Xlsx($spreadsheet);
-    $filename = 'Reporte_Horas_Por_Lotes_' . date('Y-m-d_H-i-s') . '.xlsx';
-
+    $filename = 'Reporte_Horas_Por_Lotes_EL_' . date('Y-m-d_H-i-s') . '.xlsx';
+    
     // Encabezados HTTP para la descarga
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment;filename="' . $filename . '"');
     header('Cache-Control: max-age=0');
     header('Pragma: public');
-
+    
     // Guardar en la salida
     $writer->save('php://output');
     exit;
@@ -667,3 +568,4 @@ try {
     ob_end_clean();
     echo "Error al generar el archivo: " . $e->getMessage();
 }
+?>

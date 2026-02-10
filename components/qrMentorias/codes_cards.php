@@ -496,7 +496,7 @@ $qrCodes = getPendingQRCodes($conn);
                             text: 'El código QR ha sido generado correctamente y esta a espera de autorización.',
                             icon: 'success',
                             confirmButtonText: 'Aceptar',
-                            confirmButtonColor: '#3085d6'
+                            confirmButtonColor: '#30336b'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 $('#addQRModal').modal('hide');
@@ -551,7 +551,7 @@ $qrCodes = getPendingQRCodes($conn);
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                cancelButtonColor: '#30336b',
                 confirmButtonText: 'Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
@@ -563,7 +563,7 @@ $qrCodes = getPendingQRCodes($conn);
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
+                        cancelButtonColor: '#30336b',
                         confirmButtonText: 'Sí, eliminar definitivamente',
                         cancelButtonText: 'Cancelar'
                     }).then((secondResult) => {
@@ -582,7 +582,7 @@ $qrCodes = getPendingQRCodes($conn);
                                             title: '¡Eliminado!',
                                             text: 'El código QR ha sido eliminado correctamente',
                                             icon: 'success',
-                                            confirmButtonColor: '#3085d6'
+                                            confirmButtonColor: '#30336b'
                                         }).then(() => {
                                             // Recargar la vista actual
                                             document.getElementById('filterStatus').dispatchEvent(new Event('change'));
@@ -933,7 +933,7 @@ $qrCodes = getPendingQRCodes($conn);
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                cancelButtonColor: '#30336b',
                 confirmButtonText: 'Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
@@ -945,7 +945,7 @@ $qrCodes = getPendingQRCodes($conn);
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
+                        cancelButtonColor: '#30336b',
                         confirmButtonText: 'Sí, eliminar definitivamente',
                         cancelButtonText: 'Cancelar'
                     }).then((secondResult) => {
@@ -964,7 +964,7 @@ $qrCodes = getPendingQRCodes($conn);
                                             title: '¡Eliminado!',
                                             text: 'El código QR ha sido eliminado correctamente',
                                             icon: 'success',
-                                            confirmButtonColor: '#3085d6'
+                                            confirmButtonColor: '#30336b'
                                         }).then(() => {
                                             // Recargar la vista actual
                                             loadQRData(currentPage, currentSearch, currentStatus);

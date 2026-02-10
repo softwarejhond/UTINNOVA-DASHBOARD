@@ -87,8 +87,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             data-bs-toggle="tooltip"
                             data-bs-placement="bottom"
                             title="Generar factura de mentorías del mes actual">
-                            <i class="fas fa-file-invoice me-1"></i>
-                            Factura Mentorías
+                            Control Mentorías
                         </button>
                     </li>
                 <?php endif; ?>
@@ -119,6 +118,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                     <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
                                 </li>
 
+
                                 <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_lote2', 'semanal_lote2')">Informe semanal Lote 2</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote1', 'certificadosLote1')">Informe contrapartida L1</a></li>
@@ -132,6 +132,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_observations.php?action=export', 'Observaciones de Asistencia')">Informe - Observaciones</a></li>
+
 
                             <?php endif; ?>
 
@@ -1093,10 +1095,24 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 
     function abrirSwalNoAprobado() {
         Swal.fire({
-            title: 'Pasar a No Aprobado',
+            title: 'Cambiar Estado de Usuario',
             html: `
         <div style="margin-bottom:15px;">
-            <p style="font-weight:bold; color:#dc3545;">Ingrese los números de documento que desea pasar a estado "No Aprobado" (statusAdmin = 12):</p>
+            <p style="font-weight:bold; color:#dc3545;">Seleccione el estado y los números de documento:</p>
+            <div style="margin-bottom:15px;">
+                <label for="estadoSelector" style="font-weight:bold;">Estado a aplicar:</label>
+                <select id="estadoSelector" class="form-select" style="width:250px;margin:10px auto;display:block;">
+                    <option value="12" selected>No aprobado (12)</option>
+                    <option value="11">No válido (11)</option>
+                    <option value="7">Inactivo (7)</option>
+                </select>
+            </div>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Nota:</strong> El sistema verificará automáticamente si están matriculados.<br>
+                • <strong>Si NO están matriculados:</strong> Solo se cambiará el estado<br>
+                • <strong>Si SÍ están matriculados:</strong> Se hará la desmatrícula completa + cambio de estado
+            </div>
         </div>
         <div style="display: flex; gap: 20px; justify-content: center;">
             <div style="flex:1; display:flex; flex-direction:column;">
@@ -1111,15 +1127,39 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
         `,
             showCancelButton: true,
             showConfirmButton: true,
-            confirmButtonText: 'Pasar a No Aprobado',
+            confirmButtonText: 'Aplicar Estado',
             confirmButtonColor: '#dc3545',
             cancelButtonText: 'Limpiar',
             cancelButtonColor: '#6c757d',
-            width: 700,
+            width: 850,
             footer: `<button type="button" id="swalCloseBtn" class="swal2-confirm swal2-styled" style="background:#6c757d;margin-top:10px;">Cerrar</button>`,
             didOpen: () => {
                 const pasteArea = document.getElementById('docPasteNoAprobado');
                 const resultArea = document.getElementById('docResultNoAprobado');
+                const estadoSelector = document.getElementById('estadoSelector');
+
+                // Actualizar colores según el estado seleccionado
+                function updateButtonColor() {
+                    const estadoValue = estadoSelector.value;
+                    const confirmBtn = document.querySelector('.swal2-confirm:not(#swalCloseBtn)');
+
+                    switch (estadoValue) {
+                        case '12': // No aprobado
+                            confirmBtn.style.backgroundColor = '#dc3545';
+                            confirmBtn.textContent = 'Aplicar No Aprobado';
+                            break;
+                        case '11': // No válido
+                            confirmBtn.style.backgroundColor = '#fd7e14';
+                            confirmBtn.textContent = 'Aplicar No Válido';
+                            break;
+                        case '7': // Inactivo
+                            confirmBtn.style.backgroundColor = '#6c757d';
+                            confirmBtn.textContent = 'Aplicar Inactivo';
+                            break;
+                    }
+                }
+
+                estadoSelector.addEventListener('change', updateButtonColor);
 
                 pasteArea.addEventListener('input', function() {
                     const lines = pasteArea.value.split('\n')
@@ -1131,35 +1171,69 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 document.getElementById('swalCloseBtn').onclick = function() {
                     Swal.close();
                 };
+
+                // Inicializar color del botón
+                updateButtonColor();
             }
         }).then((result) => {
             if (result.isConfirmed) {
                 const pasteArea = document.getElementById('docPasteNoAprobado');
+                const estadoSelector = document.getElementById('estadoSelector');
                 const documentos = pasteArea.value.split('\n')
                     .map(l => l.trim())
                     .filter(l => l.length > 0);
+                const estadoSeleccionado = estadoSelector.value;
 
                 if (documentos.length === 0) {
                     Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
                     return;
                 }
 
+                // Obtener nombre del estado
+                const estadosNombres = {
+                    '12': 'No aprobado',
+                    '11': 'No válido',
+                    '7': 'Inactivo'
+                };
+                const nombreEstado = estadosNombres[estadoSeleccionado];
+
                 // Mostrar confirmación antes de proceder
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    html: `Se cambiarán <strong>${documentos.length}</strong> registros al estado "No Aprobado" (statusAdmin = 12).<br><br>Esta acción no se puede deshacer fácilmente.`,
+                    html: `
+                        <div>
+                            <p>Se procesarán <strong>${documentos.length}</strong> registros al estado <strong>"${nombreEstado}"</strong>.</p>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>El sistema hará:</strong><br>
+                                1. Verificar si están matriculados<br>
+                                2. Los matriculados: Desmatrícula completa + cambio a "${nombreEstado}"<br>
+                                3. Los no matriculados: Solo cambio a "${nombreEstado}"
+                            </div>
+                            <p style="color:#dc3545;"><strong>Esta acción no se puede deshacer fácilmente.</strong></p>
+                        </div>
+                    `,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc3545',
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sí, cambiar estado',
-                    cancelButtonText: 'Cancelar'
+                    confirmButtonText: 'Sí, procesar',
+                    cancelButtonText: 'Cancelar',
+                    width: 600
                 }).then((confirmResult) => {
                     if (confirmResult.isConfirmed) {
                         // Mostrar loading
                         Swal.fire({
                             title: 'Procesando...',
-                            html: 'Actualizando estado de los registros...',
+                            html: `
+                                <div>
+                                    <p>Verificando matrículas y cambiando estado a <strong>"${nombreEstado}"</strong>...</p>
+                                    <div class="progress" style="margin-top:15px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                            `,
                             allowOutsideClick: false,
                             showConfirmButton: false,
                             didOpen: () => {
@@ -1173,7 +1247,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                    documentos
+                                    documentos,
+                                    estado_final: parseInt(estadoSeleccionado)
                                 })
                             })
                             .then(res => {
@@ -1184,9 +1259,69 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                             })
                             .then(data => {
                                 if (data.success) {
-                                    Swal.fire('¡Listo!', 'Se actualizó el estado a "No Aprobado" correctamente.', 'success');
+                                    // Crear resumen detallado de resultados
+                                    const matriculados = data.matriculados || 0;
+                                    const noMatriculados = data.no_matriculados || 0;
+                                    const procesamiento = data.procesamiento || [];
+                                    const estadoAplicado = data.estado_aplicado || nombreEstado;
+
+                                    let resumenHtml = `
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle"></i>
+                                            <strong>¡Procesamiento completado!</strong>
+                                        </div>
+                                        <div style="text-align:left;">
+                                            <h6><strong>Resumen del procesamiento:</strong></h6>
+                                            <ul>
+                                                <li><strong>Estado aplicado:</strong> ${estadoAplicado}</li>
+                                                <li><strong>Total documentos:</strong> ${documentos.length}</li>
+                                                <li><strong>Matriculados (desmatrícula + cambio):</strong> ${matriculados}</li>
+                                                <li><strong>No matriculados (solo cambio):</strong> ${noMatriculados}</li>
+                                            </ul>
+                                    `;
+
+                                    // Mostrar detalles si hay errores
+                                    const errores = procesamiento.filter(p => p.estado === 'error');
+                                    if (errores.length > 0) {
+                                        resumenHtml += `
+                                            <div class="alert alert-warning">
+                                                <strong>Documentos con errores (${errores.length}):</strong>
+                                                <ul>
+                                        `;
+                                        errores.forEach(error => {
+                                            resumenHtml += `<li>${error.numero_id}: ${error.mensaje}</li>`;
+                                        });
+                                        resumenHtml += `</ul></div>`;
+                                    }
+
+                                    // Mostrar documentos procesados exitosamente
+                                    const exitosos = procesamiento.filter(p => p.estado === 'completado');
+                                    if (exitosos.length > 0) {
+                                        resumenHtml += `
+                                            <div class="alert alert-success">
+                                                <strong>Procesados exitosamente (${exitosos.length}):</strong>
+                                                <details>
+                                                    <summary>Ver detalles</summary>
+                                                    <ul>
+                                        `;
+                                        exitosos.forEach(exito => {
+                                            const tipoAccion = exito.accion === 'cambio_directo' ? 'Cambio directo' : 'Desmatrícula + cambio';
+                                            resumenHtml += `<li>${exito.numero_id}: ${tipoAccion}</li>`;
+                                        });
+                                        resumenHtml += `</ul></details></div>`;
+                                    }
+
+                                    resumenHtml += `</div>`;
+
+                                    Swal.fire({
+                                        title: '¡Proceso Completado!',
+                                        html: resumenHtml,
+                                        icon: errores.length > 0 ? 'warning' : 'success',
+                                        confirmButtonText: 'Entendido',
+                                        width: 700
+                                    });
                                 } else {
-                                    Swal.fire('Error', data.message || 'No se pudo actualizar.', 'error');
+                                    Swal.fire('Error', data.message || 'No se pudo completar el procesamiento.', 'error');
                                 }
                             })
                             .catch(error => {
@@ -1200,12 +1335,11 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             }
         });
     }
-
     /**
      * Función para generar factura de mentorías del mes actual
      * Solo disponible para usuarios con rol 'Mentor'
      */
-        function generarFacturaMentorias() {
+    function generarFacturaMentorias() {
         // Mostrar SweetAlert de confirmación
         Swal.fire({
             title: 'Generar Factura de Mentorías',
@@ -1231,24 +1365,24 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             showLoaderOnConfirm: true,
             preConfirm: () => {
                 return fetch('components/qrMentorias/factura_mentorias.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const link = document.createElement('a');
-                        link.href = data.pdf;
-                        link.download = `Factura_Mentorias_${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}.pdf`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    } else {
-                        throw new Error(data.error || 'Error al generar PDF');
-                    }
-                });
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const link = document.createElement('a');
+                            link.href = data.pdf;
+                            link.download = `Factura_Mentorias_${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}.pdf`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            throw new Error(data.error || 'Error al generar PDF');
+                        }
+                    });
             },
             allowOutsideClick: () => !Swal.isLoading()
         }).then((result) => {

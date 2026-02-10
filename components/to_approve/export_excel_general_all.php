@@ -116,13 +116,11 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
         $sql = "SELECT g.id_bootcamp, g.id_english_code, g.id_skills,
                        b.real_hours as bootcamp_hours,
                        e.real_hours as english_hours,
-                       s.real_hours as skills_hours,
-                       CASE WHEN cs.number_id IS NOT NULL THEN 1 ELSE 0 END AS is_certified
+                       s.real_hours as skills_hours
                 FROM groups g
                 LEFT JOIN courses b ON g.id_bootcamp = b.code
                 LEFT JOIN courses e ON g.id_english_code = e.code
                 LEFT JOIN courses s ON g.id_skills = s.code
-                LEFT JOIN certificados_senatics cs ON g.number_id = cs.number_id
                 WHERE g.number_id = ?";
         
         $stmt = $conn->prepare($sql);
@@ -156,11 +154,7 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
         // Calcular horas de Técnico con límite individual
         if (!empty($row['id_bootcamp'])) {
             $horasActualesTecnico = calcularHorasAsistencia($conn, $studentId, $row['id_bootcamp']);
-            if ($row['is_certified']) {
-                $totalHoras += min($horasTecnico, $horasActualesTecnico + 40);
-            } else {
-                $totalHoras += min($horasActualesTecnico, $horasTecnico);
-            }
+            $totalHoras += min($horasActualesTecnico, $horasTecnico);
         }
         
         // Calcular horas de English Code con límite individual
@@ -171,12 +165,8 @@ function calcularHorasTotalesEstudiante($conn, $studentId) {
         
         // Calcular horas de Habilidades con límite individual
         if (!empty($row['id_skills'])) {
-            if ($row['is_certified']) {
-                $totalHoras += 15;
-            } else {
-                $horasActualesHabilidades = calcularHorasAsistencia($conn, $studentId, $row['id_skills']);
-                $totalHoras += min($horasActualesHabilidades, $horasHabilidades);
-            }
+            $horasActualesHabilidades = calcularHorasAsistencia($conn, $studentId, $row['id_skills']);
+            $totalHoras += min($horasActualesHabilidades, $horasHabilidades);
         }
         
         return $totalHoras;
@@ -371,6 +361,85 @@ function obtenerNombrePrograma($conn, $courseId) {
     }
 }
 
+function obtenerEstadoAdmision($conn, $number_id) {
+    if (empty($number_id)) return 'SIN ESTADO';
+    
+    try {
+        $sql = "SELECT statusAdmin FROM user_register WHERE number_id = ?";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Error preparando consulta de estado admisión: " . $conn->error);
+            return 'SIN ESTADO';
+        }
+        
+        $stmt->bind_param("s", $number_id);
+        if (!$stmt->execute()) {
+            error_log("Error ejecutando consulta de estado admisión: " . $stmt->error);
+            $stmt->close();
+            return 'SIN ESTADO';
+        }
+        
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        
+        if (!$row) return 'SIN ESTADO';
+        
+        $status = $row['statusAdmin'];
+        $map = [
+            '1' => 'BENEFICIARIO',
+            '0' => 'SIN ESTADO',
+            '2' => 'RECHAZADO',
+            '3' => 'MATRICULADO',
+            '4' => 'SIN CONTACTO',
+            '5' => 'EN PROCESO',
+            '6' => 'CERTIFICADO',
+            '7' => 'INACTIVO',
+            '8' => 'BENEFICIARIO CONTRAPARTIDA',
+            '9' => 'APLAZADO',
+            '10' => 'FORMADO',
+            '11' => 'NO VALIDO',
+            '12' => 'NO APROBADO'
+        ];
+        
+        return isset($map[$status]) ? $map[$status] : 'SIN ESTADO';
+        
+    } catch (Exception $e) {
+        error_log("Excepción en obtenerEstadoAdmision: " . $e->getMessage());
+        return 'SIN ESTADO';
+    }
+}
+
+function obtenerAnoFinalizacion($conn, $bootcamp_code) {
+    if (empty($bootcamp_code)) return 'N/A';
+    
+    try {
+        $sql = "SELECT YEAR(end_date) as year FROM course_periods WHERE bootcamp_code = ?";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            error_log("Error preparando consulta de año finalización: " . $conn->error);
+            return 'N/A';
+        }
+        
+        $stmt->bind_param("s", $bootcamp_code);
+        if (!$stmt->execute()) {
+            error_log("Error ejecutando consulta de año finalización: " . $stmt->error);
+            $stmt->close();
+            return 'N/A';
+        }
+        
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        
+        return $row ? $row['year'] : 'N/A';
+        
+    } catch (Exception $e) {
+        error_log("Excepción en obtenerAnoFinalizacion: " . $e->getMessage());
+        return 'N/A';
+    }
+}
+
 $horasRequeridas = 159; // 120 Técnico + 24 English Code + 15 Habilidades
 
 try {
@@ -384,19 +453,18 @@ try {
         'A1' => 'ID',
         'B1' => 'Número de Identificación',
         'C1' => 'Nombre Completo',
-        'D1' => 'Correo Personal',
-        'E1' => 'Correo Institucional',
-        'F1' => 'Modalidad',
-        'G1' => 'Sede',
-        'H1' => 'Institución',
-        'I1' => 'Horas Totales',
-        'J1' => '% Asistencia',
-        'K1' => 'Programa Técnico',
-        'L1' => 'Nota 1',
-        'M1' => 'Nota 2',
-        'N1' => 'Nota Final',
-        'O1' => 'Estado',
-        'P1' => 'Fecha Exportación'
+        'D1' => 'Correo Institucional',
+        'E1' => 'Modalidad',
+        'F1' => 'Sede',
+        'G1' => 'Horas Totales',
+        'H1' => '% Asistencia',
+        'I1' => 'Programa Técnico',
+        'J1' => 'Nota 1',
+        'K1' => 'Nota 2',
+        'L1' => 'Nota Final',
+        'M1' => 'Estado',
+        'N1' => 'ESTADO ADMISION',
+        'O1' => 'Año de finalización'
     ];
 
     foreach ($headers as $cell => $value) {
@@ -424,14 +492,12 @@ try {
         ]
     ];
 
-    $sheet->getStyle('A1:P1')->applyFromArray($headerStyle);
+    $sheet->getStyle('A1:O1')->applyFromArray($headerStyle);
 
-    // Consultar estudiantes con paginación para evitar memoria excesiva - CORREGIDO: Agregar JOIN con user_register
+    // Consultar estudiantes con paginación para evitar memoria excesiva
     $sql = "SELECT DISTINCT g.number_id, g.full_name, g.institutional_email, g.mode, g.headquarters,
-                   g.id_bootcamp,
-                   u.email AS personal_email, u.institution
+                   g.id_bootcamp
             FROM groups g
-            LEFT JOIN user_register u ON g.number_id = u.number_id
             WHERE g.number_id IS NOT NULL AND g.number_id != ''
             AND g.id_bootcamp IS NOT NULL AND g.id_bootcamp != ''
             ORDER BY g.full_name ASC";
@@ -460,52 +526,32 @@ try {
             // Verificar aprobación
             $aprobadoTecnico = estaAprobado($conn, $data['number_id'], $data['id_bootcamp']);
             
-            // Verificar si el estudiante tiene statusAdmin = 12 (NO APROBADO)
-            $sql_status = "SELECT statusAdmin FROM user_register WHERE number_id = ?";
-            $stmt_status = $conn->prepare($sql_status);
-            $isNoAprobado = false;
-            if ($stmt_status) {
-                $stmt_status->bind_param("s", $data['number_id']);
-                if ($stmt_status->execute()) {
-                    $result_status = $stmt_status->get_result();
-                    $row_status = $result_status->fetch_assoc();
-                    if ($row_status && $row_status['statusAdmin'] == 12) {
-                        $isNoAprobado = true;
-                    }
-                }
-                $stmt_status->close();
-            }
-            
             // Determinar estado - CORREGIDO: Validar asistencia mínima del 75%
-            if ($isNoAprobado) {
-                $estadoTecnico = 'NO APROBADO';
-            } else {
-                $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : 
-                                (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
-            }
+            $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : 
+                            (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
             
-            // Aplicar lógica de institución
-            $institution = !empty($data['institution']) ? $data['institution'] : 'No especificado';
+            // Obtener estado admisión y año finalización
+            $estadoAdmision = obtenerEstadoAdmision($conn, $data['number_id']);
+            $anoFinalizacion = obtenerAnoFinalizacion($conn, $data['id_bootcamp']);
             
             // Llenar fila
             $sheet->setCellValue('A' . $row, $contador);
             $sheet->setCellValue('B' . $row, $data['number_id']);
             $sheet->setCellValue('C' . $row, strtoupper($data['full_name']));
-            $sheet->setCellValue('D' . $row, $data['personal_email'] ?? '');
-            $sheet->setCellValue('E' . $row, $data['institutional_email']);
-            $sheet->setCellValue('F' . $row, $data['mode']);
-            $sheet->setCellValue('G' . $row, $data['headquarters']);
-            $sheet->setCellValue('H' . $row, $institution);
-            $sheet->setCellValue('I' . $row, $horasAsistidas . '/' . $horasRequeridas);
-            $sheet->setCellValue('J' . $row, number_format($porcentajeAsistencia, 1) . '%');
+            $sheet->setCellValue('D' . $row, $data['institutional_email']);
+            $sheet->setCellValue('E' . $row, $data['mode']);
+            $sheet->setCellValue('F' . $row, $data['headquarters']);
+            $sheet->setCellValue('G' . $row, $horasAsistidas . '/' . $horasRequeridas);
+            $sheet->setCellValue('H' . $row, number_format($porcentajeAsistencia, 1) . '%');
             
             // Datos del técnico
-            $sheet->setCellValue('K' . $row, obtenerNombrePrograma($conn, $data['id_bootcamp']));
-            $sheet->setCellValue('L' . $row, number_format($notasTecnico['grade1'], 1));
-            $sheet->setCellValue('M' . $row, number_format($notasTecnico['grade2'], 1));
-            $sheet->setCellValue('N' . $row, number_format($notasTecnico['final'], 1));
-            $sheet->setCellValue('O' . $row, $estadoTecnico);
-            $sheet->setCellValue('P' . $row, date('Y-m-d H:i:s'));
+            $sheet->setCellValue('I' . $row, obtenerNombrePrograma($conn, $data['id_bootcamp']));
+            $sheet->setCellValue('J' . $row, number_format($notasTecnico['grade1'], 1));
+            $sheet->setCellValue('K' . $row, number_format($notasTecnico['grade2'], 1));
+            $sheet->setCellValue('L' . $row, number_format($notasTecnico['final'], 1));
+            $sheet->setCellValue('M' . $row, $estadoTecnico);
+            $sheet->setCellValue('N' . $row, $estadoAdmision);
+            $sheet->setCellValue('O' . $row, $anoFinalizacion);
             
             // Aplicar colores
             $colorAprobado = 'FFFFD700'; // Dorado
@@ -514,7 +560,7 @@ try {
             
             $color = $estadoTecnico === 'Aprobado' ? $colorAprobado : 
                     ($estadoTecnico === 'Apto' ? $colorApto : $colorNoApto);
-            $sheet->getStyle('O' . $row)->getFill()
+            $sheet->getStyle('M' . $row)->getFill()
                   ->setFillType(Fill::FILL_SOLID)
                   ->getStartColor()->setARGB($color);
             
@@ -540,19 +586,19 @@ try {
 
     if ($contador === 1) {
         $sheet->setCellValue('A2', 'No hay estudiantes matriculados en cursos técnicos');
-        $sheet->mergeCells('A2:P2');
+        $sheet->mergeCells('A2:O2');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
     // Auto-ajustar columnas
-    foreach(range('A','P') as $columnID) {
+    foreach(range('A','O') as $columnID) {
         $sheet->getColumnDimension($columnID)->setAutoSize(true);
     }
 
     // Aplicar bordes
     $totalRows = $row - 1;
     if ($totalRows >= 1) {
-        $sheet->getStyle('A1:P' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A1:O' . $totalRows)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
     }
 
     // Generar archivo
