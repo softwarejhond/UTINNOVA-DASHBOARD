@@ -118,53 +118,73 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                     <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
                                 </li>
 
+                                <!-- Submenú Informes Semanales -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuSemanales" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Informes Semanales
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="submenuSemanales">
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_observations.php?action=export', 'Observaciones de Asistencia')">Informe - Observaciones</a></li>
+                                    </ul>
+                                </li>
 
-                                <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_L1', 'semanal_lote1')">Informe semanal Lote 1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=semanal_lote2', 'semanal_lote2')">Informe semanal Lote 2</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote1', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=certificadosLote2', 'certificadosLote2')">Informe contrapartida L2</a></li> -->
+                                <!-- Submenú Informes Contrapartida -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuContrapartida" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Informes Contrapartida
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="submenuContrapartida">
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
+                                    </ul>
+                                </li>
 
-
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
-                                <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate.php?action=export', 'semanal_certificadosLote1')">Informe semanal contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_post_certificate_lote2.php?action=export', 'semanal_certificadosLote2')">Informe semanal contrapartida L2</a></li> -->
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_observations.php?action=export', 'Observaciones de Asistencia')">Informe - Observaciones</a></li>
-
+                                <!-- Submenú Formatos E29 -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuE29" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Formatos E29
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="submenuE29">
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico L1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico L2</a></li>
+                                    </ul>
+                                </li>
 
                             <?php endif; ?>
 
                             <?php if ($rol === 'Control maestro'): ?>
-                                <!-- NUEVAS EXPORTACIONES AGREGADAS -->
-                                <li>
-                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
-                                        <b>Subir informe semanal</b>
+                                <!-- Submenú Informes E (agrupando E20, E21, E19) -->
+                                <li class="dropdown-submenu">
+                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuE" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Informes E
                                     </a>
+                                    <ul class="dropdown-menu" aria-labelledby="submenuE">
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
+                                                <b>Subir informe semanal</b>
+                                            </a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/asistenciasComprobantes.php?action=export', 'Asistencias_Comprobantes')">Comprobantes presencial</a></li>
+                                    </ul>
                                 </li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/asistenciasComprobantes.php?action=export', 'Asistencias_Comprobantes')">Comprobantes presencial</a></li>
                             <?php endif; ?>
 
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHours.php?action=export', 'asistencia')">Informe de asistencia</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia')">Informe de asistencia LE</a></li>
-                            <!-- <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistencia', 'asistencia')">Informe de asistencia</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/cron_reports/download_last_report.php?tipo=asistenciaLE', 'asistenciaLE')">Informe de asistencia LE</a></li> -->
+                            <!-- Elementos restantes -->
+                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia_notas')">Informe de notas y asistencia</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAbsence.php?action=export', 'ausencias')">Registros de ausencia</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/to_approve/export_excel_general_all.php', 'notas_general')">Informe de notas general</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico L1</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico L2</a></li>
                         </ul>
                     </li>
 
@@ -1456,8 +1476,9 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
     }
 
     .informes-scroll {
-        max-height: 300px;
+        max-height: 400px;
         /* Aproximadamente 6 elementos, ajusta si lo necesitas */
         overflow-y: auto;
     }
+
 </style>
