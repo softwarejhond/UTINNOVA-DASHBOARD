@@ -313,6 +313,12 @@ function procesarDesmatricula($number_id, $conn, $username, $isMultiple = false,
         $deleteStmt->execute();
         $deleteStmt->close();
 
+        // 4.4 Eliminar de la tabla course_assignments
+        $deleteCourseStmt = $conn->prepare("DELETE FROM course_assignments WHERE student_id = ?");
+        $deleteCourseStmt->bind_param("s", $number_id);
+        $deleteCourseStmt->execute();
+        $deleteCourseStmt->close();
+
         // 4.4 Actualizar statusAdmin al estado seleccionado en la tabla user_register
         $updateStmt = $conn->prepare("UPDATE user_register SET statusAdmin = ? WHERE number_id = ?");
         $updateStmt->bind_param("is", $estadoFinal, $number_id);

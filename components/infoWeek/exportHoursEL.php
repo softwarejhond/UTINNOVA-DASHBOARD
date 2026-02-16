@@ -374,9 +374,9 @@ function llenarDatosLote($conn, $sheet, $lote) {
         $sheet->setCellValue('AD' . $row, $totalActual);
         $sheet->setCellValue('AE' . $row, $totalReales);
         $sheet->setCellValue('AF' . $row, 179);
-
+        
         // Porcentajes
-        $sheet->setCellValue('AG' . $row, '=AD' . $row . '/AF' . $row);
+        $sheet->setCellValue('AG' . $row, '=AD' . $row . '/159');
         $sheet->setCellValue('AH' . $row, '=AE' . $row . '/AF' . $row);
         $sheet->setCellValue('AI' . $row, '=1-(AE' . $row . '/AF' . $row . ')');
 
@@ -386,7 +386,7 @@ function llenarDatosLote($conn, $sheet, $lote) {
         $horasAsistidasIngles = min($horasActualesIngles, $horasIngles ?: 24);
         $horasAsistidasHabilidades = min($horasActualesHabilidades, $horasHabilidades ?: 15);
         $horasAsistidas = $horasAsistidasTecnico + $horasAsistidasNivelador + $horasAsistidasIngles + $horasAsistidasHabilidades;
-        $porcentajeAsistencia = min(($horasAsistidas / 179) * 100, 100);
+        $porcentajeAsistencia = min(($horasAsistidas / 159) * 100, 100);
         $sheet->setCellValue('AJ' . $row, $porcentajeAsistencia / 100);
 
         // Notas desde array pre-cargado

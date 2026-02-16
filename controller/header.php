@@ -73,7 +73,8 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdownCambioMultiple">
                             <li><a class="dropdown-item" href="#" onclick="abrirSwalDocumentos(); return false;">Cambiar base</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="abrirSwalNoAprobado(); return false;">Pasar a no aprobado</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="abrirSwalNoAprobado(); return false;">Cambio masivo (No validos o Inactivos)</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="abrirSwalNoAprobadosMasivo(); return false;">Marcar como No Aprobados</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
@@ -118,68 +119,32 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                                     <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
                                 </li>
 
-                                <!-- Submenú Informes Semanales -->
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuSemanales" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Informes Semanales
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="submenuSemanales">
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_observations.php?action=export', 'Observaciones de Asistencia')">Informe - Observaciones</a></li>
-                                    </ul>
-                                </li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_observations.php?action=export', 'Observaciones de Asistencia')">Informe - Observaciones</a></li>
 
-                                <!-- Submenú Informes Contrapartida -->
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuContrapartida" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Informes Contrapartida
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="submenuContrapartida">
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
-                                    </ul>
-                                </li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
 
-                                <!-- Submenú Formatos E29 -->
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuE29" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Formatos E29
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="submenuE29">
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico L1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico L2</a></li>
-                                    </ul>
-                                </li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico L2</a></li>
 
                             <?php endif; ?>
 
                             <?php if ($rol === 'Control maestro'): ?>
-                                <!-- Submenú Informes E (agrupando E20, E21, E19) -->
-                                <li class="dropdown-submenu">
-                                    <a class="dropdown-item dropdown-toggle" href="#" id="submenuE" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Informes E
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="submenuE">
-                                        <li>
-                                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSubirInforme">
-                                                <b>Subir informe semanal</b>
-                                            </a>
-                                        </li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/asistenciasComprobantes.php?action=export', 'Asistencias_Comprobantes')">Comprobantes presencial</a></li>
-                                    </ul>
-                                </li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSubirInforme"><b>Subir informe semanal</b></a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/asistenciasComprobantes.php?action=export', 'Asistencias_Comprobantes')">Comprobantes presencial</a></li>
                             <?php endif; ?>
 
                             <!-- Elementos restantes -->
@@ -1122,7 +1087,6 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             <div style="margin-bottom:15px;">
                 <label for="estadoSelector" style="font-weight:bold;">Estado a aplicar:</label>
                 <select id="estadoSelector" class="form-select" style="width:250px;margin:10px auto;display:block;">
-                    <option value="12" selected>No aprobado (12)</option>
                     <option value="11">No válido (11)</option>
                     <option value="7">Inactivo (7)</option>
                 </select>
@@ -1451,6 +1415,112 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 confirmButtonColor: '#dc3545',
                 confirmButtonText: 'Entendido'
             });
+        });
+    }
+    
+    function abrirSwalNoAprobadosMasivo() {
+        Swal.fire({
+            title: 'Marcar como No Aprobados (Masivo)',
+            html: `
+            <div style="margin-bottom:15px;">
+                <p style="font-weight:bold; color:#dc3545;">Ingrese los números de documento para marcar como no aprobados:</p>
+                <div class="alert alert-warning">
+                    <strong>Advertencia:</strong> Esta acción cambiará el estado de los usuarios seleccionados a "No aprobado" y registrará el cambio en el historial.
+                </div>
+            </div>
+            <div style="display: flex; gap: 20px; justify-content: center;">
+                <div style="flex:1; display:flex; flex-direction:column;">
+                    <label for="docPasteNoAprobados" style="font-weight:bold;">Documentos</label>
+                    <textarea id="docPasteNoAprobados" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento"></textarea>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column;">
+                    <label for="docResultNoAprobados" style="font-weight:bold;">Resultado</label>
+                    <textarea id="docResultNoAprobados" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled></textarea>
+                </div>
+            </div>
+            `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Aplicar No Aprobados',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#6c757d',
+            width: 700,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPasteNoAprobados');
+                const resultArea = document.getElementById('docResultNoAprobados');
+    
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0);
+                    resultArea.value = lines.join('\n');
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPasteNoAprobados');
+                const documentos = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0);
+    
+                if (documentos.length === 0) {
+                    Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
+                    return;
+                }
+    
+                // Mostrar Swal de carga
+                Swal.fire({
+                    title: 'Procesando...',
+                    html: `<div class="text-center">
+                        <div class="spinner-border text-danger" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3">Aplicando cambios a ${documentos.length} documento(s)</p>
+                    </div>`,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+    
+                // Enviar petición
+                fetch('controller/noAprobadosMasivo.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ documentos: documentos })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: 'Los usuarios han sido marcados como no aprobados correctamente.',
+                            icon: 'success',
+                            confirmButtonText: 'Perfecto'
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.message || 'Ocurrió un error al procesar la solicitud.',
+                            icon: 'error',
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Error interno del servidor.',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
+            }
         });
     }
 </script>

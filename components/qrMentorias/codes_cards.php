@@ -105,11 +105,13 @@ $qrCodes = getPendingQRCodes($conn);
                 <i class="bi bi-qr-code"></i> Códigos QR
             </button>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="qr-test-tab" data-bs-toggle="tab" data-bs-target="#qr-test" type="button" role="tab" aria-controls="qr-test" aria-selected="false">
-                <i class="bi bi-clock"></i> Tabla de nivelacion
-            </button>
-        </li>
+        <?php if ($rol !== 'Mentor'): ?>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="qr-test-tab" data-bs-toggle="tab" data-bs-target="#qr-test" type="button" role="tab" aria-controls="qr-test" aria-selected="false">
+                    <i class="bi bi-clock"></i> Tabla de mentorias
+                </button>
+            </li>
+        <?php endif; ?>
     </ul>
 </div>
 
@@ -303,7 +305,7 @@ $qrCodes = getPendingQRCodes($conn);
                         <th>Correo</th>
                         <th>Correo institucional</th>
                         <th>Bootcamp</th>
-                        <th>Fecha Master Class</th>
+                        <th>Fecha Mentoria</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -660,7 +662,7 @@ $qrCodes = getPendingQRCodes($conn);
             const y = fechaObj.getFullYear();
             const fechaTitulo = `${d}/${m}/${y}`;
             const fechaUrl = `${y}-${m}-${d}`;
-            
+
             // Formatear hora
             const horaFormateada = hora.substring(0, 5); // HH:MM
 
