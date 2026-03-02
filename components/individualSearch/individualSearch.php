@@ -1070,7 +1070,7 @@
                                                 <div class="d-flex flex-column gap-2 w-100">
                                                     <div class="d-flex justify-content-between align-items-center w-100 border-bottom pb-2">
                                                         <span class="text-muted">Fecha de matrícula:</span>
-                                                        <span class="fw-medium text-end"><?= htmlspecialchars($matricula['matricula_fecha']) ?></span>
+                                                        <span class="fw-medium text-end"><?= !empty($matricula['start_date']) ? htmlspecialchars(date('d/m/Y', strtotime($matricula['start_date']))) : 'No definida' ?></span>
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-center w-100 mt-2">
                                                         <span class="text-muted">Modalidad:</span>
@@ -1243,21 +1243,21 @@
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-gear text-indigo-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Profesor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['bootcamp_teacher_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['bootcamp_teacher_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-check text-lime-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Mentor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['bootcamp_mentor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['bootcamp_mentor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-up text-cyan-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Monitor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['bootcamp_monitor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['bootcamp_monitor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1289,21 +1289,21 @@
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-gear text-indigo-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Profesor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['leveling_teacher_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['leveling_teacher_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-check text-lime-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Mentor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['leveling_mentor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['leveling_mentor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-up text-cyan-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Monitor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['leveling_monitor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['leveling_monitor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1335,21 +1335,21 @@
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-gear text-indigo-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Profesor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['english_code_teacher_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['english_code_teacher_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-check text-lime-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Mentor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['english_code_mentor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['english_code_mentor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-up text-cyan-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Monitor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['english_code_monitor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['english_code_monitor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1381,21 +1381,21 @@
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-gear text-indigo-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Profesor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['skills_teacher_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['skills_teacher_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-check text-lime-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Mentor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['skills_mentor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['skills_mentor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                     <div class="col-4">
                                                                         <div class="team-member">
                                                                             <i class="bi bi-person-fill-up text-cyan-dark fs-4"></i>
                                                                             <p class="mb-1"><small class="text-muted">Monitor</small></p>
-                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars($cursosData['skills_monitor_name'] ?? 'Sin asignar') ?></p>
+                                                                            <p class="fw-medium small mb-0"><?= htmlspecialchars(strtoupper($cursosData['skills_monitor_name'] ?? 'Sin asignar')) ?></p>
                                                                         </div>
                                                                     </div>
                                                                 </div>

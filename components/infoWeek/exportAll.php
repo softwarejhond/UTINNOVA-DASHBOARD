@@ -19,7 +19,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'export') {
 function exportDataToExcel($conn)
 {
 
-    define('CURRENT_YEAR', '2007');
+    define('CURRENT_YEAR', '2008');
     define('CURRENT_DATE', date('Y-m-d'));
 
     // Obtener niveles de usuarios

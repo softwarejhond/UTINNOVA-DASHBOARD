@@ -97,56 +97,71 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 <?php if ($rol !== 'Visualizador'): ?>
 
 
+                    <!-- Informes Lote 1 -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPQRS" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Informes
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownInformesLote1" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Informes Lote 1
                         </a>
-                        <ul class="dropdown-menu informes-scroll" aria-labelledby="navbarDropdownPQRS">
+                        <ul class="dropdown-menu informes-scroll" aria-labelledby="navbarDropdownInformesLote1">
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a>
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a>
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a>
+                            <a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico L1</a>
+                            <a class="dropdown-item" href="#" onclick="abrirSwalSemanalEspecificoL1(); return false;">Informe semanal específico L1</a>
+                            <?php if ($rol === 'Control maestro'): ?>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+
+                    <!-- Informes Lote 2 -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownInformesLote2" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Informes Lote 2
+                        </a>
+                        <ul class="dropdown-menu informes-scroll" aria-labelledby="navbarDropdownInformesLote2">
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a>
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a>
+                            <a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a>
+                            <a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico L2</a>
+                            <a class="dropdown-item" href="#" onclick="abrirSwalSemanalEspecificoL2(); return false;">Informe semanal específico L2</a>
+                            <?php if ($rol === 'Control maestro'): ?>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
+                            <?php endif; ?>
+                        </ul>
+                    </li>
+
+                    <!-- Otros -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownOtros" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Otros
+                        </a>
+                        <ul class="dropdown-menu informes-scroll" aria-labelledby="navbarDropdownOtros">
                             <a class="dropdown-item" href="#" onclick="descargarInforme('components/registrationsContact/export_to_excel.php?action=export', 'inscritos')">
                                 Inscritos - general
                             </a>
-
                             <?php if ($extraRol === 'Extra Administrador' || $rol === 'Control maestro'): ?>
                                 <a class="dropdown-item" href="#" onclick="descargarInforme('components/registrationsContact/export_to_excel_Inst.php?action=export', 'inscritos-extra')">
                                     Inscritos - general SenaTICS
                                 </a>
                             <?php endif; ?>
                             <?php if ($rol === 'Administrador' || $rol === 'Control maestro'): ?>
-
                                 <li><a class="dropdown-item" href="proyecciones.php"><b>Proyecciones</b></a></li>
                                 <li><a class="dropdown-item" href="metasDePagos.php"><b>Metas y pagos</b></a></li>
                                 <li>
                                     <a class="dropdown-item" href="#" onclick="abrirSwalCedulas(); return false;"><b>Cédulas ZIP</b></a>
                                 </li>
-
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll.php?action=export', 'semanal_lote1')">Informe semanal Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_lote2.php?action=export', 'semanal_lote2')">Informe semanal Lote 2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/semanal_todos.php?action=export', 'mensual')">Informe mensual (TODOS)</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_observations.php?action=export', 'Observaciones de Asistencia')">Informe - Observaciones</a></li>
-
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered.php?action=export', 'certificadosLote1')">Informe contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAll_non_registered_l2.php?action=export', 'certificadosLote2')">Informe contrapartida L2</a></li>
-
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_29.php?action=export', 'E29_L1')">Formato E29 L1 - Formados</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E29_L2.php?action=export', 'E29_L2')">Formato E29 L2 - Formados</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29(); return false;">Informe E29 específico L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="abrirSwalInformeE29_L2(); return false;">Informe E29 específico L2</a></li>
-
-                            <?php endif; ?>
-
-                            <?php if ($rol === 'Control maestro'): ?>
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalSubirInforme"><b>Subir informe semanal</b></a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20.php?action=export', 'E20_lote1')">Informe E20 Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E20_L2.php?action=export', 'E20_lote2')">Informe E20 Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21.php?action=export', 'E21_lote1')">Informe E21 Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_21_L2.php?action=export', 'E21_lote2')">Informe E21 Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF.php?action=export', 'E19_VF_lote1')">Informe E19 VF Lote 1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_L2.php?action=export', 'E19_VF_lote2')">Informe E19 VF Lote 2</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra.php?action=export', 'E19_VF_contra_lote1')">Informe E19 VF Contrapartida L1</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/export_E_19_VF_contra_l2.php?action=export', 'E19_VF_contra_lote2')">Informe E19 VF Contrapartida L2</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/asistenciasComprobantes.php?action=export', 'Asistencias_Comprobantes')">Comprobantes presencial</a></li>
                             <?php endif; ?>
-
                             <!-- Elementos restantes -->
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportHoursEL.php?action=export', 'asistencia_notas')">Informe de notas y asistencia</a></li>
                             <li><a class="dropdown-item" href="#" onclick="descargarInforme('components/infoWeek/exportAbsence.php?action=export', 'ausencias')">Registros de ausencia</a></li>
@@ -283,7 +298,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
 </div>
 
 <!-- Start of HubSpot Embed Code -->
-<script type="text/javascript" id="hs-script-loader" async defer src="//js-na2.hs-scripts.com/243394779.js"></script>
+<!-- <script type="text/javascript" id="hs-script-loader" async defer src="//js-na2.hs-scripts.com/243394779.js"></script> -->
 <!-- End of HubSpot Embed Code -->
 
 
@@ -1417,7 +1432,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             });
         });
     }
-    
+
     function abrirSwalNoAprobadosMasivo() {
         Swal.fire({
             title: 'Marcar como No Aprobados (Masivo)',
@@ -1449,7 +1464,7 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
             didOpen: () => {
                 const pasteArea = document.getElementById('docPasteNoAprobados');
                 const resultArea = document.getElementById('docResultNoAprobados');
-    
+
                 pasteArea.addEventListener('input', function() {
                     const lines = pasteArea.value.split('\n')
                         .map(l => l.trim())
@@ -1463,12 +1478,12 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                 const documentos = pasteArea.value.split('\n')
                     .map(l => l.trim())
                     .filter(l => l.length > 0);
-    
+
                 if (documentos.length === 0) {
                     Swal.fire('Error', 'Debes ingresar al menos un documento.', 'error');
                     return;
                 }
-    
+
                 // Mostrar Swal de carga
                 Swal.fire({
                     title: 'Procesando...',
@@ -1484,44 +1499,221 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
                         Swal.showLoading();
                     }
                 });
-    
+
                 // Enviar petición
                 fetch('controller/noAprobadosMasivo.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ documentos: documentos })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'Los usuarios han sido marcados como no aprobados correctamente.',
-                            icon: 'success',
-                            confirmButtonText: 'Perfecto'
-                        });
-                    } else {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            documentos: documentos
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Éxito',
+                                text: 'Los usuarios han sido marcados como no aprobados correctamente.',
+                                icon: 'success',
+                                confirmButtonText: 'Perfecto'
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: data.message || 'Ocurrió un error al procesar la solicitud.',
+                                icon: 'error',
+                                confirmButtonText: 'Entendido'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
                         Swal.fire({
                             title: 'Error',
-                            text: data.message || 'Ocurrió un error al procesar la solicitud.',
+                            text: 'Error interno del servidor.',
                             icon: 'error',
                             confirmButtonText: 'Entendido'
                         });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'Error interno del servidor.',
-                        icon: 'error',
-                        confirmButtonText: 'Entendido'
                     });
-                });
             }
         });
+    }
+
+    function abrirSwalSemanalEspecificoL1() {
+        Swal.fire({
+            title: 'Generar Informe Semanal Específico L1',
+            html: `
+            <div style="margin-bottom:15px;">
+                <p style="font-weight:bold; color:#006d68;">Ingrese los números de documento para generar el informe semanal específico de Lote 1:</p>
+                <div class="alert bg-indigo-light border-indigo-dark">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Nota:</strong> Solo se incluirán los registros que cumplan con los filtros del informe semanal L1 
+                    (departamento, edades, lote, tipo documento, etc.). Asegúrate de ingresar números de documento válidos para obtener resultados precisos.
+                </div>
+            </div>
+            <div style="display: flex; gap: 20px; justify-content: center;">
+                <div style="flex:1; display:flex; flex-direction:column;">
+                    <label for="docPasteSemanalL1" style="font-weight:bold;">Números de Documento</label>
+                    <textarea id="docPasteSemanalL1" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento (uno por línea)"></textarea>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column;">
+                    <label for="docResultSemanalL1" style="font-weight:bold;">Vista Previa</label>
+                    <textarea id="docResultSemanalL1" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled placeholder="Aquí verás los documentos procesados"></textarea>
+                </div>
+            </div>
+            <div class="mt-3 text-center">
+                <span id="contadorDocsSemanalL1" class="badge bg-secondary">0 documentos</span>
+            </div>
+            `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: '<i class="bi bi-file-earmark-excel"></i> Generar Informe',
+            confirmButtonColor: '#006d68',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#dc3545',
+            width: 700,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPasteSemanalL1');
+                const resultArea = document.getElementById('docResultSemanalL1');
+                const contador = document.getElementById('contadorDocsSemanalL1');
+
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0 && !isNaN(l));
+
+                    if (lines.length > 0) {
+                        resultArea.value = lines.join('\n');
+                        contador.textContent = lines.length + ' documento(s)';
+                        contador.className = 'badge bg-success';
+                    } else {
+                        resultArea.value = '';
+                        contador.textContent = '0 documentos';
+                        contador.className = 'badge bg-secondary';
+                    }
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPasteSemanalL1');
+                const documentos = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0 && !isNaN(l));
+
+                if (documentos.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debes ingresar al menos un número de documento válido.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                // Llamar a la función de descarga con los documentos específicos
+                descargarSemanalEspecificoL1(documentos);
+            }
+        });
+    }
+
+    function descargarSemanalEspecificoL1(documentos) {
+        const docsString = documentos.join(',');
+        const url = `components/infoWeek/semanal_especificoL1.php?action=export&docs=${encodeURIComponent(docsString)}`;
+
+        descargarInforme(url, `semanal_especifico_L1_${documentos.length}_docs`);
+    }
+
+    function descargarSemanalEspecificoL1(documentos) {
+        const docsString = documentos.join(',');
+        const url = `components/infoWeek/semanal_especificoL1.php?action=export&docs=${encodeURIComponent(docsString)}`;
+
+        descargarInforme(url, `semanal_especifico_L1_${documentos.length}_docs`);
+    }
+
+    function abrirSwalSemanalEspecificoL2() {
+        Swal.fire({
+            title: 'Generar Informe Semanal Específico L2',
+            html: `
+                <div style="margin-bottom:15px;">
+                    <p style="font-weight:bold; color:#006d68;">Ingrese los números de documento para generar el informe semanal específico de Lote 2:</p>
+                    <div class="alert bg-indigo-light border-indigo-dark">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> Solo se incluirán los registros que cumplan con los filtros del informe semanal L2 
+                        (departamento, edades, lote, tipo documento, etc.)
+                    </div>
+                </div>
+                <div style="display: flex; gap: 20px; justify-content: center;">
+                    <div style="flex:1; display:flex; flex-direction:column;">
+                        <label for="docPasteSemanalL2" style="font-weight:bold;">Números de Documento</label>
+                        <textarea id="docPasteSemanalL2" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" placeholder="Pega aquí los números de documento (uno por línea)"></textarea>
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column;">
+                        <label for="docResultSemanalL2" style="font-weight:bold;">Vista Previa</label>
+                        <textarea id="docResultSemanalL2" rows="10" style="width:100%; resize:vertical; min-width:180px; max-height:200px; overflow:auto;" disabled placeholder="Aquí verás los documentos procesados"></textarea>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <span id="contadorDocsSemanalL2" class="badge bg-secondary">0 documentos</span>
+                </div>
+                `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: '<i class="bi bi-file-earmark-excel"></i> Generar Informe L2',
+            confirmButtonColor: '#006d68',
+            cancelButtonText: 'Cancelar',
+            cancelButtonColor: '#dc3545',
+            width: 700,
+            didOpen: () => {
+                const pasteArea = document.getElementById('docPasteSemanalL2');
+                const resultArea = document.getElementById('docResultSemanalL2');
+                const contador = document.getElementById('contadorDocsSemanalL2');
+
+                pasteArea.addEventListener('input', function() {
+                    const lines = pasteArea.value.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 0 && !isNaN(l));
+
+                    if (lines.length > 0) {
+                        resultArea.value = lines.join('\n');
+                        contador.textContent = lines.length + ' documento(s)';
+                        contador.className = 'badge bg-success';
+                    } else {
+                        resultArea.value = '';
+                        contador.textContent = '0 documentos';
+                        contador.className = 'badge bg-secondary';
+                    }
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const pasteArea = document.getElementById('docPasteSemanalL2');
+                const documentos = pasteArea.value.split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l.length > 0 && !isNaN(l));
+
+                if (documentos.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debes ingresar al menos un número de documento válido.',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    return;
+                }
+
+                // Llamar a la función de descarga con los documentos específicos
+                descargarSemanalEspecificoL2(documentos);
+            }
+        });
+    }
+
+    function descargarSemanalEspecificoL2(documentos) {
+        const docsString = documentos.join(',');
+        const url = `components/infoWeek/semanal_especificoL2.php?action=export&docs=${encodeURIComponent(docsString)}`;
+
+        descargarInforme(url, `semanal_especifico_L2_${documentos.length}_docs`);
     }
 </script>
 
@@ -1550,5 +1742,4 @@ require_once __DIR__ . '/../components/modals/cohortes.php';
         /* Aproximadamente 6 elementos, ajusta si lo necesitas */
         overflow-y: auto;
     }
-
 </style>

@@ -46,9 +46,12 @@ if ($result->num_rows > 0) {
                         <td class="text-center"><?php echo $schedule['available'] ? 'Sí' : 'No'; ?></td>
                         <td><?php echo $schedule['department']; ?></td>
                         <td class="text-center"><?php echo date('d/m/Y H:i', strtotime($schedule['created_at'])); ?></td>
-                        <td class="text-center">
+                        <td class="text-center gap-2">
                             <button class="btn bg-magenta-dark btn-sm text-white" data-bs-toggle="modal" data-bs-target="#editScheduleModal<?php echo $schedule['id']; ?>">
                                 <i class="bi bi-pencil-square"></i> Editar
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSchedule(<?php echo $schedule['id']; ?>)">
+                                <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -358,6 +361,61 @@ if ($result->num_rows > 0) {
                     text: 'Error en la conexión: ' + error
                 });
             }
+        });
+    }
+
+    function deleteSchedule(id) {
+        Swal.fire({
+            title: '¿Eliminar horario?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            Swal.fire({
+                title: 'Eliminando...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => Swal.showLoading()
+            });
+
+            $.ajax({
+                url: 'components/listSchedules/delete_schedule.php',
+                type: 'POST',
+                data: { id },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: 'Horario eliminado correctamente'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message || 'No se pudo eliminar el horario'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting schedule:', xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error en la conexión. Intente nuevamente.'
+                    });
+                }
+            });
         });
     }
 

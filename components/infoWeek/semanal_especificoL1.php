@@ -22,8 +22,24 @@ function exportDataToExcel($conn)
     define('CURRENT_YEAR', '2008');
     define('CURRENT_DATE', date('Y-m-d'));
 
+    // Obtener documentos específicos si se envían por GET
+    $docsEspecificos = [];
+    if (isset($_GET['docs']) && !empty($_GET['docs'])) {
+        $docsEspecificos = array_map('trim', explode(',', $_GET['docs']));
+        $docsEspecificos = array_filter($docsEspecificos, function($doc) {
+            return is_numeric($doc) && strlen($doc) > 0;
+        });
+    }
+
     // Obtener niveles de usuarios
     $nivelesUsuarios = obtenerNivelesUsuarios($conn);
+
+    // Construir filtro adicional de documentos
+    $filtroDocumentos = '';
+    if (!empty($docsEspecificos)) {
+        $placeholders = implode(',', array_fill(0, count($docsEspecificos), '?'));
+        $filtroDocumentos = " AND user_register.number_id IN ($placeholders)";
+    }
 
     // Consulta principal
     $sql = "SELECT 
@@ -90,26 +106,33 @@ function exportDataToExcel($conn)
     LEFT JOIN users sk_teacher ON sk.teacher = sk_teacher.username
     LEFT JOIN users sk_mentor ON sk.mentor = sk_mentor.username
     LEFT JOIN users sk_monitor ON sk.monitor = sk_monitor.username
-    
-    -- Remover este join ya que ahora usamos course_periods
-    -- LEFT JOIN cohorts c ON g.cohort = c.cohort_number
     LEFT JOIN usuarios u ON user_register.number_id = u.cedula 
     WHERE departamentos.id_departamento IN (11)
     AND user_register.status = '1' 
-    AND user_register.lote = '2'
+    AND user_register.lote = '1'
     AND user_register.statusAdmin NOT IN ('2', '7', '11')
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
-     AND (
-        user_register.number_id IN (
-            SELECT p.numero_documento 
-            FROM participantes p
-        )
-        OR user_register.directed_base = '1'
+    AND user_register.number_id NOT IN (
+        SELECT p.numero_documento 
+        FROM participantes p
+        INNER JOIN user_register ur ON p.numero_documento = ur.number_id
     )
+    AND user_register.directed_base != '1'
+    $filtroDocumentos
     ORDER BY user_register.first_name ASC";
 
-    $result = $conn->query($sql);
+    // Usar prepared statement si hay documentos específicos
+    if (!empty($docsEspecificos)) {
+        $stmt = $conn->prepare($sql);
+        $types = str_repeat('s', count($docsEspecificos));
+        $stmt->bind_param($types, ...$docsEspecificos);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        $result = $conn->query($sql);
+    }
+
     $data = [];
 
     // Consulta para obtener todos los asesores
@@ -282,27 +305,27 @@ function exportDataToExcel($conn)
             $data[] = [
                 'Ejecutor (contratista)' => 'UNIÓN TEMPORAL INNOVA DIGITAL',
                 'id' => $row['id'],
-                'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'], // Cambio: normalizar CC
+                'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'],
                 'Número_documento' => $row['number_id'],
                 'Nombre1' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['first_name']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['first_name'])
                 )),
                 'Nombre2' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['second_name']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['second_name'])
                 )),
                 'Apellido1' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['first_last']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['first_last'])
                 )),
                 'Apellido2' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['second_last']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['second_last'])
                 )),
                 'Fecha_nacimiento' => fechaAExcel($row['birthdate']),
                 'Correo' => $row['email'],
@@ -310,14 +333,14 @@ function exportDataToExcel($conn)
                 'Codigo_epartamento' => $row['department'],
                 'Departamento' => strtoupper($row['departamento']),
 
-                'Region' => 'Región 8 Lote 2',
+                'Region' => 'Región 8 Lote 1',
 
                 'Codigo_municipio' => $row['municipality'],
-                'Municipio' => mb_strtoupper($row['municipio']), // Cambio: usar mb_strtoupper
+                'Municipio' => mb_strtoupper($row['municipio']),
 
                 'Telefono_movil' => str_replace('+57', '', $row['first_phone']),
 
-                'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']), // Cambio: simplificar lógica
+                'Genero' => ($row['gender'] === 'LGBIQ+') ? 'LGBTIQ+' : (($row['gender'] === 'No binario' || $row['gender'] === 'No reporta') ? 'Otro' : $row['gender']),
 
                 'Campesino' => ($row['country_person'] === 'Sí') ? 'SI' : (($row['country_person'] === 'No') ? 'NO' : $row['country_person']),
 
@@ -372,9 +395,9 @@ function exportDataToExcel($conn)
                 'area_1_des_alfabetizacion_datos' => '',
                 'area_2_des_comunicacion_y_colaboracion' => '',
                 'area_3_des_contenidos_digitales' => '',
-                'Origen' => 'UTI-R8L2',
+                'Origen' => 'UTI-R8L1',
                 'Matriculado' => $estaEnGroups ? 'SI' : 'NO',
-                'Estado' => ($row['statusAdmin'] === '10') ? 'Formado' : (($row['statusAdmin'] === '12') ? 'No aprobado' : $tieneProfesor), // Cambio: agregar verificación de estado 10 y 12
+                'Estado' => ($row['statusAdmin'] === '10') ? 'Formado' : (($row['statusAdmin'] === '12') ? 'No aprobado' : $tieneProfesor),
                 'Programa de Formación' => ($estaEnGroups || in_array($row['statusAdmin'], ['3', '10', '6'])) ? $programValue : '',
                 'Nivel' => $estaEnGroups ? match ($row['level']) {
                     'Explorador' => 'Básico',
@@ -385,7 +408,7 @@ function exportDataToExcel($conn)
                 'Documento_Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_id'],
                 'Profesor principal a cargo del programa de formación' => $row['bootcamp_teacher_name'],
                 'Fecha Inicio de la formación (dd/mm/aaaa)' => $row['bootcamp_start_date'] ? fechaAExcel($row['bootcamp_start_date']) : '',
-                'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['bootcamp_cohort'], // Cambio: usar bootcamp_cohort en lugar de cohort
+                'Cohorte (1,2,3,4,5,6,7 o 8)' => $row['bootcamp_cohort'],
                 'Año Cohorte' => $row['bootcamp_start_date'] ? date('Y', strtotime($row['bootcamp_start_date'])) : '',
                 'Tipo de formación' => $row['group_mode'],
                 'Enlace al certificado en Sharepoint' => '',
@@ -402,10 +425,9 @@ function exportDataToExcel($conn)
                 'Ejecutor de ingles' => $row['ec_teacher_name'],
                 'Documento_Ejecutor de habilidades de poder' => $row['skills_teacher_id'],
                 'Ejecutor de habilidades de poder' => $row['skills_teacher_name'],
-                // Nuevo campo agregado
                 'Estado Admision' => match ($row['statusAdmin']) {
                     '1' => 'BENEFICIARIO',
-                    '0' => 'SIN ESTADO', 
+                    '0' => 'SIN ESTADO',
                     '2' => 'RECHAZADO',
                     '3' => 'MATRICULADO',
                     '4' => 'SIN CONTACTO',
@@ -416,11 +438,11 @@ function exportDataToExcel($conn)
                     '9' => 'APLAZADO',
                     '10' => 'FORMADO',
                     '11' => 'NO VALIDO',
-                    '12' => 'PENDIENTE MINTIC',
+                    '12' => 'NO APROBADO',
                     default => ''
                 },
                 'Fecha de matricula' => $row['creation_date'] ? fechaAExcel($row['creation_date']) : '',
-                'Fecha fin de la formación (dd/mm/aaaa)' => $row['bootcamp_end_date'] ? fechaAExcel($row['bootcamp_end_date']) : '',
+                'Fecha fin de la formación (dd/mm/aaaa)' => $row['bootcamp_end_date'] ? fechaAExcel($row['bootcamp_end_date']) : ''
             ];
         }
     }
@@ -471,14 +493,15 @@ function exportDataToExcel($conn)
     // Ajustar ancho de columnas según el texto del encabezado
     foreach ($headers as $colIndex => $headerText) {
         $column = Coordinate::stringFromColumnIndex($colIndex + 1);
-        $width = mb_strlen($headerText) + 2; // +2 para un poco de padding
+        $width = mb_strlen($headerText) + 2;
         $sheet->getColumnDimension($column)->setWidth($width);
     }
 
-    ob_clean(); // Limpia cualquier salida previa
-    // Configurar headers para descarga
+    ob_clean();
+    // Configurar headers para descarga - nombre diferente si es específico
+    $suffix = !empty($docsEspecificos) ? '_especifico_' . count($docsEspecificos) . '_docs' : '';
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="contrapartida_L2_' . date('Y-m-d') . '.xlsx"');
+    header('Content-Disposition: attachment;filename="informe_semanal_L1' . $suffix . '_' . date('Y-m-d') . '.xlsx"');
     header('Cache-Control: max-age=0');
 
     $writer = new Xlsx($spreadsheet);
@@ -499,81 +522,26 @@ function obtenerNivelesUsuarios($conn)
     return $niveles;
 }
 
-// Agregar esta función helper para normalizar strings
 function normalizeString($string)
 {
     $unwanted_array = array(
-        'Š' => 'S',
-        'š' => 's',
-        'Ž' => 'Z',
-        'ž' => 'z',
-        'À' => 'A',
-        'Á' => 'A',
-        'Â' => 'A',
-        'Ã' => 'A',
-        'Ä' => 'A',
-        'Å' => 'A',
-        'Æ' => 'A',
-        'Ç' => 'C',
-        'È' => 'E',
-        'É' => 'E',
-        'Ê' => 'E',
-        'Ë' => 'E',
-        'Ì' => 'I',
-        'Í' => 'I',
-        'Î' => 'I',
-        'Ï' => 'I',
-        'Ñ' => 'N',
-        'Ò' => 'O',
-        'Ó' => 'O',
-        'Ô' => 'O',
-        'Õ' => 'O',
-        'Ö' => 'O',
-        'Ø' => 'O',
-        'Ù' => 'U',
-        'Ú' => 'U',
-        'Û' => 'U',
-        'Ü' => 'U',
-        'Ý' => 'Y',
-        'Þ' => 'B',
-        'ß' => 'Ss',
-        'à' => 'a',
-        'á' => 'a',
-        'â' => 'a',
-        'ã' => 'a',
-        'ä' => 'a',
-        'å' => 'a',
-        'æ' => 'a',
-        'ç' => 'c',
-        'è' => 'e',
-        'é' => 'e',
-        'ê' => 'e',
-        'ë' => 'e',
-        'ì' => 'i',
-        'í' => 'i',
-        'î' => 'i',
-        'ï' => 'i',
-        'ð' => 'o',
-        'ñ' => 'n',
-        'ò' => 'o',
-        'ó' => 'o',
-        'ô' => 'o',
-        'õ' => 'o',
-        'ö' => 'o',
-        'ø' => 'o',
-        'ù' => 'u',
-        'ú' => 'u',
-        'û' => 'u',
-        'ý' => 'y',
-        'þ' => 'b',
-        'ÿ' => 'y'
+        'Š' => 'S', 'š' => 's', 'Ž' => 'Z', 'ž' => 'z', 'À' => 'A', 'Á' => 'A',
+        'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C',
+        'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I',
+        'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O',
+        'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U',
+        'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a',
+        'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c',
+        'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i',
+        'î' => 'i', 'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o',
+        'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u',
+        'û' => 'u', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y'
     );
     return strtr($string, $unwanted_array);
 }
 
 function calcularHorasActualesPorEstudiante($conn, $studentId)
 {
-    // Verificar si el estudiante está en certificados_senatics
     $sqlCertified = "SELECT COUNT(*) as is_certified FROM certificados_senatics WHERE number_id = ?";
     $stmtCertified = $conn->prepare($sqlCertified);
     $stmtCertified->bind_param("s", $studentId);
@@ -583,7 +551,6 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
     $isCertified = $certifiedData['is_certified'] > 0;
     $stmtCertified->close();
 
-    // Selecciona todos los cursos del estudiante excepto inglés nivelatorio
     $sql = "SELECT c.code, c.real_hours
             FROM groups g
             JOIN courses c ON (
@@ -603,7 +570,6 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
         $cursoId = $curso['code'];
         $horasMaximas = intval($curso['real_hours']);
 
-        // Consulta las asistencias y suma las horas actuales
         $sqlHoras = "SELECT ar.class_date, 
                             CASE 
                                 WHEN ar.attendance_status = 'presente' THEN 
@@ -639,7 +605,6 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
         }
         $stmtHoras->close();
 
-        // Verificar el tipo de curso
         $sqlTipo = "SELECT 
             CASE 
                 WHEN c.code = g.id_bootcamp THEN 'bootcamp'
@@ -658,26 +623,21 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
         $tipoCurso = $tipoData['tipo_curso'];
         $stmtTipo->close();
 
-        // Aplicar límites específicos por tipo de curso
         if ($tipoCurso === 'bootcamp') {
-            // LÍMITE TÉCNICO: 120 horas máximo
             if ($isCertified) {
-                $horasCurso = min($horasCurso + 40, 120); // Con homologación pero limitado
+                $horasCurso = min($horasCurso + 40, 120);
             } else {
-                $horasCurso = min($horasCurso, 120); // Sin homologación pero limitado
+                $horasCurso = min($horasCurso, 120);
             }
         } elseif ($tipoCurso === 'skills') {
-            // LÍMITE HABILIDADES: 15 horas máximo
             if ($isCertified) {
-                $horasCurso = 15; // Homologación completa
+                $horasCurso = 15;
             } else {
-                $horasCurso = min($horasCurso, 15); // Sin homologación pero limitado
+                $horasCurso = min($horasCurso, 15);
             }
         } elseif ($tipoCurso === 'english') {
-            // LÍMITE INGLÉS: 24 horas máximo
             $horasCurso = min($horasCurso, 24);
         } else {
-            // Para otros cursos, aplicar límite del curso
             $horasCurso = min($horasCurso, $horasMaximas);
         }
 
@@ -686,7 +646,7 @@ function calcularHorasActualesPorEstudiante($conn, $studentId)
     $stmt->close();
     return $totalHoras;
 }
-// Helper para convertir fecha a número de Excel
+
 function fechaAExcel($fecha)
 {
     if (!$fecha) return '';

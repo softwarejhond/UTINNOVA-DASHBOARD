@@ -312,8 +312,8 @@ function llenarDatosLote($conn, $sheet, $lote) {
         $sheet->setCellValue('F' . $row, str_replace('+57', '', $data['second_phone'] ?? ''));
         $sheet->setCellValue('G' . $row, ($data['id_bootcamp'] ?? '') . ' - ' . ($data['bootcamp_name'] ?? ''));
         $sheet->setCellValue('H' . $row, ($data['status'] ?? 0) == 1 ? 'Activo' : 'Inactivo');
-        $sheet->setCellValue('I' . $row, !empty($data['start_date']) ? date('d/m/Y', strtotime($data['start_date'])) : '');
-        $sheet->setCellValue('J' . $row, !empty($data['end_date']) ? date('d/m/Y', strtotime($data['end_date'])) : '');
+        $sheet->setCellValue('I' . $row, !empty($data['start_date']) ? fechaAExcel($data['start_date']) : '');
+        $sheet->setCellValue('J' . $row, !empty($data['end_date']) ? fechaAExcel($data['end_date']) : '');
         $sheet->setCellValue('K' . $row, $data['period_name'] ?? '');
         $sheet->setCellValue('L' . $row, $data['id_bootcamp'] ?? '');
         $sheet->setCellValue('M' . $row, $data['cohort'] ?? '');
@@ -584,5 +584,15 @@ try {
 } catch (Exception $e) {
     ob_end_clean();
     echo "Error al generar el archivo: " . $e->getMessage();
+}
+?>
+
+<?php
+// Función helper
+function fechaAExcel($fecha)
+{
+    if (!$fecha) return '';
+    $fechaExcel = (new DateTime($fecha))->diff(new DateTime('1899-12-30'))->days;
+    return $fechaExcel;
 }
 ?>

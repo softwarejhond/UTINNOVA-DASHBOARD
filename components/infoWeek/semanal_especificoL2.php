@@ -22,8 +22,24 @@ function exportDataToExcel($conn)
     define('CURRENT_YEAR', '2008');
     define('CURRENT_DATE', date('Y-m-d'));
 
+    // Obtener documentos específicos si se envían por GET
+    $docsEspecificos = [];
+    if (isset($_GET['docs']) && !empty($_GET['docs'])) {
+        $docsEspecificos = array_map('trim', explode(',', $_GET['docs']));
+        $docsEspecificos = array_filter($docsEspecificos, function($doc) {
+            return is_numeric($doc) && strlen($doc) > 0;
+        });
+    }
+
     // Obtener niveles de usuarios
     $nivelesUsuarios = obtenerNivelesUsuarios($conn);
+
+    // Construir filtro adicional de documentos
+    $filtroDocumentos = '';
+    if (!empty($docsEspecificos)) {
+        $placeholders = implode(',', array_fill(0, count($docsEspecificos), '?'));
+        $filtroDocumentos = " AND user_register.number_id IN ($placeholders)";
+    }
 
     // Consulta principal
     $sql = "SELECT 
@@ -100,16 +116,26 @@ function exportDataToExcel($conn)
     AND user_register.statusAdmin NOT IN ('2', '7', '11')
     AND user_register.birthdate < '" . CURRENT_YEAR . "-" . date('m-d') . "'
     AND user_register.typeID = 'CC'
-     AND (
-        user_register.number_id IN (
-            SELECT p.numero_documento 
-            FROM participantes p
-        )
-        OR user_register.directed_base = '1'
+    AND user_register.number_id NOT IN (
+        SELECT p.numero_documento 
+        FROM participantes p
+        INNER JOIN user_register ur ON p.numero_documento = ur.number_id
     )
+    AND user_register.directed_base != '1'
+    $filtroDocumentos
     ORDER BY user_register.first_name ASC";
 
-    $result = $conn->query($sql);
+    // Usar prepared statement si hay documentos específicos
+    if (!empty($docsEspecificos)) {
+        $stmt = $conn->prepare($sql);
+        $types = str_repeat('s', count($docsEspecificos));
+        $stmt->bind_param($types, ...$docsEspecificos);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        $result = $conn->query($sql);
+    }
+
     $data = [];
 
     // Consulta para obtener todos los asesores
@@ -285,24 +311,24 @@ function exportDataToExcel($conn)
                 'Tipo_documento' => $row['typeID'] === 'CC' ? 'CC' : $row['typeID'], // Cambio: normalizar CC
                 'Número_documento' => $row['number_id'],
                 'Nombre1' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['first_name']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['first_name'])
                 )),
                 'Nombre2' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['second_name']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['second_name'])
                 )),
                 'Apellido1' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['first_last']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['first_last'])
                 )),
                 'Apellido2' => strtoupper(str_replace(
-                    [' ', 'á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
-                    ['', 'A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
-                    $row['second_last']
+                    ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú', 'ñ'],
+                    ['A', 'E', 'I', 'O', 'U', 'A', 'E', 'I', 'O', 'U', 'Ñ'],
+                    rtrim($row['second_last'])
                 )),
                 'Fecha_nacimiento' => fechaAExcel($row['birthdate']),
                 'Correo' => $row['email'],
@@ -416,7 +442,7 @@ function exportDataToExcel($conn)
                     '9' => 'APLAZADO',
                     '10' => 'FORMADO',
                     '11' => 'NO VALIDO',
-                    '12' => 'PENDIENTE MINTIC',
+                    '12' => 'NO APROBADO',
                     default => ''
                 },
                 'Fecha de matricula' => $row['creation_date'] ? fechaAExcel($row['creation_date']) : '',
@@ -476,9 +502,10 @@ function exportDataToExcel($conn)
     }
 
     ob_clean(); // Limpia cualquier salida previa
-    // Configurar headers para descarga
+    // Configurar headers para descarga - nombre diferente si es específico
+    $suffix = !empty($docsEspecificos) ? '_especifico_' . count($docsEspecificos) . '_docs' : '';
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="contrapartida_L2_' . date('Y-m-d') . '.xlsx"');
+    header('Content-Disposition: attachment;filename="informe_semanal_L2' . $suffix . '_' . date('Y-m-d') . '.xlsx"');
     header('Cache-Control: max-age=0');
 
     $writer = new Xlsx($spreadsheet);
