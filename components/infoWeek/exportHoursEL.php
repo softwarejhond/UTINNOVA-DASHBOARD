@@ -81,21 +81,23 @@ function configurarEncabezados($sheet) {
     $sheet->setCellValue('AC1', 'Habilidades - Total Horas');
 
     $sheet->setCellValue('AD1', 'Total - Horas Actuales');
-    $sheet->setCellValue('AE1', 'Total - Horas Reales');
-    $sheet->setCellValue('AF1', 'Total - Horas Programa');
+    $sheet->setCellValue('AE1', 'Total - Horas Actuales (sin Nivelador)');
+    $sheet->setCellValue('AF1', 'Total - Horas Reales');
+    $sheet->setCellValue('AG1', 'Total - Horas Reales (sin Nivelador)');
+    $sheet->setCellValue('AH1', 'Total - Horas Programa');
 
-    $sheet->setCellValue('AG1', 'Porcentaje Actuales');
-    $sheet->setCellValue('AH1', 'Porcentaje Reales');
-    $sheet->setCellValue('AI1', 'Porcentaje Faltante');
+    $sheet->setCellValue('AI1', 'Porcentaje Actuales');
+    $sheet->setCellValue('AJ1', 'Porcentaje Reales');
+    $sheet->setCellValue('AK1', 'Porcentaje Faltante');
 
     // Nuevas columnas de export_excel_general_all.php
-    $sheet->setCellValue('AJ1', '% Asistencia');
-    $sheet->setCellValue('AK1', 'Nota 1');
-    $sheet->setCellValue('AL1', 'Nota 2');
-    $sheet->setCellValue('AM1', 'Nota Final');
-    $sheet->setCellValue('AN1', 'Estado');
-    $sheet->setCellValue('AO1', 'ESTADO ADMISION');
-    $sheet->setCellValue('AP1', 'Año de finalización');
+    $sheet->setCellValue('AL1', '% Asistencia');
+    $sheet->setCellValue('AM1', 'Nota 1');
+    $sheet->setCellValue('AN1', 'Nota 2');
+    $sheet->setCellValue('AO1', 'Nota Final');
+    $sheet->setCellValue('AP1', 'Estado');
+    $sheet->setCellValue('AQ1', 'ESTADO ADMISION');
+    $sheet->setCellValue('AR1', 'Año de finalización');
 }
 
 // Función para aplicar estilos a una hoja
@@ -168,9 +170,9 @@ function aplicarEstilos($sheet, $lastRow) {
     $sheet->getStyle('U1:W1')->applyFromArray($inglesHeaderStyle);      // Inglés Nivelador
     $sheet->getStyle('X1:Z1')->applyFromArray($inglesHeaderStyle);      // Inglés
     $sheet->getStyle('AA1:AC1')->applyFromArray($habilidadesHeaderStyle); // Habilidades
-    $sheet->getStyle('AD1:AF1')->applyFromArray($totalesHeaderStyle);     // Totales
-    $sheet->getStyle('AG1:AI1')->applyFromArray($porcentajesHeaderStyle); // Porcentajes
-    $sheet->getStyle('AJ1:AP1')->applyFromArray($notasEstadosHeaderStyle); // Nuevas columnas
+    $sheet->getStyle('AD1:AH1')->applyFromArray($totalesHeaderStyle);     // Totales (incluyendo nuevas columnas)
+    $sheet->getStyle('AI1:AK1')->applyFromArray($porcentajesHeaderStyle); // Porcentajes
+    $sheet->getStyle('AL1:AR1')->applyFromArray($notasEstadosHeaderStyle); // Nuevas columnas
 
     // Aplicar estilos específicos por área - Datos
     if ($lastRow >= 2) {
@@ -179,21 +181,21 @@ function aplicarEstilos($sheet, $lastRow) {
         $sheet->getStyle('U2:W' . $lastRow)->applyFromArray($inglesDataStyle);      // Inglés Nivelador
         $sheet->getStyle('X2:Z' . $lastRow)->applyFromArray($inglesDataStyle);      // Inglés
         $sheet->getStyle('AA2:AC' . $lastRow)->applyFromArray($habilidadesDataStyle); // Habilidades
-        $sheet->getStyle('AD2:AF' . $lastRow)->applyFromArray($totalesDataStyle);     // Totales
-        $sheet->getStyle('AG2:AI' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
-        $sheet->getStyle('AJ2:AP' . $lastRow)->applyFromArray($notasEstadosDataStyle); // Nuevas columnas
+        $sheet->getStyle('AD2:AH' . $lastRow)->applyFromArray($totalesDataStyle);     // Totales (incluyendo nuevas columnas)
+        $sheet->getStyle('AI2:AK' . $lastRow)->applyFromArray($porcentajesDataStyle); // Porcentajes
+        $sheet->getStyle('AL2:AR' . $lastRow)->applyFromArray($notasEstadosDataStyle); // Nuevas columnas
     }
 
     // Asegurar que los porcentajes tengan el formato correcto
     if ($lastRow >= 2) {
-        $sheet->getStyle('AG2:AI' . $lastRow)->getNumberFormat()
+        $sheet->getStyle('AI2:AK' . $lastRow)->getNumberFormat()
               ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
-        $sheet->getStyle('AJ2:AJ' . $lastRow)->getNumberFormat()
+        $sheet->getStyle('AL2:AL' . $lastRow)->getNumberFormat()
               ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
     }
 
     // Autoajustar columnas
-    foreach(range('A','AP') as $col) {
+    foreach(range('A','AR') as $col) {
         $sheet->getColumnDimension($col)->setAutoSize(true);
     }
 }
@@ -370,15 +372,19 @@ function llenarDatosLote($conn, $sheet, $lote) {
 
         // Totales
         $totalActual = intval($horasActualesTecnico) + intval($horasActualesNivelador) + intval($horasActualesIngles) + intval($horasActualesHabilidades);
+        $totalActualSinNivelador = intval($horasActualesTecnico) + intval($horasActualesIngles) + intval($horasActualesHabilidades);
         $totalReales = intval($horasTecnico) + intval($horasNivelador) + intval($horasIngles) + intval($horasHabilidades);
+        $totalRealesSinNivelador = intval($horasTecnico) + intval($horasIngles) + intval($horasHabilidades);
         $sheet->setCellValue('AD' . $row, $totalActual);
-        $sheet->setCellValue('AE' . $row, $totalReales);
-        $sheet->setCellValue('AF' . $row, 179);
+        $sheet->setCellValue('AE' . $row, $totalActualSinNivelador);
+        $sheet->setCellValue('AF' . $row, $totalReales);
+        $sheet->setCellValue('AG' . $row, $totalRealesSinNivelador);
+        $sheet->setCellValue('AH' . $row, 179);
         
         // Porcentajes
-        $sheet->setCellValue('AG' . $row, '=AD' . $row . '/159');
-        $sheet->setCellValue('AH' . $row, '=AE' . $row . '/AF' . $row);
-        $sheet->setCellValue('AI' . $row, '=1-(AE' . $row . '/AF' . $row . ')');
+        $sheet->setCellValue('AI' . $row, '=AD' . $row . '/159');
+        $sheet->setCellValue('AJ' . $row, '=AF' . $row . '/AH' . $row);
+        $sheet->setCellValue('AK' . $row, '=1-(AF' . $row . '/AH' . $row . ')');
 
         // Nuevas columnas - Calcular horas totales asistidas
         $horasAsistidasTecnico = min($horasActualesTecnico, $horasTecnico ?: 120);
@@ -387,7 +393,7 @@ function llenarDatosLote($conn, $sheet, $lote) {
         $horasAsistidasHabilidades = min($horasActualesHabilidades, $horasHabilidades ?: 15);
         $horasAsistidas = $horasAsistidasTecnico + $horasAsistidasNivelador + $horasAsistidasIngles + $horasAsistidasHabilidades;
         $porcentajeAsistencia = min(($horasAsistidas / 159) * 100, 100);
-        $sheet->setCellValue('AJ' . $row, $porcentajeAsistencia / 100);
+        $sheet->setCellValue('AL' . $row, $porcentajeAsistencia / 100);
 
         // Notas desde array pre-cargado
         $notasTecnico = $gradesData[$studentId][$bootcampCode] ?? ['final_grade' => null, 'grade_1' => 0, 'grade_2' => 0];
@@ -406,31 +412,31 @@ function llenarDatosLote($conn, $sheet, $lote) {
             $notasTecnico = ['final' => round($final, 2), 'grade1' => round($grade1, 2), 'grade2' => round($grade2, 2)];
         }
 
-        $sheet->setCellValue('AK' . $row, number_format($notasTecnico['grade1'], 1));
-        $sheet->setCellValue('AL' . $row, number_format($notasTecnico['grade2'], 1));
-        $sheet->setCellValue('AM' . $row, number_format($notasTecnico['final'], 1));
+        $sheet->setCellValue('AM' . $row, number_format($notasTecnico['grade1'], 1));
+        $sheet->setCellValue('AN' . $row, number_format($notasTecnico['grade2'], 1));
+        $sheet->setCellValue('AO' . $row, number_format($notasTecnico['final'], 1));
 
         // Estado
         $aprobadoTecnico = !is_null($gradesData[$studentId][$bootcampCode]['final_grade'] ?? null);
         $estadoTecnico = $aprobadoTecnico ? 'Aprobado' : (($notasTecnico['final'] >= 3.0 && $porcentajeAsistencia >= 75) ? 'Apto' : 'No Apto');
-        $sheet->setCellValue('AN' . $row, $estadoTecnico);
+        $sheet->setCellValue('AP' . $row, $estadoTecnico);
 
         // Colores para estado
         $colorAprobado = 'FFFFD700';
         $colorApto = 'FF66CC00';
         $colorNoApto = 'FFFF0000';
         $color = $estadoTecnico === 'Aprobado' ? $colorAprobado : ($estadoTecnico === 'Apto' ? $colorApto : $colorNoApto);
-        $sheet->getStyle('AN' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
+        $sheet->getStyle('AP' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB($color);
 
         // Estado admisión desde array
         $statusAdmin = $admissionStatusData[$studentId] ?? '0';
         $map = ['1' => 'BENEFICIARIO', '0' => 'SIN ESTADO', '2' => 'RECHAZADO', '3' => 'MATRICULADO', '4' => 'SIN CONTACTO', '5' => 'EN PROCESO', '6' => 'CERTIFICADO', '7' => 'INACTIVO', '8' => 'BENEFICIARIO CONTRAPARTIDA', '9' => 'APLAZADO', '10' => 'FORMADO', '11' => 'NO VALIDO', '12' => 'NO APROBADO'];
         $estadoAdmision = $map[$statusAdmin] ?? 'SIN ESTADO';
-        $sheet->setCellValue('AO' . $row, $estadoAdmision);
+        $sheet->setCellValue('AQ' . $row, $estadoAdmision);
 
         // Año de finalización desde array
         $anoFinalizacion = $finalizationYearData[$bootcampCode] ?? 'N/A';
-        $sheet->setCellValue('AP' . $row, $anoFinalizacion);
+        $sheet->setCellValue('AR' . $row, $anoFinalizacion);
 
         $lastRow = $row;
         $row++;
