@@ -1,30 +1,42 @@
 <?php
-// filepath: c:\xampp\htdocs\UTINNOVA-DASHBOARD\get_next_student.php
 include("conexion.php");
 
-// Obtener todos los IDs de estudiantes con statusAdmin = 6
-$sql = "SELECT DISTINCT ur.number_id 
-        FROM user_register ur
-        LEFT JOIN groups g ON ur.number_id = g.number_id
-        WHERE ur.statusAdmin = 6 AND g.number_id IS NOT NULL
-        ORDER BY ur.number_id";
+header('Content-Type: application/json');
 
-// Para probar, puedes limitar los resultados:
-// $sql .= " LIMIT 10";
+// Modo POST: valida una lista de IDs enviados desde el formulario
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ids'])) {
+    $inputIds = $_POST['ids'];
 
-$result = mysqli_query($conn, $sql);
+    if (!is_array($inputIds) || empty($inputIds)) {
+        echo json_encode(['error' => 'No se proporcionaron IDs']);
+        exit;
+    }
 
-if (!$result) {
-    header('Content-Type: application/json');
-    echo json_encode(['error' => 'Error en la consulta: ' . mysqli_error($conn)]);
+    $validStudents = [];
+    foreach ($inputIds as $studentId) {
+        $studentId = trim($studentId);
+        if ($studentId === '') continue;
+
+        $sql = "SELECT number_id FROM user_register WHERE number_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $studentId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $validStudents[] = $studentId;
+        }
+        $stmt->close();
+    }
+
+    if (empty($validStudents)) {
+        echo json_encode(['error' => 'Ningún ID fue encontrado en user_register']);
+    } else {
+        echo json_encode($validStudents);
+    }
     exit;
 }
 
-$student_ids = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $student_ids[] = $row['number_id'];
-}
-
-header('Content-Type: application/json');
-echo json_encode($student_ids);
+// Si no es POST válido, retornar error
+echo json_encode(['error' => 'Método no permitido. Usa POST con ids[]']);
 ?>

@@ -32,36 +32,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['image'])) {
     exit;
 }
 
-// Obtener datos del estudiante
-$number_id = isset($_GET['number_id']) ? $_GET['number_id'] : '1234567890'; // ID por defecto para prueba
+// Obtener datos del estudiante desde user_register
+$number_id = isset($_GET['number_id']) ? $_GET['number_id'] : '1052404320'; // ID por defecto para prueba
 
-$sql = "SELECT 
-    g.full_name,
-    g.program,
-    g.headquarters,
-    g.id_bootcamp,
-    g.bootcamp_name,
-    ur.lote,
-    ur.level,
-    ur.dayUpdate
-FROM groups g
-LEFT JOIN user_register ur ON g.number_id = ur.number_id
-WHERE g.number_id = ?";
+// Función para verificar si el estudiante está en la cohorte especial
+function isCohorteStudent($number_id) {
+    $cohorteStudents = [
+        '79897960', '1052404320', '88230799', '79813287', '1030577414', '1045487736',
+        '1057604140', '46378465', '1049797723', '1057602053', '1002606025', '1057575431',
+        '1053664441', '1016084482', '1007492701', '1002480345', '23836021', '46451497',
+        '1002582559', '1118538833', '1049626712', '1001096193', '1057580092', '1073682805',
+        '1052415448', '80777728', '74184266', '1030614422', '46673888', '1052397649'
+    ];
+    return in_array($number_id, $cohorteStudents);
+}
 
+// Consultar datos del estudiante
+$sql = "SELECT first_name, second_name, first_last, second_last, level, dayUpdate FROM user_register WHERE number_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $number_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    $student = $result->fetch_assoc();
+    $userData = $result->fetch_assoc();
+    
+    // Construir nombre completo
+    $fullName = trim(
+        ($userData['first_name'] ?? '') . ' ' . 
+        ($userData['second_name'] ?? '') . ' ' . 
+        ($userData['first_last'] ?? '') . ' ' . 
+        ($userData['second_last'] ?? '')
+    );
+    
+    // Para estudiantes de la cohorte especial, usar datos fijos
+    if (isCohorteStudent($number_id)) {
+        $student = [
+            'full_name' => $fullName ?: 'Estudiante de Cohorte',
+            'program' => 'Ciberseguridad',
+            'headquarters' => 'No aplica',
+            'level' => 'Explorador',
+            'dayUpdate' => $userData['dayUpdate'] ?? date('Y-m-d'),
+            'id_bootcamp' => '5',
+            'bootcamp_name' => 'Ciberseguridad'
+        ];
+    } else {
+        // Para otros estudiantes, usar la lógica original
+        $sqlOriginal = "SELECT 
+            g.full_name,
+            g.program,
+            g.headquarters,
+            g.id_bootcamp,
+            g.bootcamp_name,
+            ur.level,
+            ur.dayUpdate
+        FROM groups g
+        LEFT JOIN user_register ur ON g.number_id = ur.number_id
+        WHERE g.number_id = ?";
+        
+        $stmtOriginal = $conn->prepare($sqlOriginal);
+        $stmtOriginal->bind_param("s", $number_id);
+        $stmtOriginal->execute();
+        $resultOriginal = $stmtOriginal->get_result();
+        
+        if ($resultOriginal->num_rows > 0) {
+            $student = $resultOriginal->fetch_assoc();
+        } else {
+            // Datos por defecto si no se encuentra
+            $student = [
+                'full_name' => $fullName ?: 'Juan Carlos Pérez González',
+                'program' => 'Desarrollo Web Full Stack',
+                'headquarters' => 'Bogotá - Centro',
+                'level' => 'Intermedio',
+                'dayUpdate' => date('Y-m-d'),
+                'id_bootcamp' => null,
+                'bootcamp_name' => null
+            ];
+        }
+    }
 } else {
     // Datos por defecto si no se encuentra el estudiante
     $student = [
         'full_name' => 'Juan Carlos Pérez González',
         'program' => 'Desarrollo Web Full Stack',
         'headquarters' => 'Bogotá - Centro',
-        'lote' => '1',
         'level' => 'Intermedio',
         'dayUpdate' => date('Y-m-d'),
         'id_bootcamp' => null,
@@ -69,86 +123,46 @@ if ($result->num_rows > 0) {
     ];
 }
 
+// Establecer valores fijos para lote y región
+$student['lote'] = '2';
+$student['region'] = 'Región 8 - Lote 2';
+
 // Extraer año de dayUpdate - MODIFICADO: usar 2025 por defecto
 $year = 2025; // Año fijo 2025 para certificación
 
-// Función para obtener notas del curso técnico (copiada de export_excel_general_all.php)
+// Obtener notas desde course_approvals; si hay duplicados prevalece el registro con mayor nota
 function obtenerNotasTecnico($conn, $studentId, $courseCode) {
-    if (empty($courseCode) || empty($studentId)) {
+    if (empty($studentId)) {
         return ['grade1' => 0, 'grade2' => 0];
     }
-    
+
     try {
-        // 1. Intentar obtener las notas desde course_approvals (tabla de notas finales/oficiales)
-        $sql_approvals = "SELECT grade_1, grade_2 FROM course_approvals 
-                          WHERE student_number_id = ? AND course_code = ?";
-        
-        $stmt_approvals = $conn->prepare($sql_approvals);
-        if (!$stmt_approvals) {
-            error_log("Error preparando consulta de notas aprobadas: " . $conn->error);
-        } else {
-            $stmt_approvals->bind_param("ss", $studentId, $courseCode);
-            if ($stmt_approvals->execute()) {
-                $result_approvals = $stmt_approvals->get_result();
-                $row_approvals = $result_approvals->fetch_assoc();
-                $stmt_approvals->close();
-                
-                if ($row_approvals) {
-                    // Las notas en course_approvals ya están en escala 5.0
-                    $grade1 = floatval($row_approvals['grade_1']);
-                    $grade2 = floatval($row_approvals['grade_2']);
-                    
-                    return [
-                        'grade1' => $grade1,
-                        'grade2' => $grade2
-                    ];
-                }
-            } else {
-                $stmt_approvals->close();
-            }
-        }
+        $sql = "SELECT grade_1, grade_2
+                FROM course_approvals
+                WHERE student_number_id = ?
+                ORDER BY (grade_1 + grade_2) DESC
+                LIMIT 1";
 
-        // 2. Si no está en la tabla de aprobados, obtener desde notas_estudiantes
-        $sql_notas = "SELECT nota1, nota2 FROM notas_estudiantes WHERE number_id = ? AND code = ?";
-        $stmt_notas = $conn->prepare($sql_notas);
-
-        if (!$stmt_notas) {
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
             return ['grade1' => 0, 'grade2' => 0];
         }
 
-        $stmt_notas->bind_param("si", $studentId, $courseCode);
-        if (!$stmt_notas->execute()) {
-            $stmt_notas->close();
-            return ['grade1' => 0, 'grade2' => 0];
-        }
+        $stmt->bind_param("s", $studentId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
 
-        $result_notas = $stmt_notas->get_result();
-        $row_notas = $result_notas->fetch_assoc();
-        $stmt_notas->close();
-
-        if ($row_notas) {
-            $grade1_raw = floatval($row_notas['nota1']);
-            $grade2_raw = floatval($row_notas['nota2']);
-            
-            // Determinar si las notas están en escala 10
-            $enEscala10 = ($grade1_raw > 5.0 || $grade2_raw > 5.0);
-            
-            if ($enEscala10) {
-                $grade1_normalized = ($grade1_raw / 10.0) * 5.0;
-                $grade2_normalized = ($grade2_raw / 10.0) * 5.0;
-            } else {
-                $grade1_normalized = $grade1_raw;
-                $grade2_normalized = $grade2_raw;
-            }
-            
+        if ($row) {
             return [
-                'grade1' => round($grade1_normalized, 2),
-                'grade2' => round($grade2_normalized, 2)
+                'grade1' => floatval($row['grade_1']),
+                'grade2' => floatval($row['grade_2'])
             ];
         }
 
         return ['grade1' => 0, 'grade2' => 0];
-        
+
     } catch (Exception $e) {
         return ['grade1' => 0, 'grade2' => 0];
     }
@@ -165,8 +179,14 @@ if (!empty($student['id_bootcamp'])) {
     ];
 }
 
-// Función para obtener asistencias del estudiante (MODIFICADA CON NORMALIZACIÓN)
+// Función para obtener asistencias del estudiante (MODIFICADA PARA USAR JSON PARA COHORTE ESPECIAL)
 function getStudentAttendance($conn, $number_id) {
+    // Si es un estudiante de la cohorte especial, usar datos del JSON
+    if (isCohorteStudent($number_id)) {
+        return getCohorteAttendanceFromJSON($number_id);
+    }
+    
+    // Para otros estudiantes, usar la lógica original con normalización
     $attendance = [
         'tecnico' => [],
         'ingles_nivelado' => [],
@@ -255,6 +275,54 @@ function getStudentAttendance($conn, $number_id) {
                 'course_id' => $course['course_id'],
                 'records' => $normalizedRecords
             ];
+        }
+    }
+    
+    return $attendance;
+}
+
+// Nueva función para obtener asistencias desde el JSON para la cohorte especial
+function getCohorteAttendanceFromJSON($number_id) {
+    $jsonFilePath = __DIR__ . '/components/infoWeek/cohor_one.json';
+    
+    if (!file_exists($jsonFilePath)) {
+        return [
+            'tecnico' => [],
+            'english_code' => [],
+            'habilidades' => []
+        ];
+    }
+    
+    $jsonData = json_decode(file_get_contents($jsonFilePath), true);
+    
+    if (!isset($jsonData[$number_id])) {
+        return [
+            'tecnico' => [],
+            'english_code' => [],
+            'habilidades' => []
+        ];
+    }
+    
+    $studentData = $jsonData[$number_id];
+    
+    $attendance = [];
+    
+    // Mapear los componentes del JSON a los tipos esperados
+    $componentMapping = [
+        'tech' => ['type' => 'tecnico', 'name' => 'Ciberseguridad'],
+        'english' => ['type' => 'english_code', 'name' => 'English Code'],
+        'skills' => ['type' => 'habilidades', 'name' => 'Habilidades de poder']
+    ];
+    
+    foreach ($componentMapping as $jsonKey => $mapping) {
+        if (isset($studentData[$jsonKey]) && !empty($studentData[$jsonKey])) {
+            $attendance[$mapping['type']] = [
+                'course_name' => $mapping['name'],
+                'course_id' => $jsonKey,
+                'records' => $studentData[$jsonKey]
+            ];
+        } else {
+            $attendance[$mapping['type']] = [];
         }
     }
     
@@ -577,7 +645,7 @@ function getGradeColor($grade) {
                             
                             <div class="info-item">
                                 <div class="info-label">Región y Lote</div>
-                                <div class="info-value">Región 8 - Lote <?php echo htmlspecialchars($student['lote']); ?></div>
+                                <div class="info-value"><?php echo htmlspecialchars($student['region']); ?></div>
                             </div>
                             
                             <div class="info-item">
@@ -658,7 +726,7 @@ function getGradeColor($grade) {
                             
                             <div class="info-item">
                                 <div class="info-label">Región y Lote</div>
-                                <div class="info-value">Región 8 - Lote <?php echo htmlspecialchars($student['lote']); ?></div>
+                                <div class="info-value"><?php echo htmlspecialchars($student['region']); ?></div>
                             </div>
                             
                             <div class="info-item">

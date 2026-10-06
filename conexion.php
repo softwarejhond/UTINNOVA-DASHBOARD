@@ -1,14 +1,8 @@
 <?php
-// //datos del servidor
-// $server = "localhost";
-// $username = "u609911669_dashbordinnova";
-// $password = "g3X~i$#M[Tf1";
-// $bd = "u609911669_dashbordinnova";
-
 //datos local
-$server = "localhost";
-$username = "root";
-$password = "";
+$server = "db";
+$username = "root";         // default XAMPP username
+$password = "root";         // default XAMPP password
 $bd = "utinnova";
 //creamos una conexión
 $conn = mysqli_connect($server, $username, $password, $bd);
